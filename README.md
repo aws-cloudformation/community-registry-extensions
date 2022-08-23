@@ -1,5 +1,6 @@
-This repository hosts registry extensions
-(https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html)
+# AWS CloudFormation Community Registry Extensions
+
+This repository hosts [registry extensions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html)
 that are published under the `AwsCommunity::` namespace in AWS CloudFormation.
 The CloudFormation Registry allows customers to create public and private
 [resources
@@ -13,11 +14,11 @@ hooks can be authored in Java, Go, Python, or Typescript, using the
 CLI)](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html)
 for project setup and testing. 
 
-**Discord**
+## Discord
 
 Please join us on our public Discord server dedicated to CloudFormation. [TODO - Instructions]
 
-**Open Discussions**
+## Open Discussions
 
 This repository is part of an initiative to improve open source community
 engagement around Infrastructure as Code at AWS. We are still in early phases,
@@ -50,7 +51,7 @@ so we would like community input on the direction we take.
   production and then get surprised by a breaking change because it wasn't
   obvious.
 
-**How to use these extensions**
+## How to use these extensions
 
 Log in to your AWS account and go to the CloudFormation console. Under Registry
 in the menu, select Public extensions. Search under Third Party publishers for
@@ -59,14 +60,14 @@ you author in a region where they are available and activated. Unlike public
 extensions under the AWS:: namespace, each of these community extensions must
 first be activated using the instructions [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-public.html).
 
-**Catalog of community extensions**
+## Catalog of community extensions
 
 [TODO: Auto-generated table of Name, Type, Version, Description]
 |Name|Type|Version|Description|
 |----|----|-------|-----------|
 |AwsCommunity::S3::BucketNotification|Resource|Alpha|Configure bucket notifications|
 
-**Contributing**
+## Contributing
 
 See the contributer guide (TODO)
 
