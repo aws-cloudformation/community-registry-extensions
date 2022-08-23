@@ -1,0 +1,45 @@
+{
+    "Resources": {
+        "ExtensionTestBucket": {
+            "Type": "AWS::S3::Bucket"
+        },
+        "ExtensionTestFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Role": {
+                    "Fn::GetAtt": [
+                        "ExtensionTestLambdaRole",
+                        "Arn"
+                    ]
+                },
+                "Handler": "index.handler",
+                "Code": {
+                    "ZipFile": "import json\ndef handler(event, context):\n    print(json.dumps(event))\n"
+                },
+                "Runtime": "python3.8"
+            }
+        },
+        "ExtensionTestLambdaRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            }
+                        }  
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    {  
+                        "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                    }
+                ]
+            }
+        }
+    }
+}
