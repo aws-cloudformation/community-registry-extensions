@@ -74,22 +74,69 @@
     "handlers": {
         "create": {
             "permissions": [
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "s3:PutBucketNotification",
+                "s3:GetBucketNotification",
+                "sns:AddPermission",
+                "sns:ConfirmSubscription",
+                "sns:GetTopicAttributes",
+                "sns:RemovePermission",
+                "sns:SetTopicAttributes",
+                "sqs:AddPermission",
+                "sqs:GetQueueAttributes",
+                "sqs:SetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "lambda:AddPermission",
+                "lambda:RemovePermission"
             ]
         },
         "read": {
             "permissions": [
+                "s3:GetBucketNotification",
+                "sns:ConfirmSubscription",
+                "sns:GetTopicAttributes",
+                "sqs:AddPermission",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl"
             ]
         },
         "update": {
             "permissions": [
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "s3:PutBucketNotification",
+                "s3:GetBucketNotification",
+                "sns:AddPermission",
+                "sns:ConfirmSubscription",
+                "sns:GetTopicAttributes",
+                "sns:RemovePermission",
+                "sns:SetTopicAttributes",
+                "sqs:AddPermission",
+                "sqs:GetQueueAttributes",
+                "sqs:SetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "lambda:AddPermission",
+                "lambda:RemovePermission"
             ]
         },
         "delete": {
             "permissions": [
-            ]
-        },
-        "list": {
-            "permissions": [
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "s3:PutBucketNotification",
+                "s3:GetBucketNotification",
+                "sns:AddPermission",
+                "sns:ConfirmSubscription",
+                "sns:GetTopicAttributes",
+                "sns:RemovePermission",
+                "sns:SetTopicAttributes",
+                "sqs:AddPermission",
+                "sqs:GetQueueAttributes",
+                "sqs:SetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "lambda:AddPermission",
+                "lambda:RemovePermission"
             ]
         }
     }

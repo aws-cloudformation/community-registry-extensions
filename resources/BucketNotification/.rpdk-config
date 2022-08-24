@@ -1,6 +1,6 @@
 {
     "artifact_type": "RESOURCE",
-    "typeName": "Community::S3::BucketNotification",
+    "typeName": "AwsCommunity::S3::BucketNotification",
     "language": "python37",
     "runtime": "python3.7",
     "entrypoint": "awscommunity_s3_bucketnotification.handlers.resource",

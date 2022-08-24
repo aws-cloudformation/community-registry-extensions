@@ -9,7 +9,7 @@ The `model` argument to these functions is from the auto-generated `models.Resou
 
 import json
 import logging
-from .models import ResourceModel
+from awscommunity_s3_bucketnotification.models import ResourceModel
 
 LOG = logging.getLogger(__name__)
 

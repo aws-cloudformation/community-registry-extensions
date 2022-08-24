@@ -1,4 +1,4 @@
-# AwsLabs::S3::BucketNotification KeyVal
+# AwsCommunity::S3::BucketNotification KeyVal
 
 A key value pair
 

@@ -1,4 +1,4 @@
-# AwsLabs::S3::BucketNotification
+# AwsCommunity::S3::BucketNotification
 
 Configure bucket notifications for a variety of targets.
 
@@ -10,7 +10,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 
 <pre>
 {
-    "Type" : "AwsLabs::S3::BucketNotification",
+    "Type" : "AwsCommunity::S3::BucketNotification",
     "Properties" : {
         "<a href="#id" title="Id">Id</a>" : <i>String</i>,
         "<a href="#events" title="Events">Events</a>" : <i>[ String, ... ]</i>,
@@ -25,7 +25,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 ### YAML
 
 <pre>
-Type: AwsLabs::S3::BucketNotification
+Type: AwsCommunity::S3::BucketNotification
 Properties:
     <a href="#id" title="Id">Id</a>: <i>String</i>
     <a href="#events" title="Events">Events</a>: <i>
