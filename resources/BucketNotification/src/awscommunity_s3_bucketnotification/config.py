@@ -25,10 +25,20 @@ def find(cfg, model_id):
         return notification
 
     idx = 0
+
+    # Iterate over the top level XConfigurations keys, e.g. TopicConfigurations
     for t in cfg:
+        if t not in [
+                "TopicConfigurations", 
+                "QueueConfigurations", 
+                "LambdaFunctionConfigurations"]:
+            continue
+
         if notification:
             break
         idx = 0
+
+        # Iterate over the array of notifications
         for n in cfg[t]:
             if n["Id"] == model_id:
                 notification = n
@@ -43,10 +53,9 @@ def get(session, bucket_arn, model_id):
     "Get a ResourceModel instance for this id or None if not found"
 
     # Get the full notification config on the bucket
-    s3 = session.client("s3")
-    cfg = s3.get_bucket_notification_configuration(bucket_arn)
+    cfg = get_all(session, bucket_arn)
 
-    notification = find(cfg, model_id)
+    (notification, _) = find(cfg, model_id)
     if not notification:
         return None
 
@@ -54,11 +63,11 @@ def get(session, bucket_arn, model_id):
                 BucketArn=bucket_arn, TargetArn="", TargetType="")
     model.Id = model_id
     model.BucketArn = bucket_arn
-    model.Events = notification["events"] 
+    model.Events = notification["Events"] 
     model.Filters = []
     if "Filter" in notification and "Key" in notification["Filter"]:
         if "FilterRules" in notification["Filter"]["Key"]:
-            model.Filters = notification["Fillter"]["Key"]["FilterRules"]
+            model.Filters = notification["Filter"]["Key"]["FilterRules"]
     if "TopicArn" in notification:
         model.TargetArn = notification["TopicArn"]
         model.TargetType = "Topic"
@@ -76,7 +85,10 @@ def get(session, bucket_arn, model_id):
 def get_all(session, bucket_arn):
     "Get the complete notification configuration for the bucket"
     s3 = session.client("s3")
-    cfg = s3.get_bucket_notification_configuration(bucket_arn)
+    bucket_name = bucket_arn.split(":")[-1]
+    cfg = s3.get_bucket_notification_configuration(Bucket=bucket_name)
+    if "ResponseMetadata" in cfg:
+        del cfg["ResponseMetadata"]
     return cfg
 
 def delete(session, bucket_arn, model_id):
@@ -85,9 +97,9 @@ def delete(session, bucket_arn, model_id):
     cfg = get_all(session, bucket_arn)
     if not cfg:
         raise Exception("Unable to get config for the bucket")
-    notification, idx = find(cfg, model_id)
+    (notification, idx) = find(cfg, model_id)
     if not notification:
-        return
+        raise Exception(f"Id {model_id} not found in notification config for {bucket_arn}")
 
     if "TopicArn" in notification:
         del cfg["TopicConfigurations"][idx] 
@@ -97,6 +109,8 @@ def delete(session, bucket_arn, model_id):
         del cfg["LambdaFunctionConfigurations"][idx]
     else:
         raise Exception("Unexpected notification missing Arn")
+
+    save_config(session, bucket_arn, cfg)
 
 def get_role_name(target_name, notification_id):
     "Get the name of the role we create for S3 to notify the target"
@@ -236,12 +250,27 @@ def create_role(session, notification_id, target_type, target_arn, bucket_arn):
 
     return role_name, policy_arn
 
+def save_config(session, bucket_arn, cfg):
+    "Save a configuration"
+
+    s3 = session.client("s3")
+
+    # This always fails if False. Not good, since we can't tell if we 
+    # actually made a mistake in configuration. TODO
+    skip_validation = True
+    
+    bucket_name = bucket_arn.split(":")[-1]
+
+    # Re-create the entire notification configuration for the bucket 
+    _ = s3.put_bucket_notification_configuration(Bucket=bucket_name, 
+            NotificationConfiguration=cfg, 
+            SkipDestinationValidation=skip_validation)
+
 def save(session, model):
     "Save a single notification configuration"
 
     # Get the current configuration for the bucket
-    s3 = session.client("s3")
-    cfg = s3.get_bucket_notification_configuration(model.bucketArn)
+    cfg = get_all(session, model.BucketArn)
     put_config = {}
     put_config["Bucket"] = model.BucketArn
     put_config["NotificationConfiguration"] = cfg
@@ -256,7 +285,7 @@ def save(session, model):
     else:
         raise Exception("Unexpected TargetType:" + model.TargetType)
 
-    notification = find(cfg, model.Id)
+    (notification, _) = find(cfg, model.Id)
 
     # If the notification is not present, create it 
     if not notification:
@@ -273,13 +302,12 @@ def save(session, model):
     else:
         notification["TopicArn"] = model.TargetArn
     notification["Events"] = model.Events
-    notification["Filters"] = {}
-    notification["Filters"]["Key"] = {}
-    notification["Filters"]["Key"]["FilterRules"] = model.Filters
+    notification["Filter"] = {}
+    notification["Filter"]["Key"] = {}
+    notification["Filter"]["Key"]["FilterRules"] = model.Filters
 
     # Create the role needed for S3 to notify the target
     create_role(session, model.Id, model.TargetType, model.TargetArn, model.BucketArn)
 
-    # Re-create the entire notification configuration for the bucket 
-    _ = s3.put_bucket_notification_configuration(**cfg)
+    save_config(session, model.BucketArn, cfg)
 

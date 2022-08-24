@@ -12,10 +12,13 @@ import time
 import boto3
 
 from awscommunity_s3_bucketnotification.config import create_role, delete_role
+from awscommunity_s3_bucketnotification.config import get, save, delete, get_all
+from awscommunity_s3_bucketnotification.models import ResourceModel
 
 LOG = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
-def main():
+def main(): #pylint: disable=too-many-branches
     "Execute the tests and clean up"
 
     # Create the S3 client
@@ -142,17 +145,21 @@ def main():
         # Create notifications for each target type
         # (Note that we aren't testing the notifications themselves, only the config)
 
+        ORIG_TOPIC_1 = "topic1"
+        ORIG_QUEUE_1 = "queue1"
+        ORIG_FUNCTION_1 = "func1"
+
         original_configs = {
             "TopicConfigurations": [
                 {
-                    "Id": "topic1", 
+                    "Id": ORIG_TOPIC_1, 
                     "TopicArn": topic_arn,
                     "Events": ["s3:ObjectCreated:*"],
                     "Filter": {
                         "Key": {
                             "FilterRules": [
                                 {
-                                    "Name": "suffix",
+                                    "Name": "Suffix",
                                     "Value": "jpg"
                                 }
                             ]
@@ -162,14 +169,14 @@ def main():
             ],
             "QueueConfigurations": [
                 {
-                    "Id": "queue1", 
+                    "Id": ORIG_QUEUE_1, 
                     "QueueArn": queue_arn,
                     "Events": ["s3:ObjectCreated:*"],
                     "Filter": {
                         "Key": {
                             "FilterRules": [
                                 {
-                                    "Name": "suffix",
+                                    "Name": "Suffix",
                                     "Value": "png"
                                 }
                             ]
@@ -179,14 +186,14 @@ def main():
             ],
             "LambdaFunctionConfigurations": [
                 {
-                    "Id": "function1", 
+                    "Id": ORIG_FUNCTION_1, 
                     "LambdaFunctionArn": function_arn,
                     "Events": ["s3:ObjectCreated:*"],
                     "Filter": {
                         "Key": {
                             "FilterRules": [
                                 {
-                                    "Name": "suffix",
+                                    "Name": "Suffix",
                                     "Value": "gif"
                                 }
                             ]
@@ -200,18 +207,22 @@ def main():
         # the permissions have not yet propagated.
         tries = 0
         succeeded = False
-        max_tries = 10
+        max_tries = 1
         while tries < max_tries:
             try:
                 tries = tries + 1
                 print("About to try putting notification config")
                 r = s3.put_bucket_notification_configuration(
                         Bucket=bucket_name,
-                        NotificationConfiguration=original_configs)
+                        NotificationConfiguration=original_configs,
+                        SkipDestinationValidation=True)
+                # Skipping validation... can't get this to succeed, even with retries
+                # Confirmed that the targets are valid by creating the same thing
+                # in the console.
                 print("Successfully put the notification config")
                 succeeded = True
                 break
-            except Exception as e:
+            except Exception:
                 if tries >= max_tries:
                     raise
                 print("Retrying for InvalidArgument exception")
@@ -221,27 +232,74 @@ def main():
 
         def validate_config(orig, current):
             "Validate that the original config has not changed"
+
+            # Iterate over the top level keys: TopicConfgurations, etc
             for key in orig:
                 if key not in current:
                     raise Exception("Missing " + key)
-                for orig_item in orig[key]:
-                    same = False
-                    for cur_item in current[key]:
-                        if cur_item == orig_item:
-                            same = True
-                            break
-                    if not same:
-                        raise Exception("Not the same: " + orig_item["Id"])
 
-        r = s3.get_bucket_notification_configuration(Bucket=bucket_name)
+                # Iterate over the array of notifications under each XConfiguration
+                for orig_item in orig[key]:
+
+                    # Check each notification in the current config for a matching key
+                    id_found = False
+                    for cur_item in current[key]:
+                        if cur_item["Id"] == orig_item["Id"]:
+                            id_found = True
+                            # Make sure the dict hasn't changed
+                            if cur_item != orig_item:
+                                print("cur_item", json.dumps(cur_item))
+                                print("orig_item", json.dumps(orig_item))
+                                raise Exception("Not the same: " + orig_item["Id"])
+                    if not id_found:
+                        raise Exception(f"Did not find {orig_item['Id']} in {key}")
+
+        r = get_all(session, bucket_arn)
         validate_config(original_configs, r)
 
+        # Test getting a notification
+        topic1 = get(session, bucket_arn, ORIG_TOPIC_1)
+        if not topic1:
+            raise Exception("Unable to get original topic")
+        orig_topic = original_configs["TopicConfigurations"][0]
+        assert orig_topic["Id"] == topic1.Id
+        assert orig_topic["Events"] == topic1.Events
+        assert orig_topic["Filter"]["Key"]["FilterRules"] == topic1.Filters
+        assert orig_topic["TopicArn"] == topic1.TargetArn
+
         # Model a new notification and save it
+        NEW_ID = "topic2"
+        model = ResourceModel(Id=NEW_ID, 
+                Events=["s3:ObjectRemoved:*"], 
+                Filters=[{"Name": "Suffix", "Value": "xyz"}],
+                BucketArn=bucket_arn,
+                TargetType="Topic",
+                TargetArn=topic_arn)
+        save(session, model)
+
         # Make sure none of the other notifications changed
+        r = get_all(session, bucket_arn)
+        validate_config(original_configs, r)
+
         # Alter a notification
+        model.Events.append("s3:ObjectRestore:*")
+        save(session, model)
+
         # Make sure none of the others changed
+        r = get_all(session, bucket_arn)
+        validate_config(original_configs, r)
+        
         # Delete the new notification
+        delete(session, bucket_arn, NEW_ID)
+
         # Make sure none of the others changed
+        r = get_all(session, bucket_arn)
+        validate_config(original_configs, r)
+
+        # Make sure it was actually deleted
+        print("r", json.dumps(r))
+        assert len(r["TopicConfigurations"]) == 1
+        assert r["TopicConfigurations"][0]["Id"] == ORIG_TOPIC_1
 
         print("Done. All tests passed")
     except Exception as e:
