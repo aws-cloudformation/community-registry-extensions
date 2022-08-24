@@ -100,7 +100,7 @@ def delete(session, bucket_arn, model_id):
 
 def get_role_name(target_name, notification_id):
     "Get the name of the role we create for S3 to notify the target"
-    return target_name + "-bucketnotification-" + notification_id + "-role"
+    return target_name + "-bktntf-" + notification_id
 
 def get_policy_name(role_name):
     "Get the policy name for the role we create"
@@ -112,12 +112,18 @@ def delete_role(session, role_name, policy_arn):
     iam = session.client("iam")
 
     try:
-        iam.delete_policy(PolicyArn=policy_arn)
+        if policy_arn:
+            iam.delete_policy(PolicyArn=policy_arn)
+        else:
+            LOG.info("Unable to delete policy without policy_arn")
     except iam.exceptions.NoSuchEntityException:
         LOG.info("Tried to delete non-existent policy: %s", policy_arn)
 
     try:
-        iam.delete_role(RoleName=role_name)
+        if role_name:
+            iam.delete_role(RoleName=role_name)
+        else:
+            LOG.info("Unable to delete role without role_name")
     except iam.exceptions.NoSuchEntityException:
         LOG.info("Tried to delete non-existent role: %s", role_name)
 
@@ -126,14 +132,16 @@ def create_role(session, notification_id, target_type, target_arn, bucket_arn):
 
     target_name = target_arn.split(":")[-1]
     iam = session.client("iam")
+    sts = session.client("sts")
+    account_id = sts.get_caller_identity()["Account"]
 
     action = ""
     if target_type == "Queue":
         action = "sqs:SendMessage"
     elif target_type == "Topic":
-        action = "sns:Publish"
+        action = "SNS:Publish"
     elif target_type == "Function":
-        action = "lambda.InvokeFunction"
+        action = "lambda:InvokeFunction"
     else:
         raise Exception(f"Unexpected TargetType: {target_type}")
 
@@ -174,25 +182,53 @@ def create_role(session, notification_id, target_type, target_arn, bucket_arn):
             "Condition": {
                 "ArnLike": {
                     "aws:SourceArn": bucket_arn
+                },
+                "StringEquals": {
+                    "aws:SourceAccount": account_id
                 }
             }
         } ]
     }
-    policy_name = get_policy_name(role_name)
+
     policy_arn = None
 
-    # Check to see if the policy exists before creating. As with the role, 
-    # this should not happen, but we will assume it was the result of a prior
-    # attempt to create the resource that went wrong somehow.
-    try:
-        r = iam.get_policy(PolicyName=policy_name)
-        LOG.info("Policy already existed: %s", policy_name)
-    except iam.exceptions.NoSuchEntityException:
-        LOG.info("Creating policy: %s", policy_name)
-        r = iam.create_policy(
-            PolicyName=policy_name,
-            PolicyDocument=json.dumps(policy))
-        policy_arn = r["Policy"]["Arn"]
+    if target_type in ["Queue", "Topic"]:
+        # For queues and topics we set the policy on the resource itself, 
+        # rather than on the role.
+        policy["Statement"][0]["Principal"] = { "Service": "s3.amazonaws.com" }
+        if target_type == "Queue":
+            sqs = session.client("sqs")
+            queue_url = sqs.get_queue_url(QueueName=target_name)["QueueUrl"]
+            sqs.set_queue_attributes(
+                QueueUrl=queue_url,
+                Attributes = {
+                    "Policy": json.dumps(policy)
+                }
+            )
+        else:
+            sns = session.client("sns")
+            sns.set_topic_attributes(
+                TopicArn=target_arn,
+                AttributeName="Policy",
+                AttributeValue=json.dumps(policy)
+            )
+    else:
+        # For lambda functions, we put the policy on the role
+        policy_name = get_policy_name(role_name)
+        policy_arn = f"arn:aws:iam::{account_id}:policy/{policy_name}"
+
+        # Check to see if the policy exists before creating. As with the role, 
+        # this should not happen, but we will assume it was the result of a prior
+        # attempt to create the resource that went wrong somehow.
+        try:
+            r = iam.get_policy(PolicyArn=policy_arn)
+            LOG.info("Policy already existed: %s", policy_arn)
+        except iam.exceptions.NoSuchEntityException:
+            LOG.info("Creating policy: %s", policy_name)
+            r = iam.create_policy(
+                PolicyName=policy_name,
+                PolicyDocument=json.dumps(policy))
+            policy_arn = r["Policy"]["Arn"]
 
     r = iam.get_role(RoleName=role_name)
     role_arn = r["Role"]["Arn"]

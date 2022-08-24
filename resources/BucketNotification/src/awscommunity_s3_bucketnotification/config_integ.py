@@ -11,7 +11,7 @@ import sys
 import time
 import boto3
 
-from bucketnotification.config import get, save, delete, create_role, delete_role
+from awscommunity_s3_bucketnotification.config import create_role, delete_role
 
 LOG = logging.getLogger(__name__)
 
@@ -35,6 +35,7 @@ def main():
     queue_url = None
     queue_arn = None
     topic_name = "bucketnotification-config-integ"
+    topic_arn = None
     function_name = "bucketnotification-config-integ"
     function_arn = None
     function_role_name = "bucketnotification-config-integ-function"
@@ -61,7 +62,22 @@ def main():
         # Create an SQS Queue
         print("About to create test queue:", queue_name)
 
-        r = sqs.create_queue(QueueName=queue_name)
+        r = None
+        tries = 0
+        succeeded = False
+        while tries < 6:
+            try:
+                r = sqs.create_queue(QueueName=queue_name)
+                succeeded = True
+                break
+            except sqs.exceptions.QueueDeletedRecently:
+                print("Waiting 10 seconds to retry creating queue")
+                tries = tries + 1
+                time.sleep(10)
+
+        if not succeeded:
+            raise Exception("Exceeded max retries for creating queue")
+
         queue_url = r["QueueUrl"]
         r = sqs.get_queue_attributes(
             QueueUrl=queue_url,
@@ -78,7 +94,7 @@ def main():
         r = sns.create_topic(Name=topic_name)
         topic_arn = r["TopicArn"]
         (topic_role_name, topic_role_policy_arn) = create_role(session,
-                "TopicTest1", "Topic", topic_arn, bucket_arn)
+                "Topic1", "Topic", topic_arn, bucket_arn)
 
         print("Created topic:", topic_arn)
 
@@ -120,7 +136,7 @@ def main():
                 Code=dict(ZipFile=zipped_code))
         function_arn = r["FunctionArn"]
         (function_invoke_role_name, function_invoke_role_policy_arn) = \
-            create_role(session,"FuncTest1", "Function", function_arn, bucket_arn)
+            create_role(session, "FuncTest1", "Function", function_arn, bucket_arn)
         print("Created function:", r["FunctionArn"])
 
         # Create notifications for each target type
@@ -180,9 +196,28 @@ def main():
             ]
         }
 
-        r = s3.put_bucket_notification_configuration(
-                Bucket=bucket_name,
-                NotificationConfiguration=original_configs)
+        # S3 has to verify that it can send the notifications, and sometimes
+        # the permissions have not yet propagated.
+        tries = 0
+        succeeded = False
+        max_tries = 10
+        while tries < max_tries:
+            try:
+                tries = tries + 1
+                print("About to try putting notification config")
+                r = s3.put_bucket_notification_configuration(
+                        Bucket=bucket_name,
+                        NotificationConfiguration=original_configs)
+                print("Successfully put the notification config")
+                succeeded = True
+                break
+            except Exception as e:
+                if tries >= max_tries:
+                    raise
+                print("Retrying for InvalidArgument exception")
+                time.sleep(10)
+        if not succeeded:
+            raise Exception("Exceeded max tries to put bucket notification confguration")
 
         def validate_config(orig, current):
             "Validate that the original config has not changed"
@@ -213,63 +248,67 @@ def main():
         print("Tests failed")
         LOG.exception(e) 
 
-    try:
-        # Delete the queue
-        sqs.delete_queue(QueueUrl=queue_url)
-        print("Deleted test queue:", queue_url)
-    except Exception as e:
-        LOG.exception(e) 
+    cleanup = True
 
-    try:
-        # Delete the queue role
-        delete_role(session, queue_role_name, queue_role_policy_arn)
-        print("Deleted test queue:", queue_url)
-    except Exception as e:
-        LOG.exception(e) 
+    if cleanup:
 
-    try:
-        # Delete the topic
-        sns.delete_topic(TopicArn=topic_arn)
-        print("Deleted topic:", topic_arn)
-    except Exception as e:
-        LOG.exception(e) 
+        try:
+            # Delete the queue
+            sqs.delete_queue(QueueUrl=queue_url)
+            print("Deleted test queue:", queue_url)
+        except Exception as e:
+            LOG.exception(e) 
 
-    try:
-        # Delete the topic role
-        delete_role(session, topic_role_name, topic_role_policy_arn)
-        print("Deleted topic:", topic_arn)
-    except Exception as e:
-        LOG.exception(e) 
+        try:
+            # Delete the queue role
+            delete_role(session, queue_role_name, queue_role_policy_arn)
+            print("Deleted test queue role:", queue_role_name)
+        except Exception as e:
+            LOG.exception(e) 
 
-    try:
-        # Delete the function
-        lam.delete_function(FunctionName=function_name)
-        print("Deleted function:", function_name)
-    except Exception as e:
-        LOG.exception(e) 
+        try:
+            # Delete the topic
+            sns.delete_topic(TopicArn=topic_arn)
+            print("Deleted topic:", topic_arn)
+        except Exception as e:
+            LOG.exception(e) 
 
-    try:
-        # Delete the function invoke role
-        delete_role(session, function_invoke_role_name, function_invoke_role_policy_arn)
-        print("Deleted function:", function_name)
-    except Exception as e:
-        LOG.exception(e) 
+        try:
+            # Delete the topic role
+            delete_role(session, topic_role_name, topic_role_policy_arn)
+            print("Deleted topic role:", topic_role_name)
+        except Exception as e:
+            LOG.exception(e) 
 
-    try:
-        # Delete the function role
-        iam.delete_role(RoleName=function_role_name)
-        print("Deleted function role:", function_role_name)
-    except Exception as e:
-        LOG.exception(e) 
+        try:
+            # Delete the function
+            lam.delete_function(FunctionName=function_name)
+            print("Deleted function:", function_name)
+        except Exception as e:
+            LOG.exception(e) 
 
-    try:
-        # Delete the bucket
-        s3.delete_bucket(Bucket=bucket_name)
-        print("Deleted bucket: ", bucket_name)
-    except Exception as e:
-        LOG.exception(e) 
+        try:
+            # Delete the function invoke role
+            delete_role(session, function_invoke_role_name, function_invoke_role_policy_arn)
+            print("Deleted function invoke role:", function_invoke_role_name)
+        except Exception as e:
+            LOG.exception(e) 
 
-    print("Cleanup complete")
+        try:
+            # Delete the function role
+            iam.delete_role(RoleName=function_role_name)
+            print("Deleted function role:", function_role_name)
+        except Exception as e:
+            LOG.exception(e) 
+
+        try:
+            # Delete the bucket
+            s3.delete_bucket(Bucket=bucket_name)
+            print("Deleted bucket: ", bucket_name)
+        except Exception as e:
+            LOG.exception(e) 
+
+        print("Cleanup complete")
 
 if __name__ == "__main__":
     main()
