@@ -127,5 +127,3 @@ dmypy.json
 sam-tests/
 
 rpdk.log*
-awscommunity-s3-bucketnotification.zip
-

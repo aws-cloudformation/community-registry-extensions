@@ -32,12 +32,7 @@ test_entrypoint = resource.test_entrypoint
 def create_handler(session, request, callback_context):
     "Create the bucket notification"
 
-    LOG.debug(json.dumps(session))
-    LOG.debug(json.dumps(request))
-    LOG.debug(json.dumps(callback_context))
-
     model = request.desiredResourceState
-    LOG.debug(json.dumps(model))
 
     progress = ProgressEvent(
         status=OperationStatus.IN_PROGRESS,
@@ -63,12 +58,8 @@ def update_handler(session, request, callback_context):
 def delete_handler(session, request, callback_context):
     "Delete the bucket notification"
 
-    LOG.debug(json.dumps(session))
-    LOG.debug(json.dumps(request))
-    LOG.debug(json.dumps(callback_context))
     
     model = request.desiredResourceState
-    LOG.debug(json.dumps(model))
 
     progress: ProgressEvent = ProgressEvent(
         status=OperationStatus.IN_PROGRESS,
@@ -87,13 +78,9 @@ def delete_handler(session, request, callback_context):
 def read_handler(session, request, callback_context):
     "Read the bucket notification"
 
-    LOG.debug(json.dumps(session))
-    LOG.debug(json.dumps(request))
-    LOG.debug(json.dumps(callback_context))
     
     model = request.desiredResourceState
     LOG.debug("read_handler")
-    LOG.debug(json.dumps(model))
 
     try:
         model = get(session, model.BucketArn, model.Id)
@@ -116,9 +103,6 @@ def read_handler(session, request, callback_context):
 #def list_handler(session, request, callback_context):
 #    "List bucket notifications"
 #
-#    LOG.debug(json.dumps(session))
-#    LOG.debug(json.dumps(request))
-#    LOG.debug(json.dumps(callback_context))
 #    
 #    progress: ProgressEvent = ProgressEvent(
 #        status=OperationStatus.IN_PROGRESS,
