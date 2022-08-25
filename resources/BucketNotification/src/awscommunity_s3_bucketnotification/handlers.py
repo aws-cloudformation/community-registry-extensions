@@ -13,8 +13,12 @@ from cloudformation_cli_python_lib import (
     exceptions,
 )
 
-from awscommunity_s3_bucketnotification.config import get, save, delete
-from awscommunity_s3_bucketnotification.models import ResourceModel
+#from awscommunity_s3_bucketnotification.config import get, save, delete
+#from awscommunity_s3_bucketnotification.models import ResourceModel
+
+from .config import get, save, delete
+from .models import ResourceModel
+
 
 # Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)

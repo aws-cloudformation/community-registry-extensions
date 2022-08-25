@@ -1,5 +1,5 @@
 {
-    "typeName": "CommunityAlpha::S3::BucketNotification",
+    "typeName": "AwsCommunity::S3::BucketNotification",
     "description": "Configure bucket notifications for a variety of targets.",
     "sourceUrl": "https://github.com/aws-cloudformation/awslabs-registry-extension-bucket-notification.git",
     "definitions": { 
@@ -58,18 +58,18 @@
     "additionalProperties": false,
     "required": [
         "Id",
-        "Event",
+        "Events",
         "BucketArn",
         "TargetArn",
         "TargetType"
     ],
     "primaryIdentifier": [
-        "Id",
-        "BucketArn"
+        "/properties/Id",
+        "/properties/BucketArn"
     ],
     "createOnlyProperties": [
-        "Id",
-        "BucketArn"
+        "/properties/Id",
+        "/properties/BucketArn"
     ],
     "handlers": {
         "create": {

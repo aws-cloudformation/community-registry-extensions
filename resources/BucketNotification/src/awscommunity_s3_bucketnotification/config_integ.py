@@ -4,31 +4,27 @@ Make sure creating, editing, and deleting individual notifications
 always leaves the remaining bucket notifications exactly as they were.
 """
 
-import argparse
+#import argparse
 import json
 import logging
 import sys
 import time
 import boto3
 
-from awscommunity_s3_bucketnotification.config import create_role, delete_role
-from awscommunity_s3_bucketnotification.config import get, save, delete, get_all
-from awscommunity_s3_bucketnotification.models import ResourceModel
+#from awscommunity_s3_bucketnotification.config import create_role, delete_role
+#from awscommunity_s3_bucketnotification.config import get, save, delete, get_all
+#from awscommunity_s3_bucketnotification.models import ResourceModel
+from .config import create_role, delete_role
+from .config import get, save, delete, get_all
+from .models import ResourceModel
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-def main(): #pylint: disable=too-many-branches
+def main(profile_name): #pylint: disable=too-many-branches
     "Execute the tests and clean up"
 
-    # Create the S3 client
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--profile', help='Use a specific AWS config profile')
-    args = parser.parse_args()
-    if not args.profile:
-        sys.exit("--profile is required")
-
-    session = boto3.Session(profile_name=args.profile)
+    session = boto3.Session(profile_name=profile_name)
     sts = session.client('sts')
     identity = sts.get_caller_identity()
     account_id = identity["Account"]
@@ -129,7 +125,7 @@ def main(): #pylint: disable=too-many-branches
         function_role_arn = r["Role"]["Arn"]
         print("Created function role:", function_role_arn)
 
-        with open('test_lambda.zip', 'rb') as f:
+        with open('awscommunity_s3_bucketnotification/test_lambda.zip', 'rb') as f:
             zipped_code = f.read()
 
         r = lam.create_function(FunctionName=function_name,
