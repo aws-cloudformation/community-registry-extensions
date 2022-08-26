@@ -1,0 +1,21 @@
+Resources:
+  Queue:
+    Type: AWS::SQS::Queue
+  Bucket:
+    Type: AWS::S3::Bucket
+  Notification:
+    Type: AwsCommunity::S3::BucketNotification
+    Properties:
+      Id: MyNotification
+      Events: 
+        - s3:ObjectCreated:*
+      Filters:
+        - Name: suffix
+          Value: gif
+      BucketArn: !GetAtt Bucket.Arn
+      TargetType: Queue
+      TargetArn: !GetAtt Queue.Arn
+    DependsOn:
+      - Bucket
+      - Queue
+

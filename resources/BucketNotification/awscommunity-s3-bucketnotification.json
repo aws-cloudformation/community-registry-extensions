@@ -1,0 +1,143 @@
+{
+    "typeName": "AwsCommunity::S3::BucketNotification",
+    "description": "Configure bucket notifications for a variety of targets.",
+    "sourceUrl": "https://github.com/aws-cloudformation/awslabs-registry-extension-bucket-notification.git",
+    "definitions": { 
+        "KeyVal": {
+            "description": "A key value pair",
+            "type": "object",
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "Value": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "tagging": {
+        "taggable": false
+    },
+    "properties": {
+        "Id": {
+            "description": "A unique identifier for the notification. This is required, since we have to query all notifications configured on the bucket in order to leave any of them not defined here intact.",
+            "type": "string"
+        },
+        "Events": {
+            "description": "The S3 event types. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-event-types-and-destinations.html#supported-notification-event-types",
+            "type": "array",
+            "insertionOrder": false,
+            "items": {
+                "type": "string"
+            }
+        },
+        "Filters": {
+            "description": "The filters to apply to events",
+            "type": "array",
+            "insertionOrder": false,
+            "items": {
+                "$ref": "#/definitions/KeyVal"
+            }
+        },
+        "BucketArn": {
+            "description": "The ARN of the bucket",
+            "type": "string"
+        },
+        "TargetArn": {
+            "description": "The ARN to the Lambda Function, SQS Queue, or SNS Topic",
+            "type": "string"
+        },
+        "TargetType": {
+            "description": "The target type, Function, Queue, or Topic", 
+            "type": "string", 
+            "enum": [ "Function", "Queue", "Topic" ]
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "Id",
+        "Events",
+        "BucketArn",
+        "TargetArn",
+        "TargetType"
+    ],
+    "primaryIdentifier": [
+        "/properties/Id",
+        "/properties/BucketArn"
+    ],
+    "createOnlyProperties": [
+        "/properties/Id",
+        "/properties/BucketArn"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "s3:PutBucketNotification",
+                "s3:GetBucketNotification",
+                "sns:AddPermission",
+                "sns:ConfirmSubscription",
+                "sns:GetTopicAttributes",
+                "sns:RemovePermission",
+                "sns:SetTopicAttributes",
+                "sqs:AddPermission",
+                "sqs:GetQueueAttributes",
+                "sqs:SetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "lambda:AddPermission",
+                "lambda:RemovePermission"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "s3:GetBucketNotification",
+                "sns:ConfirmSubscription",
+                "sns:GetTopicAttributes",
+                "sqs:AddPermission",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "s3:PutBucketNotification",
+                "s3:GetBucketNotification",
+                "sns:AddPermission",
+                "sns:ConfirmSubscription",
+                "sns:GetTopicAttributes",
+                "sns:RemovePermission",
+                "sns:SetTopicAttributes",
+                "sqs:AddPermission",
+                "sqs:GetQueueAttributes",
+                "sqs:SetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "lambda:AddPermission",
+                "lambda:RemovePermission"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "s3:PutBucketNotification",
+                "s3:GetBucketNotification",
+                "sns:AddPermission",
+                "sns:ConfirmSubscription",
+                "sns:GetTopicAttributes",
+                "sns:RemovePermission",
+                "sns:SetTopicAttributes",
+                "sqs:AddPermission",
+                "sqs:GetQueueAttributes",
+                "sqs:SetQueueAttributes",
+                "sqs:GetQueueUrl",
+                "lambda:AddPermission",
+                "lambda:RemovePermission"
+            ]
+        }
+    }
+}
