@@ -1,0 +1,5 @@
+AWS::S3::Bucket {
+    Properties {
+        BucketName is_string
+    }
+}
