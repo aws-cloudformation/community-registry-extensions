@@ -4,19 +4,14 @@ Make sure creating, editing, and deleting individual notifications
 always leaves the remaining bucket notifications exactly as they were.
 """
 
-#import argparse
 import json
 import logging
-import sys
 import time
 import boto3
 
-#from awscommunity_s3_bucketnotification.config import create_role, delete_role
-#from awscommunity_s3_bucketnotification.config import get, save, delete, get_all
-#from awscommunity_s3_bucketnotification.models import ResourceModel
 from .config import create_role, delete_role
 from .config import get, save, delete, get_all
-from .models import ResourceModel
+from .models import ResourceModel, KeyVal
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -260,18 +255,23 @@ def main(profile_name): #pylint: disable=too-many-branches
         orig_topic = original_configs["TopicConfigurations"][0]
         assert orig_topic["Id"] == topic1.Id
         assert orig_topic["Events"] == topic1.Events
-        assert orig_topic["Filter"]["Key"]["FilterRules"] == topic1.Filters
+        for rule in orig_topic["Filter"]["Key"]["FilterRules"]:
+            found = False
+            for kv in topic1.Filters:
+                if kv.Name == rule["Name"] and kv.Value == rule["Value"]:
+                    found = True
+            assert found
         assert orig_topic["TopicArn"] == topic1.TargetArn
 
         # Model a new notification and save it
         NEW_ID = "topic2"
         model = ResourceModel(Id=NEW_ID, 
                 Events=["s3:ObjectRemoved:*"], 
-                Filters=[{"Name": "Suffix", "Value": "xyz"}],
+                Filters=[KeyVal(Name="Suffix", Value="xyz")],
                 BucketArn=bucket_arn,
                 TargetType="Topic",
                 TargetArn=topic_arn)
-        save(session, model)
+        save(session, model, True)
 
         # Make sure none of the other notifications changed
         r = get_all(session, bucket_arn)
@@ -279,7 +279,7 @@ def main(profile_name): #pylint: disable=too-many-branches
 
         # Alter a notification
         model.Events.append("s3:ObjectRestore:*")
-        save(session, model)
+        save(session, model, False)
 
         # Make sure none of the others changed
         r = get_all(session, bucket_arn)
@@ -364,5 +364,3 @@ def main(profile_name): #pylint: disable=too-many-branches
 
         print("Cleanup complete")
 
-if __name__ == "__main__":
-    main()

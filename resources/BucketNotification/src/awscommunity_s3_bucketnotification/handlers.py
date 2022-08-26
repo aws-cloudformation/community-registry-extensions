@@ -2,23 +2,21 @@
 Resource handler implementation for AwsCommunity::S3::BucketNotification
 """
 
-import json
 import logging
 
 from cloudformation_cli_python_lib import (
     Action,
     OperationStatus,
     ProgressEvent,
+    HandlerErrorCode,
     Resource,
     exceptions,
 )
 
-#from awscommunity_s3_bucketnotification.config import get, save, delete
-#from awscommunity_s3_bucketnotification.models import ResourceModel
-
 from .config import get, save, delete
 from .models import ResourceModel
 
+VALID_TARGET_TYPES = ["Queue", "Topic", "LambdaFunction"]
 
 # Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
@@ -29,33 +27,81 @@ resource = Resource(TYPE_NAME, ResourceModel)
 test_entrypoint = resource.test_entrypoint
 
 @resource.handler(Action.CREATE)
-def create_handler(session, request, callback_context):
+def create_handler(session, request, callback_context): #pylint:disable=unused-argument
     "Create the bucket notification"
 
     model = request.desiredResourceState
+
+    print("create_handler")
+    print(model.Id)
+    print(model.BucketArn)
+    print(model.TargetType)
+    print(model.TargetArn)
+    print(model.Events)
+    print(model.Filters)
 
     progress = ProgressEvent(
         status=OperationStatus.IN_PROGRESS,
         resourceModel=model,
     )
+
+    if model.TargetType not in VALID_TARGET_TYPES:
+        progress.status = OperationStatus.FAILED
+        progress.errorCode = HandlerErrorCode.InvalidTypeConfiguration
+        progress.message = "Invalid TargetType"
+        return progress
+
     try:
-        save(session, model)
-        progress.status = OperationStatus.SUCCESS
+        if save(session, model, True):
+            progress.status = OperationStatus.SUCCESS
+        else:
+            progress.status = OperationStatus.FAILED
+            progress.errorCode = HandlerErrorCode.AlreadyExists
+            progress.message = "Already exists"
     except Exception as e:
         raise exceptions.InternalFailure(e)
 
     return progress
 
 @resource.handler(Action.UPDATE)
-def update_handler(session, request, callback_context):
+def update_handler(session, request, callback_context): #pylint:disable=unused-argument
     "Update the bucket notification"
 
-    LOG.info("update_handler calling create_handler")
+    model = request.desiredResourceState
 
-    return create_handler(session, request, callback_context)
+    print("update_handler")
+    print(model.Id)
+    print(model.BucketArn)
+    print(model.TargetType)
+    print(model.TargetArn)
+    print(model.Events)
+    print(model.Filters)
+
+    progress = ProgressEvent(
+        status=OperationStatus.IN_PROGRESS,
+        resourceModel=model,
+    )
+
+    if model.TargetType not in VALID_TARGET_TYPES:
+        progress.status = OperationStatus.FAILED
+        progress.errorCode = HandlerErrorCode.InvalidTypeConfiguration
+        progress.message = "Invalid TargetType"
+        return progress
+
+    try:
+        if save(session, model, False):
+            progress.status = OperationStatus.SUCCESS
+        else:
+            progress.status = OperationStatus.FAILED
+            progress.errorCode = HandlerErrorCode.NotFound
+            progress.message = "Id not found"
+    except Exception as e:
+        raise exceptions.InternalFailure(e)
+
+    return progress
 
 @resource.handler(Action.DELETE)
-def delete_handler(session, request, callback_context):
+def delete_handler(session, request, callback_context): #pylint:disable=unused-argument
     "Delete the bucket notification"
 
     
@@ -66,8 +112,12 @@ def delete_handler(session, request, callback_context):
         resourceModel=None,
     )
     try:
-        delete(session, model.BucketArn, model.Id)
-        progress.status = OperationStatus.SUCCESS
+        if delete(session, model.BucketArn, model.Id):
+            progress.status = OperationStatus.SUCCESS
+        else:
+            progress.status = OperationStatus.FAILED
+            progress.errorCode = HandlerErrorCode.NotFound
+            progress.message = "Not found"
     except Exception as e:
         raise exceptions.InternalFailure(e)
 
@@ -75,25 +125,27 @@ def delete_handler(session, request, callback_context):
 
 
 @resource.handler(Action.READ)
-def read_handler(session, request, callback_context):
+def read_handler(session, request, callback_context): #pylint:disable=unused-argument
     "Read the bucket notification"
 
-    
     model = request.desiredResourceState
-    LOG.debug("read_handler")
+    print("read_handler")
 
     try:
         model = get(session, model.BucketArn, model.Id)
 
-        progress: ProgressEvent = ProgressEvent(
-            status=OperationStatus.IN_PROGRESS,
-            resourceModel=model,
+        if model:
+            return ProgressEvent(
+                status = OperationStatus.SUCCESS,
+                resourceModel=model
+            )
+        return ProgressEvent(
+            status = OperationStatus.FAILED,
+            errorCode = HandlerErrorCode.NotFound,
+            message = "Not found"
         )
-        progress.status = OperationStatus.SUCCESS
     except Exception as e:
         raise exceptions.InternalFailure(e)
-
-    return progress
 
 # It doesn't really make sense for us to implement a list handler here, 
 # since we can't tell if we created the bucket notifications on all 

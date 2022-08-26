@@ -9,8 +9,7 @@ The `model` argument to these functions is from the auto-generated `models.Resou
 
 import json
 import logging
-#from awscommunity_s3_bucketnotification.models import ResourceModel
-from .models import ResourceModel
+from .models import ResourceModel, KeyVal
 
 LOG = logging.getLogger(__name__)
 
@@ -68,7 +67,9 @@ def get(session, bucket_arn, model_id):
     model.Filters = []
     if "Filter" in notification and "Key" in notification["Filter"]:
         if "FilterRules" in notification["Filter"]["Key"]:
-            model.Filters = notification["Filter"]["Key"]["FilterRules"]
+            for f in notification["Filter"]["Key"]["FilterRules"]:
+                kv = KeyVal(Name=f["Name"], Value=f["Value"])
+                model.Filters.append(kv)
     if "TopicArn" in notification:
         model.TargetArn = notification["TopicArn"]
         model.TargetType = "Topic"
@@ -90,6 +91,7 @@ def get_all(session, bucket_arn):
     cfg = s3.get_bucket_notification_configuration(Bucket=bucket_name)
     if "ResponseMetadata" in cfg:
         del cfg["ResponseMetadata"]
+    print("get_all:", json.dumps(cfg))
     return cfg
 
 def delete(session, bucket_arn, model_id):
@@ -97,10 +99,14 @@ def delete(session, bucket_arn, model_id):
 
     cfg = get_all(session, bucket_arn)
     if not cfg:
-        raise Exception("Unable to get config for the bucket")
+        print("Found empty cfg when trying to delete", bucket_arn, model_id)
+        # This shouldn't happen normally, but during testing it can be empty
+        return False
+
     (notification, idx) = find(cfg, model_id)
     if not notification:
-        raise Exception(f"Id {model_id} not found in notification config for {bucket_arn}")
+        print(f"Id {model_id} not found in notification config for {bucket_arn}")
+        return False
 
     if "TopicArn" in notification:
         del cfg["TopicConfigurations"][idx] 
@@ -112,6 +118,8 @@ def delete(session, bucket_arn, model_id):
         raise Exception("Unexpected notification missing Arn")
 
     save_config(session, bucket_arn, cfg)
+
+    return True
 
 def get_role_name(target_name, notification_id):
     "Get the name of the role we create for S3 to notify the target"
@@ -267,7 +275,7 @@ def save_config(session, bucket_arn, cfg):
             NotificationConfiguration=cfg, 
             SkipDestinationValidation=skip_validation)
 
-def save(session, model):
+def save(session, model, is_create): #pylint:disable=too-many-branches
     "Save a single notification configuration"
 
     # Get the current configuration for the bucket
@@ -290,10 +298,19 @@ def save(session, model):
 
     # If the notification is not present, create it 
     if not notification:
+        if not is_create:
+            print(f"Tried to update a nonexistent notification {model.Id} " + 
+                f"on bucket {model.BucketArn}")
+            return False
         notification = {}
         if ntype not in cfg:
-            cfg[ntype] = {}
+            cfg[ntype] = []
         cfg[ntype].append(notification)
+    else:
+        if is_create:
+            print(f"Tried to create existing notification {model.Id} " + 
+                f"on bucket {model.BucketArn}")
+            return False
 
     notification["Id"] = model.Id
     if model.TargetType == "Function":
@@ -305,10 +322,18 @@ def save(session, model):
     notification["Events"] = model.Events
     notification["Filter"] = {}
     notification["Filter"]["Key"] = {}
-    notification["Filter"]["Key"]["FilterRules"] = model.Filters
+    notification["Filter"]["Key"]["FilterRules"] = []
+    if model.Filters:
+        for f in model.Filters:
+            kv = {
+                "Name": f.Name,
+                "Value": f.Value
+            }
+            notification["Filter"]["Key"]["FilterRules"].append(kv)
 
     # Create the role needed for S3 to notify the target
     create_role(session, model.Id, model.TargetType, model.TargetArn, model.BucketArn)
 
     save_config(session, model.BucketArn, cfg)
-
+    
+    return True

@@ -1,9 +1,14 @@
 {
-    "Id": "",
-    "Events": "",
-    "BucketArn": "",
-    "TargetArn": "",
-    "TargetType": "",
-    "Filter": ""
+    "Id": "Test1",
+    "Events": ["s3:ObjectCreated:*"],
+    "BucketArn": "arn:aws:s3:::ezbeard-at-amazon-docs",
+    "TargetArn": "arn:aws:sqs:us-east-1:916662284357:Dop201BStack-Dop201BQueue3245FBAB-1EAHQVNYX79M7",
+    "TargetType": "Queue",
+    "Filters": [
+        {
+            "Name": "Suffix",
+            "Value": "jpg"
+        }
+    ]
 }
 
