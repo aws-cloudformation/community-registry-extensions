@@ -2,8 +2,12 @@
 Handler functions for the public registry resource type
 AwsCommunity::S3::DeleteBucketContents 
 """
+#pylint:disable=too-many-branches
 
+import json
 import logging
+
+import botocore
 
 from cloudformation_cli_python_lib import (
     Action,
@@ -19,6 +23,7 @@ from .models import ResourceModel
 # Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
 TYPE_NAME = "AwsCommunity::S3::DeleteBucketContents"
+DELETE_BUCKET_CONTENTS_TAG = "aws-community-delete-bucket-contents"
 
 resource = Resource(TYPE_NAME, ResourceModel)
 test_entrypoint = resource.test_entrypoint
@@ -32,6 +37,61 @@ def check_bucket_exists(session, bucket_name):
     except s3.exceptions.NoSuchBucket:
         LOG.error("Bucket does not exist: %s", bucket_name)
         return False
+
+def check_tag(session, bucket_name):
+    "Check to see if the deletion tag is on the bucket"
+    s3 = session.client("s3")
+    try:
+        tags = s3.get_bucket_tagging(Bucket=bucket_name)
+        if "TagSet" in tags:
+            for tag in tags["TagSet"]:
+                if tag["Key"] == DELETE_BUCKET_CONTENTS_TAG and tag["Value"] == "true":
+                    return True
+    except botocore.exceptions.ClientError as ce:
+        # It looks like we can't actually catch s3.exceptions.NoSuchTagSet like we need to
+        if "NoSuchTagSet" not in str(ce):
+            raise ce
+    return False
+
+def create_tag(session, bucket_name):
+    "Create the deletion tag on the bucket"
+    s3 = session.client("s3")
+    tags = None
+    try:
+        tags = s3.get_bucket_tagging(Bucket=bucket_name)
+    except botocore.exceptions.ClientError as ce:
+        # It looks like we can't actually catch s3.exceptions.NoSuchTagSet like we need to
+        if "NoSuchTagSet" not in str(ce):
+            raise ce
+
+    if not tags:
+        tags = {}
+        tags["TagSet"] = []
+
+    tags["TagSet"].append({"Key": DELETE_BUCKET_CONTENTS_TAG, "Value": "true"})
+    s3.put_bucket_tagging(Bucket=bucket_name, Tagging={"TagSet": tags["TagSet"]})
+
+def remove_tag(session, bucket_name):
+    "Remove the deletion tag from the bucket"
+
+    s3 = session.client("s3")
+    tags = None
+    try:
+        tags = s3.get_bucket_tagging(Bucket=bucket_name)
+    except botocore.exceptions.ClientError as ce:
+        # It looks like we can't actually catch s3.exceptions.NoSuchTagSet like we need to
+        if "NoSuchTagSet" not in str(ce):
+            raise ce
+
+    if not tags:
+        return 
+
+    new_tags = []
+    for tag in tags["TagSet"]:
+        # Append everything except our tag, leave everything else alone
+        if tag["Key"] != DELETE_BUCKET_CONTENTS_TAG:
+            new_tags.append(tag)
+    s3.put_bucket_tagging(Bucket=bucket_name, Tagging={"TagSet": new_tags})
 
 def progress_not_found(bucket_name):
     "Returns a not found progress event"
@@ -50,8 +110,8 @@ def create_handler(session, request, callback_context): #pylint:disable=unused-a
     print("create_handler")
     print(model)
 
-    progress: ProgressEvent = ProgressEvent(
-        status=OperationStatus.IN_PROGRESS,
+    progress = ProgressEvent(
+        status=OperationStatus.SUCCESS,
         resourceModel=model,
     )
 
@@ -60,6 +120,20 @@ def create_handler(session, request, callback_context): #pylint:disable=unused-a
         exists = check_bucket_exists(session, model.BucketName)
         if not exists:
             return progress_not_found(model.BucketName)
+
+        # Check to see if this resource was already created
+        has_tag = check_tag(session, model.BucketName)
+        if has_tag:
+            msg = f"Bucket is already tagged for content deletion: {model.BucketName}"
+            return ProgressEvent(
+                status = OperationStatus.FAILED,
+                message = msg, 
+                errorCode = HandlerErrorCode.AlreadyExists
+            )
+
+        # Create the tag so we know we already did this
+        create_tag(session, model.BucketName)
+            
     except Exception as e:
         LOG.exception(e)
         raise exceptions.InternalFailure(f"Unxpected exception: {e}")
@@ -74,17 +148,19 @@ def delete_handler(session, request, callback_context): #pylint:disable=unused-a
     print("delete_handler")
     print(model)
 
-    progress = ProgressEvent(
-        status=OperationStatus.IN_PROGRESS,
-        resourceModel=None,
-    )
-
     try:
         # Make sure the bucket exists
         s3 = session.client("s3")
         exists = check_bucket_exists(session, model.BucketName)
         if not exists:
             return progress_not_found(model.BucketName)
+
+        # Verify the tag
+        if not check_tag(session, model.BucketName):
+            return ProgressEvent(
+                status = OperationStatus.FAILED,
+                message = f"Bucket is not tagged for content deletion: {model.BucketName}",
+                errorCode = HandlerErrorCode.NotFound)
 
         # Get the contents of the bucket
 
@@ -95,25 +171,37 @@ def delete_handler(session, request, callback_context): #pylint:disable=unused-a
         next_version_id_marker = None
 
         while has_more_results:
-            contents = s3.list_object_versions(
-                Bucket = model.BucketName,
-                NextKeyMarker = next_key_marker, 
-                NextVersionIdMarker = next_version_id_marker)
+            args = {
+                "Bucket": model.BucketName
+            }
+            if next_key_marker:
+                args["KeyMarker"] = next_key_marker
+                args["VersionIdMarker"] = next_version_id_marker
+            contents = s3.list_object_versions(**args)
 
-            if len(contents.Versions) == 0 and len(contents.DeleteMarkers) == 0:
+            print("contents: ", json.dumps(contents))
+
+            if "Versions" not in contents and "DeleteMarkers" not in contents:
+                print("Versions or DeleteMarkers not found in contents")
                 break
 
-            for v in contents.Versions:
-                objects_to_delete.append({
-                    "Key": v["Key"],
-                    "VersionId": v["VersionId"]
-                    })
+            if "Versions" in contents:
+                for v in contents["Versions"]:
+                    objects_to_delete.append({
+                        "Key": v["Key"],
+                        "VersionId": v["VersionId"]
+                        })
 
-            for v in contents.DeleteMarkers:
-                objects_to_delete.append({
-                    "Key": v["Key"],
-                    "VersionId": v["VersionId"]
-                    })
+            if "DeleteMarkers" in contents:
+                for v in contents["DeleteMarkers"]:
+                    objects_to_delete.append({
+                        "Key": v["Key"],
+                        "VersionId": v["VersionId"]
+                        })
+
+            if len(objects_to_delete) == 0:
+                print("objects_to_delete is empty")
+                break
 
             if contents["IsTruncated"] is True:
                 has_more_results = True
@@ -138,6 +226,14 @@ def delete_handler(session, request, callback_context): #pylint:disable=unused-a
         for chunk in chunks(objects_to_delete, 1000):
             s3.delete_objects(Bucket=model.BucketName, Delete={"Objects": chunk})
 
+        # Remove our tag from the bucket
+        remove_tag(session, model.BucketName)
+
+        progress = ProgressEvent(
+            status=OperationStatus.SUCCESS,
+            resourceModel=None,
+        )
+
     except Exception as e:
         LOG.exception(e)
         raise exceptions.InternalFailure(f"Unxpected exception: {e}")
@@ -150,6 +246,17 @@ def read_handler(session, request, callback_context): #pylint:disable=unused-arg
     "Handle CloudFormation READ events"
 
     model = request.desiredResourceState
+    exists = check_bucket_exists(session, model.BucketName)
+    if not exists:
+        return progress_not_found(model.BucketName)
+
+    # Verify the tag
+    if not check_tag(session, model.BucketName):
+        return ProgressEvent(
+            status = OperationStatus.FAILED,
+            message = f"Bucket is not tagged for content deletion: {model.BucketName}",
+            errorCode = HandlerErrorCode.NotFound)
+
     return ProgressEvent(
         status=OperationStatus.SUCCESS,
         resourceModel=model,
