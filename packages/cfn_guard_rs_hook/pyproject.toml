@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "cfn_guard_rs_hook"
+version = "0.1.0"
+description = ""
+authors = ["Kevin DeJong <kddejong@amazon.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7.2"
+cloudformation-cli-python-lib = "^2.1.12"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+cfn_guard_rs = { file = "cfn_guard_rs-0.1.0-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl" }
+mypy = "^0.971"
+pylint = "^2.14.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

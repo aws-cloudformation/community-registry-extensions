@@ -1,0 +1,70 @@
+name: packages-cfn_guard_rs-CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/cfn_guard_rs/*"
+  pull_request:
+    paths:
+      - "packages/cfn_guard_rs/*"
+jobs:
+  linux:
+    strategy:
+      matrix:
+        target: [aarch64, x86_64]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packages/cfn_guard_rs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.7"
+      - name: Install Tox and any other packages
+        run: pip3 install tox
+      - name: Run Tox
+        run: |
+          python3 --version
+          tox -e py
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./packages/cfn_guard_rs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.7"
+      - name: Install Tox and any other packages
+        run: pip3 install tox
+      - name: Run Tox
+        run: |
+          python3 --version
+          tox -e py
+
+  macos:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./packages/cfn_guard_rs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.7"
+      - name: Install Tox and any other packages
+        run: pip3 install tox
+      - name: Run Tox
+        run: |
+          python3 --version
+          tox -e py
+
+

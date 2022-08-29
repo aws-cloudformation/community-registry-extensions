@@ -1,0 +1,13 @@
+[package]
+name = "cfn_guard_rs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "cfn_guard_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.16.5", features = ["extension-module"] }
+cfn-guard = { git = "https://github.com/aws-cloudformation/cloudformation-guard", tag = "2.1.0" }
