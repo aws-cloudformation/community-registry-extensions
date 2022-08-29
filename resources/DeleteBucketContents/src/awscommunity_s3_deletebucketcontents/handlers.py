@@ -22,6 +22,7 @@ from .models import ResourceModel
 
 # Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 TYPE_NAME = "AwsCommunity::S3::DeleteBucketContents"
 DELETE_BUCKET_CONTENTS_TAG = "aws-community-delete-bucket-contents"
 
@@ -107,8 +108,8 @@ def create_handler(session, request, callback_context): #pylint:disable=unused-a
     
     model = request.desiredResourceState
     
-    print("create_handler")
-    print(model)
+    LOG.debug("create_handler")
+    LOG.debug("model: %s", json.dumps(model, default=str))
 
     progress = ProgressEvent(
         status=OperationStatus.SUCCESS,
@@ -145,8 +146,8 @@ def delete_handler(session, request, callback_context): #pylint:disable=unused-a
     "Handle CloudFormation DELETE events"
     model = request.desiredResourceState
 
-    print("delete_handler")
-    print(model)
+    LOG.debug("delete_handler")
+    LOG.debug("model: %s", json.dumps(model, default=str))
 
     try:
         # Make sure the bucket exists
@@ -179,28 +180,29 @@ def delete_handler(session, request, callback_context): #pylint:disable=unused-a
                 args["VersionIdMarker"] = next_version_id_marker
             contents = s3.list_object_versions(**args)
 
-            print("contents: ", json.dumps(contents))
+            # This causes a failure if there are too many objects!
+            #LOG.debug("contents: %s", json.dumps(contents, default=str))
 
             if "Versions" not in contents and "DeleteMarkers" not in contents:
-                print("Versions or DeleteMarkers not found in contents")
+                LOG.debug("Versions or DeleteMarkers not found in contents")
                 break
 
             if "Versions" in contents:
                 for v in contents["Versions"]:
-                    objects_to_delete.append({
-                        "Key": v["Key"],
-                        "VersionId": v["VersionId"]
-                        })
+                    d = {"Key": v["Key"]}
+                    if "VersionId" in v and v["VersionId"] != "null":
+                        d["VersionId"] = v["VersionId"]
+                    objects_to_delete.append(d)
 
             if "DeleteMarkers" in contents:
                 for v in contents["DeleteMarkers"]:
-                    objects_to_delete.append({
-                        "Key": v["Key"],
-                        "VersionId": v["VersionId"]
-                        })
+                    d = {"Key": v["Key"]}
+                    if "VersionId" in v and v["VersionId"] != "null":
+                        d["VersionId"] = v["VersionId"]
+                    objects_to_delete.append(d)
 
             if len(objects_to_delete) == 0:
-                print("objects_to_delete is empty")
+                LOG.debug("objects_to_delete is empty")
                 break
 
             if contents["IsTruncated"] is True:
@@ -214,7 +216,7 @@ def delete_handler(session, request, callback_context): #pylint:disable=unused-a
                 has_more_results = False
 
         # Delete the contents
-        print(f"Bucket has {len(objects_to_delete)} objects to delete")
+        LOG.debug("Bucket has %s objects to delete", len(objects_to_delete))
 
         # Break into chunks of 1000 or less
         def chunks(lst, n):
@@ -224,7 +226,12 @@ def delete_handler(session, request, callback_context): #pylint:disable=unused-a
 
         # What if this takes a long time? Should we use callbacks? TODO
         for chunk in chunks(objects_to_delete, 1000):
-            s3.delete_objects(Bucket=model.BucketName, Delete={"Objects": chunk})
+            LOG.debug("About to delete chunk: %s", json.dumps(chunk, default=str))
+            r = s3.delete_objects(Bucket=model.BucketName, Delete={"Objects": chunk})
+            LOG.debug("delete_objects response: %s", json.dumps(r, default=str))
+
+        LOG.debug("All chunks deleted, about to remove the tag")
+        # TODO - Confirm that the bucket is empty
 
         # Remove our tag from the bucket
         remove_tag(session, model.BucketName)
@@ -246,6 +253,10 @@ def read_handler(session, request, callback_context): #pylint:disable=unused-arg
     "Handle CloudFormation READ events"
 
     model = request.desiredResourceState
+
+    LOG.debug("read_handler")
+    LOG.debug("model: %s", json.dumps(model, default=str))
+
     exists = check_bucket_exists(session, model.BucketName)
     if not exists:
         return progress_not_found(model.BucketName)

@@ -7,6 +7,30 @@ Use this resource with caution! In the sample below we show how to incorporate a
 ## Sample template
 
 ```yml
-
+Parameters:
+  EnvType:
+    Description: Environment type.
+    Default: alpha
+    Type: String
+    AllowedValues:
+      - alpha
+      - beta
+      - gamma
+      - prod
+    ConstraintDescription: Specify alpha, beta, gamma, or prod
+Conditions:
+  IsNotProd: !Not 
+    - !Equals
+      - !Ref EnvType
+      - prod
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+  Deleter:
+    DependsOn: Bucket
+    Condition: IsNotProd
+    Type: AwsCommunity::S3::DeleteBucketContents
+    Properties:
+      BucketName: !Ref Bucket
 ```
 

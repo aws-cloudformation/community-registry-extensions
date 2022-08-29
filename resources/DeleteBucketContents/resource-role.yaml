@@ -33,7 +33,7 @@ Resources:
                 - "s3:DeleteObject"
                 - "s3:GetBucketTagging"
                 - "s3:ListBucket"
-                - "s3:ListObjectVersions"
+                - "s3:ListBucketVersions"
                 - "s3:PutBucketTagging"
                 Resource: "*"
 Outputs:

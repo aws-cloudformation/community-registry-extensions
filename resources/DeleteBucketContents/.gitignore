@@ -129,3 +129,4 @@ sam-tests/
 rpdk.log*
 awscommunity-s3-deletebucketcontents.zip
 inputs/
+.DS_Store
