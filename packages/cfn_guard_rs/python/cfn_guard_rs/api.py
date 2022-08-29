@@ -1,8 +1,3 @@
-"""
-Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-SPDX-License-Identifier: MIT-0
-"""
-
 import json
 from .interface import DataOutput
 
@@ -14,7 +9,7 @@ def run_checks(data: dict, rules: str) -> DataOutput:
     """
     Executes run_checks against Guard
 
-    Run non-verbose checks against data for rules rules
+    Run non-verbose checks against data for rules
 
     Parameters
     ----------

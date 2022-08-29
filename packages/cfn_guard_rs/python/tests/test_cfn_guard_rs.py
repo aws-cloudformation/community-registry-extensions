@@ -1,7 +1,3 @@
-"""
-Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-SPDX-License-Identifier: MIT-0
-"""
 import yaml
 import pytest
 from cfn_guard_rs import Comparison, run_checks, DataOutput, NameInfo

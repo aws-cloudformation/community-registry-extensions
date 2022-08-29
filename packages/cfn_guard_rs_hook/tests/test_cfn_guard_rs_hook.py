@@ -1,7 +1,4 @@
-"""
-Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-SPDX-License-Identifier: MIT-0
-"""
+
 
 from cfn_guard_rs_hook import __version__, GuardHook
 import pytest

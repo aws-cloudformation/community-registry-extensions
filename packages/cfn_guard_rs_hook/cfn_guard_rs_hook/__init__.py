@@ -1,6 +1,9 @@
 """
-Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-SPDX-License-Identifier: MIT-0
+  CloudFormation Guard Hook
+
+  This library makes creating hooks using CloudFormation Guard
+  easier. It leverages cfn_guard_rs to run Guard and
+  translates the response into the appropriate hook format.
 """
 
 __version__ = "0.1.0"
