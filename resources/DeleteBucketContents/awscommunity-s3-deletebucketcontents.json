@@ -1,0 +1,44 @@
+{
+    "typeName": "AwsCommunity::S3::DeleteBucketContents",
+    "description": "Deletes all contents of the referenced bucket.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions.git",
+    "definitions": { },
+    "properties": {
+        "BucketName": {
+            "description": "The name of the bucket",
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "tagging": {
+        "taggable": false
+    },
+    "required": [
+        "BucketName"
+    ],
+    "createOnlyProperties": [
+        "/properties/BucketName"
+    ],
+    "primaryIdentifier": [
+        "/properties/BucketName"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "s3:ListBucket"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "s3:ListBucket"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "s3:DeleteObject",
+                "s3:ListBucket",
+                "s3:ListObjectVersions"
+            ]
+        }
+    }
+}

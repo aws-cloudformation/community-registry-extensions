@@ -1,0 +1,23 @@
+Parameters:
+  EnvType:
+    Description: Environment type.
+    Default: alpha
+    Type: String
+    AllowedValues:
+      - alpha
+      - beta
+      - gamma
+      - prod
+    ConstraintDescription: Specify alpha, beta, gamma, or prod
+Conditions:
+  IsNotProd: !Not 
+    - !Ref EnvType
+    - prod
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+  Deleter:
+    DependsOn: !Ref Bucket
+    Condition: IsNotProd
+    Type: AwsCommunity::S3::DeleteBucketContents
+    BucketName: !Ref Bucket
