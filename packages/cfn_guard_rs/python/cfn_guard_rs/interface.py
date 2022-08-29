@@ -1,3 +1,8 @@
+"""
+  Defines the non-verbose output format returned
+  from run_checks
+"""
+
 from dataclasses import dataclass
 from typing import Any, List, Dict, Optional
 
