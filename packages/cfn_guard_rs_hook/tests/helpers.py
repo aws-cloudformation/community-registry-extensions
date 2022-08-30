@@ -1,27 +1,34 @@
-
+"""
+    Helpers for testing
+"""
 from dataclasses import dataclass
-from cloudformation_cli_python_lib.interface import BaseModel
-from cloudformation_cli_python_lib import (
-    BaseHookHandlerRequest,
-    HookContext,
-    HookInvocationPoint,
-)
 from typing import (
     Any,
     Mapping,
     Optional,
     Type,
 )
+from cloudformation_cli_python_lib.interface import BaseModel
+from cloudformation_cli_python_lib import (
+    BaseHookHandlerRequest,
+    HookContext,
+    HookInvocationPoint,
+)
 
 
 @dataclass
 class HookHandlerRequest(BaseHookHandlerRequest):
-    pass
+    """
+    Mimic the cloudformation_cli_python_lib
+    """
 
 
 def create_request(
-    invocationPoint: HookInvocationPoint, targetModel: Mapping[str, Any]
+    invocation_point: HookInvocationPoint, target_model: Mapping[str, Any]
 ) -> BaseHookHandlerRequest:
+    """
+    Create a hook request
+    """
     return BaseHookHandlerRequest(
         "",
         hookContext=HookContext(
@@ -29,10 +36,10 @@ def create_request(
             stackId="uniqueID",
             hookTypeName="AwsCommunity::Guard::Hook",
             hookTypeVersion="00000001",
-            invocationPoint=invocationPoint,
+            invocationPoint=invocation_point,
             targetName="AWS::S3::Bucket",
             targetType="AWS::S3::Bucket",
-            targetModel=targetModel,
+            targetModel=target_model,
             targetLogicalId="Bucket",
             changeSetId=None,
         ),
@@ -41,6 +48,9 @@ def create_request(
 
 @dataclass
 class TypeConfigurationModel(BaseModel):
+    """
+    Mimic the cloudformation_cli_python_lib
+    """
     @classmethod
     def _deserialize(
         cls: Type["_TypeConfigurationModel"],

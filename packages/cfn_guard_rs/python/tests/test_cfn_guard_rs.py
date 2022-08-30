@@ -1,3 +1,6 @@
+"""
+    Test cfn_guard_rs
+"""
 import yaml
 import pytest
 from cfn_guard_rs import Comparison, run_checks, DataOutput, NameInfo

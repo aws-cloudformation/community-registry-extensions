@@ -5,6 +5,7 @@ from typing import Type, Optional, MutableMapping, Any
 import json
 import logging
 import importlib.resources as pkg_resources
+
 from cloudformation_cli_python_lib import (
     Hook,
     BaseHookHandlerRequest,
@@ -26,7 +27,6 @@ class GuardHook(Hook):
     Override the cloudformation_cli_python_lib Hook class for
     the purpose of using with CloudFormation Guard
     """
-
     def __init__(
         self,
         type_name: str,
@@ -209,7 +209,6 @@ class GuardHook(Hook):
                                     f"Rule [{name}] failed on "
                                     f"property [{path}] failed. "
                                 )
-
         progress.message = progress.message.strip()
         LOG.debug("Progress Event: %s", progress)
         return progress

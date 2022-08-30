@@ -1,3 +1,10 @@
+"""
+  Defines the api for cfn_guard_rs
+
+  Supports running the non-verbose version of
+  run_checks from CloudFormation Guard
+"""
+
 import json
 from .interface import DataOutput
 
