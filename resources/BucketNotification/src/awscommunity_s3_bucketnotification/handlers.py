@@ -2,6 +2,7 @@
 Resource handler implementation for AwsCommunity::S3::BucketNotification
 """
 
+import json
 import logging
 
 from cloudformation_cli_python_lib import (
@@ -20,11 +21,16 @@ VALID_TARGET_TYPES = ["Queue", "Topic", "LambdaFunction"]
 
 # Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 
 TYPE_NAME = "AwsCommunity::S3::BucketNotification"
 
 resource = Resource(TYPE_NAME, ResourceModel)
 test_entrypoint = resource.test_entrypoint
+
+def dumps(msg):
+    "JSON serialize with a default to catch errors"
+    return json.dumps(msg, default=str)
 
 @resource.handler(Action.CREATE)
 def create_handler(session, request, callback_context): #pylint:disable=unused-argument
@@ -32,13 +38,8 @@ def create_handler(session, request, callback_context): #pylint:disable=unused-a
 
     model = request.desiredResourceState
 
-    print("create_handler")
-    print(model.Id)
-    print(model.BucketArn)
-    print(model.TargetType)
-    print(model.TargetArn)
-    print(model.Events)
-    print(model.Filters)
+    LOG.debug("create_handler")
+    LOG.debug("model: %s", dumps(model))
 
     progress = ProgressEvent(
         status=OperationStatus.IN_PROGRESS,
@@ -69,13 +70,8 @@ def update_handler(session, request, callback_context): #pylint:disable=unused-a
 
     model = request.desiredResourceState
 
-    print("update_handler")
-    print(model.Id)
-    print(model.BucketArn)
-    print(model.TargetType)
-    print(model.TargetArn)
-    print(model.Events)
-    print(model.Filters)
+    LOG.debug("update_handler")
+    LOG.debug("model: %s", dumps(model))
 
     progress = ProgressEvent(
         status=OperationStatus.IN_PROGRESS,
@@ -103,9 +99,11 @@ def update_handler(session, request, callback_context): #pylint:disable=unused-a
 @resource.handler(Action.DELETE)
 def delete_handler(session, request, callback_context): #pylint:disable=unused-argument
     "Delete the bucket notification"
-
     
     model = request.desiredResourceState
+
+    LOG.debug("delete_handler")
+    LOG.debug("model: %s", dumps(model))
 
     progress: ProgressEvent = ProgressEvent(
         status=OperationStatus.IN_PROGRESS,
@@ -129,7 +127,7 @@ def read_handler(session, request, callback_context): #pylint:disable=unused-arg
     "Read the bucket notification"
 
     model = request.desiredResourceState
-    print("read_handler")
+    LOG.debug("read_handler")
 
     try:
         model = get(session, model.BucketArn, model.Id)
@@ -149,22 +147,5 @@ def read_handler(session, request, callback_context): #pylint:disable=unused-arg
 
 # It doesn't really make sense for us to implement a list handler here, 
 # since we can't tell if we created the bucket notifications on all 
-# buckets in an account.
+# buckets in an account. Maybe we could do something with tags?
 
-#@resource.handler(Action.LIST)
-#def list_handler(session, request, callback_context):
-#    "List bucket notifications"
-#
-#    
-#    progress: ProgressEvent = ProgressEvent(
-#        status=OperationStatus.IN_PROGRESS,
-#        resourceModels=None,
-#    )
-#    try:
-#
-#        progress.status = OperationStatus.SUCCESS
-#    except Exception as e:
-#        raise exceptions.InternalFailure(e)
-#
-#    return progress
-#

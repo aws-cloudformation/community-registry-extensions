@@ -75,6 +75,7 @@
         "create": {
             "permissions": [
                 "iam:CreateRole",
+                "iam:GetRole",
                 "iam:DeleteRole",
                 "s3:PutBucketNotification",
                 "s3:GetBucketNotification",
@@ -94,6 +95,7 @@
         "read": {
             "permissions": [
                 "s3:GetBucketNotification",
+                "iam:GetRole",
                 "sns:ConfirmSubscription",
                 "sns:GetTopicAttributes",
                 "sqs:AddPermission",
@@ -104,6 +106,7 @@
         "update": {
             "permissions": [
                 "iam:CreateRole",
+                "iam:GetRole",
                 "iam:DeleteRole",
                 "s3:PutBucketNotification",
                 "s3:GetBucketNotification",

@@ -32,6 +32,7 @@ Resources:
                 Action:
                 - "iam:CreateRole"
                 - "iam:DeleteRole"
+                - "iam:GetRole"
                 - "lambda:AddPermission"
                 - "lambda:RemovePermission"
                 - "s3:GetBucketNotification"
