@@ -12,6 +12,7 @@ import logging
 from .models import ResourceModel, KeyVal
 
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 
 def find(cfg, model_id):
     """
@@ -108,31 +109,49 @@ def delete(session, bucket_arn, model_id):
         print(f"Id {model_id} not found in notification config for {bucket_arn}")
         return False
 
+    target_arn = None
+    notification_id = notification["Id"]
+    has_policy = False
+
     if "TopicArn" in notification:
+        target_arn = notification["TopicArn"]
         del cfg["TopicConfigurations"][idx] 
     elif "QueueArn" in notification:
+        target_arn = notification["QueueArn"]
         del cfg["QueueConfigurations"][idx]
     elif "LambdaFunctionArn" in notification:
+        target_arn = notification["LambdaFunctionArn"]
+        has_policy = True
         del cfg["LambdaFunctionConfigurations"][idx]
     else:
         raise Exception("Unexpected notification missing Arn")
 
     save_config(session, bucket_arn, cfg)
 
+    # Delete the role we created to allow S3 to send the notifications
+    target_name = target_arn.split(":")[-1]
+    role_name = get_role_name(target_name, notification_id)
+    policy_name = None
+    if has_policy:
+        policy_name = get_policy_name(role_name)
+    delete_role(session, role_name, policy_name)
+
     return True
 
 def get_role_name(target_name, notification_id):
     "Get the name of the role we create for S3 to notify the target"
-    return target_name + "-bktntf-" + notification_id
+    return target_name + "-bn-" + notification_id
 
 def get_policy_name(role_name):
     "Get the policy name for the role we create"
-    return role_name + "_policy"
+    return role_name + "_p"
 
 def delete_role(session, role_name, policy_arn):
     "Delete the role we created for S3 to notifiy the target"
 
     iam = session.client("iam")
+
+    #TODO - Delete the Queue/Topic policy
 
     try:
         if policy_arn:
@@ -222,6 +241,7 @@ def create_role(session, notification_id, target_type, target_arn, bucket_arn):
         if target_type == "Queue":
             sqs = session.client("sqs")
             queue_url = sqs.get_queue_url(QueueName=target_name)["QueueUrl"]
+            # TODO - What if the queue already had a Policy?
             sqs.set_queue_attributes(
                 QueueUrl=queue_url,
                 Attributes = {
@@ -230,6 +250,7 @@ def create_role(session, notification_id, target_type, target_arn, bucket_arn):
             )
         else:
             sns = session.client("sns")
+            # TODO - What if the topic already had a Policy?
             sns.set_topic_attributes(
                 TopicArn=target_arn,
                 AttributeName="Policy",

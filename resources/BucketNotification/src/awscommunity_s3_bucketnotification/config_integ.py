@@ -120,7 +120,14 @@ def main(profile_name): #pylint: disable=too-many-branches
         function_role_arn = r["Role"]["Arn"]
         print("Created function role:", function_role_arn)
 
-        with open('awscommunity_s3_bucketnotification/test_lambda.zip', 'rb') as f:
+        # When we had the zip in this folder, it caused `cfn submit` to fail,
+        # since it apparently assumes that any zip file in the build folder is the 
+        # entry point for the handler functions. We got errors like this:
+        # Lambda function handler threw an uncaught exception: Unable to import
+        # module 'awscommunity_s3_bucketnotification.handlers': No module named
+        # 'awscommunity_s3_bucketnotification'
+        zip_path = "../test/test_lambda.zip"
+        with open(zip_path, 'rb') as f:
             zipped_code = f.read()
 
         r = lam.create_function(FunctionName=function_name,

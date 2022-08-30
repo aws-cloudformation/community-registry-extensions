@@ -1,8 +1,8 @@
 {
     "Id": "Test1",
     "Events": ["s3:ObjectCreated:*"],
-    "BucketArn": "arn:aws:s3:::ezbeard-at-amazon-docs",
-    "TargetArn": "arn:aws:sqs:us-east-1:916662284357:Dop201BStack-Dop201BQueue3245FBAB-1EAHQVNYX79M7",
+    "BucketArn": "arn:aws:s3:::[NEEDS TO BE A REAL BUCKET IN YOUR ACCOUNT]",
+    "TargetArn": "arn:aws:sqs:us-east-1:[YOUR ACCOUNT ID]:[NEEDS TO BE A REAL QUEUE]",
     "TargetType": "Queue",
     "Filters": [
         {
