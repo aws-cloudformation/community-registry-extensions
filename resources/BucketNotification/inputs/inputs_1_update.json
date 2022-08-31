@@ -7,8 +7,7 @@
     "Filters": [
         {
             "Name": "Suffix",
-            "Value": "jpg"
+            "Value": "gif"
         }
     ]
 }
-
