@@ -68,7 +68,7 @@ Development for CloudFormation registry extensions can be done in one of
 several languages. For modules, you can use either JSON or YAML. For resource
 types (also known as providers) and hooks, you can use Python, Java,
 Typescript, or Go. Full disclosure on language choice: Java has the best
-support since it is the language used by AWS service teams. But we are working
+support since it is the language used by AWS service teams. We are working
 on improving support for the CLI and language plugin repositories and we expect
 this situation to improve quickly.
 
@@ -83,14 +83,15 @@ top level of the repository, to keep things consistent. We don't want each
 extension to be so unique that it takes an experienced contributer extra time
 to adapt to the particular style of a single resource.
 
-Create a `test/` folder at the top level of your project. Put any unit tests
-you might need inside that folder. Also create a template file called
-`setup.yml` or `setup.json` that creates any resources that
-must exist in your account prior to running contract tests. Edit the JSON files
-in `example_inputs` to reference any outputs from the setup stack. (See
+Create a `test/` folder at the top level of your project.  Create a template
+file in that folder called `setup.yml` or `setup.json` that creates any
+resources that must exist in your account prior to running contract tests. Edit
+the JSON files in `example_inputs` to reference any outputs from the setup
+stack. (See
 https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test.html).
 Rename the `example_inputs` folder to `inputs` and edit the JSON files to
-reflect outputs from the setup stack.
+reflect outputs from the setup stack. You can skip creation of `setup.yml` if your 
+resource does not require any resources to be created beforehand. (One gotcha with the input files: Export variables can't have special characters in them)
 
 TODO: Can we change the init templates to just do this stuff by default?
 

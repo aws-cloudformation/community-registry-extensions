@@ -5,11 +5,11 @@ Resources:
     Type: AWS::S3::Bucket
 Outputs:
   BucketArn:
-    Value: !Ref Bucket
+    Value: !GetAtt Bucket.Arn
     Export:
       Name: BucketNotificationTestBucket
   QueueArn:
-    Value: !Ref Queue
+    Value: !GetAtt Queue.Arn
     Export:
       Name: BucketNotificationTestQueue
 
