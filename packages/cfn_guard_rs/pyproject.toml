@@ -2,9 +2,6 @@
 requires = ["maturin>=0.13,<0.14"]
 build-backend = "maturin"
 
-[tool.maturin]
-python-source = "python"
-
 [project]
 name = "cfn_guard_rs"
 requires-python = ">=3.7"

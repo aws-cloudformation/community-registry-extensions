@@ -16,10 +16,12 @@ jobs:
     strategy:
       matrix:
         target: [aarch64, x86_64]
+        directory:
+          - ./packages/cfn_guard_rs
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./packages/cfn_guard_rs
+        working-directory: ${{ matrix.directory }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python
@@ -34,10 +36,14 @@ jobs:
           tox -e py
 
   windows:
+    strategy:
+      matrix:
+        directory:
+          - ./packages/cfn_guard_rs
     runs-on: windows-latest
     defaults:
       run:
-        working-directory: ./packages/cfn_guard_rs
+        working-directory: ${{ matrix.directory }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python
@@ -52,10 +58,14 @@ jobs:
           tox -e py
 
   macos:
+    strategy:
+      matrix:
+        directory:
+          - ./packages/cfn_guard_rs
     runs-on: macos-latest
     defaults:
       run:
-        working-directory: ./packages/cfn_guard_rs
+        working-directory: ${{ matrix.directory }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python
