@@ -1,7 +1,7 @@
 # Community Registry Extension Release Process
 
 This document covers the release process for registry extensions in the
-`AwsCommunity::` namespace by the AWS Community Engagement Program (CEP) team.
+`AwsCommunity::` namespace, published by the AWS Community Engagement Program (CEP) team.
 Our intention with this guide, and with the related code we write, is for it to
 be useable by someone who wants to publish their own public resources to all
 available regions.

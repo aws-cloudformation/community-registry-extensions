@@ -151,7 +151,7 @@ in the same folder with `handlers.py` with `test` in the filename, for example,
 #### Python tips
 
 Don't put any `.zip` files into your `src/my_resource_type` folder. The
-registry backed will assume this is the desired entry point for your handlers.
+registry backend will assume this is the desired entry point for your handlers.
 
 Don't try to create a module by writing a `setup.py` file in `src` and `pip
 install`ing it locally. Module imports need to have the style of `from .models
