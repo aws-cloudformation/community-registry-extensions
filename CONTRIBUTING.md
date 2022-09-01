@@ -111,7 +111,6 @@ There is not much point in also using an AWS API mocking library to duplicate
 what `cfn test` covers. Reserve unit tests for testing discrete functions with
 predictable outputs and no side effects.
 
-(This might be too opinionated but mocks seem like a waste of effort)
 
 ### Python Development
 
