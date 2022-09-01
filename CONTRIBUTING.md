@@ -104,7 +104,7 @@ breaking changes between releases.
 
 ### Unit tests and mocking
 
-In order to submit a resource to the registry, you have to use SAM to run an
+In order to submit a resource to the registry, you have to use the [AWS Serverless Application Model](https://aws.amazon.com/serverless/sam/) (SAM) to run an
 exhaustive set of contract tests. SAM mocks lambda locally, but nothing else -
 real SDK calls are made in your account, creating and deleting real resources.
 There is not much point in also using an AWS API mocking library to duplicate
