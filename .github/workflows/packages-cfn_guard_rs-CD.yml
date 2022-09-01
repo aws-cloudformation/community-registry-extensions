@@ -18,6 +18,7 @@ jobs:
         target: [aarch64, x86_64]
         directory:
           - ./packages/cfn_guard_rs
+          - ./packages/cfn_guard_rs_hook
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,6 +41,7 @@ jobs:
       matrix:
         directory:
           - ./packages/cfn_guard_rs
+          - ./packages/cfn_guard_rs_hook
     runs-on: windows-latest
     defaults:
       run:
@@ -62,6 +64,7 @@ jobs:
       matrix:
         directory:
           - ./packages/cfn_guard_rs
+          - ./packages/cfn_guard_rs_hook
     runs-on: macos-latest
     defaults:
       run:
