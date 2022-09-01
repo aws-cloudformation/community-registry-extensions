@@ -10,38 +10,53 @@ available regions.
 
 ### Developer sandbox account
 
-This is the account that belongs to a resource developer, where extensions are submitted to the private registry for integration testing. Extensions should be clearly documented so that a new developer can quickly deploy and test an extension in their account.
+This is the account that belongs to a resource developer, where extensions are
+submitted to the private registry for integration testing. Extensions should be
+clearly documented so that a new developer can quickly deploy and test an
+extension in their account.
 
 ### CI/CD account
 
 An account controlled by AWS to perform integration testing on resources.
 Connected to the GitHub account. Runs contract tests.
 
-In each extension project, there is an `example_inputs` folder. When contract
-tests are run, if there are files in the (git-ignored) `inputs` folder, these
-inputs are used instead of randomly generated characters which are not useful
-for real resource testing. Since these are not full templates and cannot create
-prerequisite resources, a template must be provided in each project to create
-those prerequisites.
+In each extension project, there must be an `inputs` folder, renamed from the
+`example_inputs` folder created by `cfn init`. When contract tests are run, if
+there are files in the `inputs` folder, these inputs are used instead of
+randomly generated characters which are not useful for real resource testing.
+Since these inputs are not full templates and cannot create prerequisite
+resources, a template must be provided in each project to create those
+prerequisites. The resource developer creates `test/setup.yml` or
+`test/setup.json` to create any resources that are needed in order for contract
+testing to succeed. See
+https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test.html)
+for documentation on the input files and how to reference CloudFormation export
+names. Keep in mind that `cfn test` will ignore the files if there are special characters
+in the export names.
 
 ### Beta account
 
-An account controlled by AWS that runs end-to-end tests with sample templates
-that cover all published resources. These tests go beyond contract testing to
-make sure that resources created by prior versions can be successfully updated
-by the new default version.
+An account controlled by AWS that runs end-to-end integration tests with sample
+templates that cover all published resources. These tests go beyond contract
+testing to make sure that resources created by prior versions can be
+successfully updated by the new default version. The resource developer creates
+`test/integ.yml`, a template that fully exercises their resource. This template
+should create all needed resources, and does not rely on the `test/setup.yml`
+template.
 
-For each resource, a directory of E2E test templates is created. Each of those
-templates is created from scratch and then deleted with a unique stack name
-during each full test run. In addition, another stack is updated and never
-deleted, to test backwards compatibility. These templates should create all of
-their needed pre-requisites, and no hard-coded names should be used, to avoid
-issues with multiple stacks being deployed from the same template in the same
-account.
+The `test/integ.yml` template is created and deleted, and a second copy is
+created once and never deleted, to make sure that updates to the resource don't
+cause issues.  In the integ template, no hard-coded names should be used, to
+avoid issues with multiple stacks being deployed from the same template in the
+same account.
 
-TODO: What about Alpha resources? It's Ok for them to break backwards compatibility.
-
+TODO: What about Alpha resources? It's Ok for them to break backwards
+compatibility, so we shouldn't fail the release process, but how do we tell the
+difference between this kind of failure and something we want to catch?
 
 ### Prod account
 
 An account controlled by AWS that is the publisher for the registry extensions.
+We are planning to use a strategy that involves Systems Manager documents
+instead of Stack Sets for deployment to all available regions.
+

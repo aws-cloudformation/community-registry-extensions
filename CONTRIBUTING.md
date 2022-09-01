@@ -94,12 +94,13 @@ reflect outputs from the setup stack. You can skip creation of `setup.yml` if yo
 resource does not require any resources to be created beforehand. (One gotcha with the input files: Export variables can't have special characters in them)
 
 TODO: Can we change the init templates to just do this stuff by default?
+TODO: What if there are multiple inputs, e.g. `inputs_2_create.json`, will we need `setup2.yml?`
 
-Create a template file called `sample-template.yml` or `sample-template.json`
-that shows a typical usage of your resource, at the top level of the project.
-This template will not be part of any automated testing. TODO: Is this
-necessary, if people have to create the E2E templates? Those should suffice..?
-
+Put a sample template into your `README.md` file to demonstrate usage. Also
+create a template called `test/integ.yml` to be run by the release process to
+validate your resource. It should contain all necessary setup and exercise the
+full functionality of your resource, so that we can make sure there are no
+breaking changes between releases.
 
 ### Unit tests and mocking
 
@@ -110,6 +111,8 @@ There is not much point in also using an AWS API mocking library to duplicate
 what `cfn test` covers. Reserve unit tests for testing discrete functions with
 predictable outputs and no side effects.
 
+(This might be too opinionated but mocks seem like a waste of effort)
+
 ### Python Development
 
 Formatting: [https://github.com/psf/black](Black)
@@ -117,11 +120,11 @@ Linting: [https://pylint.pycqa.org/en/latest/](Pylint)
 
 Be careful with any changes you make to the basic project layout created by
 `cfn init`. The registry backend makes some assumptions that can lead to
-unexpected errors.
+unexpected errors if you rearrange files or folders.
 
 Ideally, `handlers.py` is a thin wrapper over a more generic module that you
 write to actually do whatever work your resource does. In order to invoke this
-module from a `__main__` function during faster local testing, place a file in
+module from a `__main__` function for faster local testing, place a file in
 the `src` directory that imports it.
 
 ```
@@ -141,8 +144,9 @@ In the above listing of the `src` directory, `logic.py` has your business
 logic. It is imported by `handlers.py` and `logic_integ.py`, which is invoked
 from `run_logic_integ.py`.
 
-If you have unit tests that you wish to run with `pytest`, place them in a top
-level folder called `test/`. 
+If you have unit tests that you wish to run with `pytest`, place them inline or
+in the same folder with `handlers.py` with `test` in the filename, for example,
+`logic_test.py`.
 
 #### Python tips
 
