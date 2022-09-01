@@ -53,14 +53,14 @@ wrapt = ">=1.10.11"
 
 [[package]]
 name = "boto3"
-version = "1.24.62"
+version = "1.24.64"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 
 [package.dependencies]
-botocore = ">=1.27.62,<1.28.0"
+botocore = ">=1.27.64,<1.28.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -69,7 +69,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.27.62"
+version = "1.27.64"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -95,16 +95,12 @@ python-versions = "*"
 pycparser = "*"
 
 [[package]]
-name = "cfn_guard_rs"
+name = "cfn-guard-rs"
 version = "0.1.0"
 description = ""
 category = "dev"
 optional = false
 python-versions = ">=3.7"
-
-[package.source]
-type = "file"
-url = "cfn_guard_rs-0.1.0-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl"
 
 [[package]]
 name = "cloudformation-cli-python-lib"
@@ -465,7 +461,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.2"
-content-hash = "7ebd714dfa85194660ae4c359a05ae3c24dd69c387a480e450d6ea8b6a0fb503"
+content-hash = "b69f052065d9239086037a51714ecd2b4519a8aed6ff1e4008128f8ea09e97de"
 
 [metadata.files]
 astroid = [
@@ -476,16 +472,37 @@ atomicwrites = []
 attrs = []
 aws-encryption-sdk = []
 boto3 = [
-    {file = "boto3-1.24.62-py3-none-any.whl", hash = "sha256:84b962f18506ad495dc973aeb5168697ee882497c01430dddeba5e8339db7932"},
-    {file = "boto3-1.24.62.tar.gz", hash = "sha256:818a40b82e4f66b4bdd4fa38fcc3ed0fb26542f7d8c4d15279d4ba1d4762cd95"},
+    {file = "boto3-1.24.64-py3-none-any.whl", hash = "sha256:232ce2e82cf7d79f3ec02d301fd370a8e21ede81d5be3d9edf182ad10dc24e30"},
+    {file = "boto3-1.24.64.tar.gz", hash = "sha256:932edb4373cca0062521a236af46d80115598d3056c7356f00fee26db25efcd7"},
 ]
 botocore = [
-    {file = "botocore-1.27.62-py3-none-any.whl", hash = "sha256:69682c874dc8ed1856bffd203786c9591fb76a1946d3dcc516bda1ee6a6989f3"},
-    {file = "botocore-1.27.62.tar.gz", hash = "sha256:8563c7d8b80e8041667cf35b397f1c399537f6c887e1c501f0064bfd7ae541ba"},
+    {file = "botocore-1.27.64-py3-none-any.whl", hash = "sha256:670aec1c6f201a06ad7fbf252485629f4cd17e63e31dea5b67accb4d08b5f2fa"},
+    {file = "botocore-1.27.64.tar.gz", hash = "sha256:25793c7e13d989ba27bbca83ea5e19a4ee1cf7ddbab2c0ab3d63461e64e9be50"},
 ]
 cffi = []
-cfn_guard_rs = [
-    {file = "cfn_guard_rs-0.1.0-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:ef99774e380a1fe692f5afa6fe292fdaecd6de5441f1ca02863b12b3d77f851c"},
+cfn-guard-rs = [
+    {file = "cfn_guard_rs-0.1.0-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:0fc7c419ec26c6f7964d43feac0dd8bfcc0dcd86531ff80c3468158c84daf5b4"},
+    {file = "cfn_guard_rs-0.1.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d5a2106881812b681fff20c7d79a761f04efc1018af1c1da22f9d8cb309ea2e7"},
+    {file = "cfn_guard_rs-0.1.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:e9d7e51528a9bc8abc4d95c0e157d095446d8927aa4293b4b0de18a8083111d9"},
+    {file = "cfn_guard_rs-0.1.0-cp310-none-win_amd64.whl", hash = "sha256:93bc05502b53f32b39d74daab2cf494d4eb7fe948df9a4048d8de34890bbeb84"},
+    {file = "cfn_guard_rs-0.1.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:03e7b7eb94c1353f74f6f17b88d49d0937be452369b1416911523beb180704e2"},
+    {file = "cfn_guard_rs-0.1.0-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:30b3a1801ec3cb9ee591fbf61e1e02b369bfce0ee10856ee4169d4a1747c8578"},
+    {file = "cfn_guard_rs-0.1.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3cd5f9ad53bd3a3516d3b0e1619aa6691190090202fdb202923b86cc52775415"},
+    {file = "cfn_guard_rs-0.1.0-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:45122793637e494134b2f9cac6e69f7548afbec3ca9591bcc673959780e0641d"},
+    {file = "cfn_guard_rs-0.1.0-cp37-none-win_amd64.whl", hash = "sha256:4145cc4b9c8253351b6d62a6ef74bd604f24aab9932ed6b7546c28c1000b7a0c"},
+    {file = "cfn_guard_rs-0.1.0-cp38-cp38-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:2fcc4c5196aa506b67533c2795c2b1c684f42f617fd5be1eb7027c8c27c11288"},
+    {file = "cfn_guard_rs-0.1.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4f873fdb36273f7c9156464b2853a77766eaeed2e73e3646890f77cf892b96b1"},
+    {file = "cfn_guard_rs-0.1.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:3e0a5d13a5684d5a38436a1a0b0ab53f4d0d0e838e0be5c220ba8073956578f6"},
+    {file = "cfn_guard_rs-0.1.0-cp38-none-win_amd64.whl", hash = "sha256:b6f011ece4f5c8b3730b2ef52aa5c40d462d6ce42d266b9dcb322d3da92312ff"},
+    {file = "cfn_guard_rs-0.1.0-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:c1d2725197b2df9812f353eaa08e7a3bd3139c3a4b1447d81c1258bc5802dcb9"},
+    {file = "cfn_guard_rs-0.1.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e8e3de5f776c2feba18bc65bab6fef071846231d7b65b5a37e5618e6f982ec34"},
+    {file = "cfn_guard_rs-0.1.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:f6d402322a336c52e99f2867c930524dfe2fd55d59da0c7346b274168f6511a0"},
+    {file = "cfn_guard_rs-0.1.0-cp39-none-win_amd64.whl", hash = "sha256:1a7408976c172be9754b95b1446e4146e3e52fdfb5cfaa8dfe8836378f2cabed"},
+    {file = "cfn_guard_rs-0.1.0-pp37-pypy37_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:feba9a59ab5ba861d423906909c631270adb51bc24402af9a9567945f58cc604"},
+    {file = "cfn_guard_rs-0.1.0-pp37-pypy37_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:9aedce3f808d3adf5f3a1436a3c4fd13ade147fb28a9ddaa75abccabde08b86e"},
+    {file = "cfn_guard_rs-0.1.0-pp38-pypy38_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c7e4435aaf43ddb76c6256215b26a2feae0c03ad9b01872442dca94b3270b7fa"},
+    {file = "cfn_guard_rs-0.1.0-pp38-pypy38_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:3f6236f469e9803678fe3c33b1945fe619cb2ae3f195bd0afefafe4dadfac6ed"},
+    {file = "cfn_guard_rs-0.1.0-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:523966da0efef58885047f86616ffb0d85ee8e359efa4cd1c74ffc4bc41a449f"},
 ]
 cloudformation-cli-python-lib = []
 colorama = []

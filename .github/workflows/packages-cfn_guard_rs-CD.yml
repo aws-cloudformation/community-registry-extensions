@@ -5,10 +5,12 @@ on:
     branches:
       - main
     paths:
-      - "packages/cfn_guard_rs/*"
+      - "packages/cfn_guard_rs/**"
+      - "packages/cfn_guard_rs_hook/**"
   pull_request:
     paths:
-      - "packages/cfn_guard_rs/*"
+      - "packages/cfn_guard_rs/**"
+      - "packages/cfn_guard_rs_hook/**"
 jobs:
   linux:
     strategy:
@@ -66,5 +68,3 @@ jobs:
         run: |
           python3 --version
           tox -e py
-
-
