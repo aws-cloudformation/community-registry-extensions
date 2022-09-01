@@ -104,14 +104,13 @@ breaking changes between releases.
 
 ### Unit tests and mocking
 
-In order to submit a resource to the registry, you have to use SAM to run an
-exhaustive set of contract tests. SAM mocks lambda locally, but nothing else -
+In order to submit a resource to the registry, you have to use the [AWS Serverless Application Model](https://aws.amazon.com/serverless/sam/) (SAM) to run an
+exhaustive set of contract tests. SAM mocks an AWS Lambda function locally, but nothing else -
 real SDK calls are made in your account, creating and deleting real resources.
 There is not much point in also using an AWS API mocking library to duplicate
 what `cfn test` covers. Reserve unit tests for testing discrete functions with
 predictable outputs and no side effects.
 
-(This might be too opinionated but mocks seem like a waste of effort)
 
 ### Python Development
 
