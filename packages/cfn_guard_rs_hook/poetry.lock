@@ -96,7 +96,7 @@ pycparser = "*"
 
 [[package]]
 name = "cfn-guard-rs"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 category = "dev"
 optional = false
@@ -481,28 +481,29 @@ botocore = [
 ]
 cffi = []
 cfn-guard-rs = [
-    {file = "cfn_guard_rs-0.1.0-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:0fc7c419ec26c6f7964d43feac0dd8bfcc0dcd86531ff80c3468158c84daf5b4"},
-    {file = "cfn_guard_rs-0.1.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d5a2106881812b681fff20c7d79a761f04efc1018af1c1da22f9d8cb309ea2e7"},
-    {file = "cfn_guard_rs-0.1.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:e9d7e51528a9bc8abc4d95c0e157d095446d8927aa4293b4b0de18a8083111d9"},
-    {file = "cfn_guard_rs-0.1.0-cp310-none-win_amd64.whl", hash = "sha256:93bc05502b53f32b39d74daab2cf494d4eb7fe948df9a4048d8de34890bbeb84"},
-    {file = "cfn_guard_rs-0.1.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:03e7b7eb94c1353f74f6f17b88d49d0937be452369b1416911523beb180704e2"},
-    {file = "cfn_guard_rs-0.1.0-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:30b3a1801ec3cb9ee591fbf61e1e02b369bfce0ee10856ee4169d4a1747c8578"},
-    {file = "cfn_guard_rs-0.1.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3cd5f9ad53bd3a3516d3b0e1619aa6691190090202fdb202923b86cc52775415"},
-    {file = "cfn_guard_rs-0.1.0-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:45122793637e494134b2f9cac6e69f7548afbec3ca9591bcc673959780e0641d"},
-    {file = "cfn_guard_rs-0.1.0-cp37-none-win_amd64.whl", hash = "sha256:4145cc4b9c8253351b6d62a6ef74bd604f24aab9932ed6b7546c28c1000b7a0c"},
-    {file = "cfn_guard_rs-0.1.0-cp38-cp38-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:2fcc4c5196aa506b67533c2795c2b1c684f42f617fd5be1eb7027c8c27c11288"},
-    {file = "cfn_guard_rs-0.1.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4f873fdb36273f7c9156464b2853a77766eaeed2e73e3646890f77cf892b96b1"},
-    {file = "cfn_guard_rs-0.1.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:3e0a5d13a5684d5a38436a1a0b0ab53f4d0d0e838e0be5c220ba8073956578f6"},
-    {file = "cfn_guard_rs-0.1.0-cp38-none-win_amd64.whl", hash = "sha256:b6f011ece4f5c8b3730b2ef52aa5c40d462d6ce42d266b9dcb322d3da92312ff"},
-    {file = "cfn_guard_rs-0.1.0-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:c1d2725197b2df9812f353eaa08e7a3bd3139c3a4b1447d81c1258bc5802dcb9"},
-    {file = "cfn_guard_rs-0.1.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e8e3de5f776c2feba18bc65bab6fef071846231d7b65b5a37e5618e6f982ec34"},
-    {file = "cfn_guard_rs-0.1.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:f6d402322a336c52e99f2867c930524dfe2fd55d59da0c7346b274168f6511a0"},
-    {file = "cfn_guard_rs-0.1.0-cp39-none-win_amd64.whl", hash = "sha256:1a7408976c172be9754b95b1446e4146e3e52fdfb5cfaa8dfe8836378f2cabed"},
-    {file = "cfn_guard_rs-0.1.0-pp37-pypy37_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:feba9a59ab5ba861d423906909c631270adb51bc24402af9a9567945f58cc604"},
-    {file = "cfn_guard_rs-0.1.0-pp37-pypy37_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:9aedce3f808d3adf5f3a1436a3c4fd13ade147fb28a9ddaa75abccabde08b86e"},
-    {file = "cfn_guard_rs-0.1.0-pp38-pypy38_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c7e4435aaf43ddb76c6256215b26a2feae0c03ad9b01872442dca94b3270b7fa"},
-    {file = "cfn_guard_rs-0.1.0-pp38-pypy38_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:3f6236f469e9803678fe3c33b1945fe619cb2ae3f195bd0afefafe4dadfac6ed"},
-    {file = "cfn_guard_rs-0.1.0-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:523966da0efef58885047f86616ffb0d85ee8e359efa4cd1c74ffc4bc41a449f"},
+    {file = "cfn_guard_rs-0.1.1-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:bf978e06889fb58c4c95985ee519a29a8b2b45ac614b778400c75e204273c286"},
+    {file = "cfn_guard_rs-0.1.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:817683db61f05797fc02e27137083a9bcd547ab4fa6b432e524563b62e3aec9a"},
+    {file = "cfn_guard_rs-0.1.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:0c0f35b01bb1181063874a49aee4a863ef67274e294c6601016fdccf15a0e1d4"},
+    {file = "cfn_guard_rs-0.1.1-cp310-none-win_amd64.whl", hash = "sha256:50ebc11ac10c0015e39956e031a612bd9e50c4be5a7434cf391f61e1436dc485"},
+    {file = "cfn_guard_rs-0.1.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:65134ba060ebf3778037310ae1183723d5673d16e3c9d5c826368febd6a362d0"},
+    {file = "cfn_guard_rs-0.1.1-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:68d7f584be9fddf0d5091f5637a36ee2647f6e748c27854274eac8001b4718ed"},
+    {file = "cfn_guard_rs-0.1.1-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ecaaf99753b5baf767155cdef30ef4234a98bb299e1eb4ada3ba2fd5f4f0eaec"},
+    {file = "cfn_guard_rs-0.1.1-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:bc093b9ff14796f41530c318413deb615ae0ca85af0a2de13cf6d0668d2c0f9d"},
+    {file = "cfn_guard_rs-0.1.1-cp37-none-win_amd64.whl", hash = "sha256:dbe14352e3c30de03a0393574a5dfafe51802dafe946ea72d1f97d62cc98868d"},
+    {file = "cfn_guard_rs-0.1.1-cp38-cp38-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:440f4eb18d27beb7389d61f57be5027a853d48945008066421266b1fb571974b"},
+    {file = "cfn_guard_rs-0.1.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7c00341f1537c53345a51fa45c326e8b54ff3dda0f98c287abae2bb8f7273c33"},
+    {file = "cfn_guard_rs-0.1.1-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:232a15080d80cb87eeb3ae82ab332abe11d3dbb5c43eeca8b315b55fb4396ee0"},
+    {file = "cfn_guard_rs-0.1.1-cp38-none-win_amd64.whl", hash = "sha256:5b0d1cb8c630da7e499bbd1d2bf7b2551e1567d074af735af6c54921af57d53b"},
+    {file = "cfn_guard_rs-0.1.1-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:05ac228063983032fb87e4406864109e6a22297f9f9f2762ecfe92b8d1005f06"},
+    {file = "cfn_guard_rs-0.1.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:30f04e51c7d0d615c434d00c4d2f5aa59b7ff4b2e13239c9357f2e19e249ba9d"},
+    {file = "cfn_guard_rs-0.1.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:f662ba7231d3a472ae9deac1a9008f8995e417484576d0a761f0b5cb9d3f20fc"},
+    {file = "cfn_guard_rs-0.1.1-cp39-none-win_amd64.whl", hash = "sha256:ebb4779bb2a5e79a2223b588f0940b5aa653f391f8c753f675e2702f96153a2d"},
+    {file = "cfn_guard_rs-0.1.1-pp37-pypy37_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b4cb2261b55025e10dce5cc9572f6f8cab47bfafa98acec7d3f22ea3fa9c6963"},
+    {file = "cfn_guard_rs-0.1.1-pp37-pypy37_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:57130fc9bbda1ba44f301a7fa1413a58964eb510c92a14dfbbce61cf83397d79"},
+    {file = "cfn_guard_rs-0.1.1-pp38-pypy38_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b13f3b92f921418ce90392a9d9f1edb48c5fa926a4a19bc6f43cda4870425abf"},
+    {file = "cfn_guard_rs-0.1.1-pp38-pypy38_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:3f136088a54db17d7e9978992acb7f6b76fa54107e599097ea82fa4b0488766a"},
+    {file = "cfn_guard_rs-0.1.1-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:062e4004999f7002d43771bcea586cffb650fb829054cd6128a79fc1b26935f2"},
+    {file = "cfn_guard_rs-0.1.1.tar.gz", hash = "sha256:555224c5e40537a7adce17f44f3a213fe4d3ff6c38a07c8273f826e017948a90"},
 ]
 cloudformation-cli-python-lib = []
 colorama = []
