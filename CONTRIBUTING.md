@@ -66,11 +66,11 @@ See the [LICENSE](LICENSE) file for our project's licensing. We will ask you to 
 
 Development for CloudFormation registry extensions can be done in one of
 several languages. For modules, you can use either JSON or YAML. For resource
-types (also known as providers) and hooks, you can use Python, Java,
-Typescript, or Go. Full disclosure on language choice: Java has the best
-support since it is the language used by AWS service teams. We are working
-on improving support for the CLI and language plugin repositories and we expect
-this situation to improve quickly.
+types (also known as providers), you can use Python, Java, Typescript, or Go.
+Hooks can be developed in Java and Python. Full disclosure on language choice:
+Java has the best support since it is the language used by AWS service teams.
+We are working on improving support for the CLI and language plugin
+repositories and we expect this situation to improve quickly.
 
 ### Guidelines for all languages
 
@@ -115,8 +115,9 @@ predictable outputs and no side effects.
 
 ### Python Development
 
-Formatting: [https://github.com/psf/black](Black)
-Linting: [https://pylint.pycqa.org/en/latest/](Pylint)
+- Formatting: [https://github.com/psf/black](Black)
+- Linting: [https://pylint.pycqa.org/en/latest/](Pylint)
+- Security checks: [https://bandit.readthedocs.io/en/latest/](Bandit)
 
 Be careful with any changes you make to the basic project layout created by
 `cfn init`. The registry backend makes some assumptions that can lead to
