@@ -1,8 +1,8 @@
 {
     "Id": "Test1",
     "Events": ["s3:ObjectCreated:*"],
-    "BucketArn": "{{BucketNotification-TestBucket}}",
-    "TargetArn": "{{BucketNotification-TestQueue}}",
+    "BucketArn": "{{BucketNotificationTestBucket}}",
+    "TargetArn": "{{BucketNotificationTestQueue}}",
     "TargetType": "Queue",
     "Filters": [
         {

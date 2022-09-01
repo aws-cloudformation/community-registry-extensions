@@ -7,11 +7,11 @@ Outputs:
   BucketArn:
     Value: !Ref Bucket
     Export:
-      Name: BucketNotification-TestBucket
+      Name: BucketNotificationTestBucket
   QueueArn:
     Value: !Ref Queue
     Export:
-      Name: BucketNotification-TestQueue
+      Name: BucketNotificationTestQueue
 
 
 
