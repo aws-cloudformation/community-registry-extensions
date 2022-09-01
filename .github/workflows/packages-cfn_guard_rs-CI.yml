@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "packages/cfn_guard_rs/*"
+      - "packages/cfn_guard_rs/**"
 jobs:
   linux:
     strategy:

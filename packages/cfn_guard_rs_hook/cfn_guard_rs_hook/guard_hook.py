@@ -181,7 +181,7 @@ class GuardHook(Hook):
             rules = pkg_resources.read_text(self.rules, content)
             LOG.debug("Rules from %s: %s", content, rules)
 
-            guard_result = cfn_guard_rs.run_checks(template, rules, False)
+            guard_result = cfn_guard_rs.run_checks(template, rules)
             LOG.debug("Raw Guard results: %s", guard_result)
 
             if guard_result.not_compliant:
