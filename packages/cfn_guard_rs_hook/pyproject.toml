@@ -13,6 +13,7 @@ pytest = "^5.2"
 cfn_guard_rs = "^0.1.0"
 mypy = "^0.971"
 pylint = "^2.15.0"
+Jinja2 = "^3.1.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -1,6 +1,7 @@
 """
     Test cfn_guard_rs_hook
 """
+from dataclasses import dataclass
 import pytest
 from cloudformation_cli_python_lib import (
     HookInvocationPoint,
@@ -11,8 +12,8 @@ from cloudformation_cli_python_lib import (
 from cfn_guard_rs_hook import __version__, GuardHook
 
 
-from .helpers import TypeConfigurationModel, create_request
-from .fixtures import rules
+from .helpers import create_request
+from .fixtures import rules_s3_bucket_public_access, rules_s3_bucket_default_lock_enabled
 
 
 def test_version():
@@ -22,8 +23,21 @@ def test_version():
     assert __version__ == "0.1.0"
 
 
+@dataclass
+class TypeConfigurationEmpty():
+    """
+        Test Configuration Item
+    """
+
+@dataclass
+class TypeConfigurationObjectLockEnabled():
+    """
+        Test Configuration Item
+    """
+    object_lock_enabled: str
+
 @pytest.mark.parametrize(
-    "type_name,model,invocation_point,expected",
+    "type_name,model,invocation_point,rules,type_configuration,expected",
     [
         (
             "Community::S3Bucket::Encryption",
@@ -38,6 +52,8 @@ def test_version():
                 }
             },
             HookInvocationPoint.CREATE_PRE_PROVISION,
+            rules_s3_bucket_public_access,
+            TypeConfigurationEmpty(),
             ProgressEvent(
                 status=OperationStatus.SUCCESS,
                 errorCode=None,
@@ -63,6 +79,8 @@ def test_version():
                 }
             },
             HookInvocationPoint.CREATE_PRE_PROVISION,
+            rules_s3_bucket_public_access,
+            TypeConfigurationEmpty(),
             ProgressEvent(
                 status=OperationStatus.FAILED,
                 errorCode=HandlerErrorCode.NonCompliant,
@@ -78,14 +96,63 @@ def test_version():
                 nextToken=None,
             ),
         ),
+        (
+            "Community::S3Bucket::Encryption",
+            {
+                "resourceProperties": {
+                    "ObjectLockEnabled": "false",
+                }
+            },
+            HookInvocationPoint.CREATE_PRE_PROVISION,
+            rules_s3_bucket_default_lock_enabled,
+            TypeConfigurationObjectLockEnabled("true"),
+            ProgressEvent(
+                status=OperationStatus.FAILED,
+                errorCode=HandlerErrorCode.NonCompliant,
+                message="Rule [S3_BUCKET_DEFAULT_LOCK_ENABLED] failed on "
+                "property [/Resources/Bucket/Properties/ObjectLockEnabled"
+                "] and got error [\n    Violation: S3 Bucket ObjectLockEnabled "\
+                "must be set to true.\n    Fix: Set the S3 property "\
+                "ObjectLockEnabled parameter to true.\n  ].",
+                result=None,
+                callbackContext=None,
+                callbackDelaySeconds=0,
+                resourceModel=None,
+                resourceModels=None,
+                nextToken=None,
+            ),
+        ),
+        (
+            "Community::S3Bucket::Encryption",
+            {
+                "resourceProperties": {
+                    "ObjectLockEnabled": "true",
+                }
+            },
+            HookInvocationPoint.CREATE_PRE_PROVISION,
+            rules_s3_bucket_default_lock_enabled,
+            TypeConfigurationObjectLockEnabled("true"),
+            ProgressEvent(
+                status=OperationStatus.SUCCESS,
+                errorCode=None,
+                message="",
+                result=None,
+                callbackContext=None,
+                callbackDelaySeconds=0,
+                resourceModel=None,
+                resourceModels=None,
+                nextToken=None,
+            ),
+        ),
     ],
 )
-def test_transactions(type_name, model, invocation_point, expected):
+#pylint: disable=too-many-arguments
+def test_transactions(type_name, model, invocation_point, rules, type_configuration, expected):
     """
     Test a hook call
     """
     req = create_request(invocation_point, model)
-    hook = GuardHook(type_name, TypeConfigurationModel, rules)
+    hook = GuardHook(type_name, rules)
 
     # pylint: disable=protected-access
     result = hook._invoke_handler(
@@ -93,6 +160,7 @@ def test_transactions(type_name, model, invocation_point, expected):
         request=req,
         invocation_point=invocation_point,
         callback_context={},
-        type_configuration=TypeConfigurationModel(),
+        type_configuration=type_configuration,
     )
+
     assert result == expected
