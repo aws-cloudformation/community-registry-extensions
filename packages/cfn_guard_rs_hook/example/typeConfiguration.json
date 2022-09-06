@@ -1,0 +1,11 @@
+{
+  "CloudFormationConfiguration": {
+      "HookConfiguration": {
+          "TargetStacks": "NONE",
+          "FailureMode": "WARN",
+          "Properties": {
+              "DefaultLockEnabled": "true"
+          }
+      }
+  }
+}

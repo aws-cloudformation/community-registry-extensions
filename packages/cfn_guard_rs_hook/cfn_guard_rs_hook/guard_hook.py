@@ -17,7 +17,6 @@ from cloudformation_cli_python_lib import (
     HandlerErrorCode,
 )
 import cfn_guard_rs
-from .models import TypeConfigurationModel
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
@@ -32,9 +31,10 @@ class GuardHook(Hook):
     def __init__(
         self,
         type_name: str,
+        type_configuration: Any,
         rules: ModuleType,
     ) -> None:
-        super().__init__(type_name, TypeConfigurationModel)
+        super().__init__(type_name, type_configuration)
         self._handlers = {
             HookInvocationPoint.CREATE_PRE_PROVISION: self.pre_create_handler,
             HookInvocationPoint.UPDATE_PRE_PROVISION: self.pre_update_handler,
@@ -51,7 +51,7 @@ class GuardHook(Hook):
         session: Optional[SessionProxy],
         request: BaseHookHandlerRequest,
         callback_context: MutableMapping[str, Any],
-        type_configuration: TypeConfigurationModel,
+        type_configuration: Any,
     ) -> ProgressEvent:
         """
         Pre Create Handler for CloudFormation Hook
@@ -66,7 +66,7 @@ class GuardHook(Hook):
         session: Optional[SessionProxy],
         request: BaseHookHandlerRequest,
         callback_context: MutableMapping[str, Any],
-        type_configuration: TypeConfigurationModel,
+        type_configuration: Any,
     ) -> ProgressEvent:
         """
         Pre Update Handler for CloudFormation Hook
@@ -81,7 +81,7 @@ class GuardHook(Hook):
         session: Optional[SessionProxy],
         request: BaseHookHandlerRequest,
         callback_context: MutableMapping[str, Any],
-        type_configuration: TypeConfigurationModel,
+        type_configuration: Any,
     ) -> ProgressEvent:
         """
         Pre Delete Handler for CloudFormation Hook
@@ -93,7 +93,7 @@ class GuardHook(Hook):
     def __generic_handler(
         self,
         request: BaseHookHandlerRequest,
-        type_configuration: TypeConfigurationModel,
+        type_configuration: Any,
     ) -> ProgressEvent:
         """
         A generic handler to handle all types of create, udpate, delete events
@@ -114,6 +114,7 @@ class GuardHook(Hook):
         target_model = request.hookContext.targetModel
         progress: ProgressEvent = ProgressEvent(status=OperationStatus.FAILED)
         LOG.debug("Request: %s", request)
+        LOG.debug("Type Configuration: %s", type_configuration)
         try:
             if (
                 target_model is not None
@@ -169,7 +170,7 @@ class GuardHook(Hook):
 
     # pylint: disable=too-many-nested-blocks
     def __run_checks(
-        self, template: dict, type_configuration: TypeConfigurationModel
+        self, template: dict, type_configuration: Any
     ) -> ProgressEvent:
         """
         Runs checks agains Guard

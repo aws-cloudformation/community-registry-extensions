@@ -34,7 +34,8 @@ class TypeConfigurationObjectLockEnabled():
     """
         Test Configuration Item
     """
-    object_lock_enabled: str
+    #pylint: disable=invalid-name
+    ObjectLockEnabled: str
 
 @pytest.mark.parametrize(
     "type_name,model,invocation_point,rules,type_configuration,expected",
@@ -152,7 +153,7 @@ def test_transactions(type_name, model, invocation_point, rules, type_configurat
     Test a hook call
     """
     req = create_request(invocation_point, model)
-    hook = GuardHook(type_name, rules)
+    hook = GuardHook(type_name, TypeConfigurationObjectLockEnabled, rules)
 
     # pylint: disable=protected-access
     result = hook._invoke_handler(

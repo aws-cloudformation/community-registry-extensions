@@ -9,4 +9,3 @@
 __version__ = "0.1.0"
 
 from cfn_guard_rs_hook.guard_hook import GuardHook
-from cfn_guard_rs_hook.models import TypeConfigurationModel

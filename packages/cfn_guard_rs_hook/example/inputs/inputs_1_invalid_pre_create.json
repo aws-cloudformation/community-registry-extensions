@@ -1,0 +1,7 @@
+{
+  "AWS::S3::Bucket": {
+    "resourceProperties": {
+      "ObjectLockEnabled": "false"
+    }
+  }
+}
