@@ -1,0 +1,13 @@
+{
+    "Id": "Test1",
+    "Events": ["s3:ObjectCreated:*"],
+    "BucketArn": "{{BucketNotificationTestBucket}}",
+    "TargetArn": "{{BucketNotificationTestQueue}}",
+    "TargetType": "Queue",
+    "Filters": [
+        {
+            "Name": "Suffix",
+            "Value": "gif"
+        }
+    ]
+}

@@ -1,8 +1,8 @@
 {
     "Id": "Test1",
     "Events": ["s3:ObjectCreated:*"],
-    "BucketArn": "arn:aws:s3:::[NEEDS TO BE A REAL BUCKET IN YOUR ACCOUNT]",
-    "TargetArn": "arn:aws:sqs:us-east-1:[YOUR ACCOUNT ID]:[NEEDS TO BE A REAL QUEUE]",
+    "BucketArn": "{{BucketNotificationTestBucket}}",
+    "TargetArn": "{{BucketNotificationTestQueue}}",
     "TargetType": "Queue",
     "Filters": [
         {
@@ -11,4 +11,3 @@
         }
     ]
 }
-

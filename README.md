@@ -24,15 +24,6 @@ This repository is part of an initiative to improve open source community
 engagement around Infrastructure as Code at AWS. We are still in early phases,
 so we would like community input on the direction we take.
 
-* One repo or many? For each extension, we could put the source here in this
-  repository, or create a new repository for each extension. We are leaning
-  towards a mono-repo to keep discussions and contributions all in one place,
-  and to make it easier to manage the build, test, and release process. There
-  are also 3rd party extensions for partner products like Pager Duty and Okta
-  that we will publish under the same umbrella, so the idea is to host each top
-  level resource namespace in its own repository. `AwsCommunity::` will live
-  here, `PagerDutyCommunity::` will live in
-  `pagerduty-community-registry-extensions`, and so on.
 * Linting. Hooks and resources can be authored in a variety of languages.
   Should we enforce a coding standard at the top level for all projects (for
   example, a single .pylintrc)? Or let each project dictate its own standards?
@@ -41,8 +32,6 @@ so we would like community input on the direction we take.
   service team? Do we allow someone to basically re-write an AWS resource from
   scratch, for example AwsCommunity::S3::Bucket with different behavior from
   the original?
-* The namespace. AwsLabs::, AwsCommunity::, Community:: (Leaning towards
-  `AwsCommunity::`)
 * Experimental extensions. Do we have a variation on the namespace to give
   people freedom to experiment? AwsCommunityAlpha:: ? There may be a registry
   feature coming soon to give a resource an ‘Alpha’ badge or ‘GA’ badge, and
@@ -50,6 +39,17 @@ so we would like community input on the direction we take.
   want to avoid a situation where customers install experimental extensions in
   production and then get surprised by a breaking change because it wasn't
   obvious.
+* Testing. We need to make sure that the resources we publish remain stable
+  over time, especially after we designate one as "GA". We expect these
+  resources to be used in production by customers, and a change that leads to
+  the lambda handler code behind a resource failing could lead to outages for
+  customer release pipelines. Running "local" tests with SAM still results in
+  SDK calls being made in an AWS account, which requires a certain amount of
+  setup to be done beforehand. And these tests only cover the resource handlers
+  themselves, not an actual template that uses the resource. Full integration
+  testing requires even more setup, which is difficult to automate. We need to
+  decide what tests are run when new PRs are submitted, and which tests we
+  reserve for releases. And what the release branching strategy will be.
 
 ## How to use these extensions
 
@@ -62,14 +62,17 @@ first be activated using the instructions [here](https://docs.aws.amazon.com/AWS
 
 ## Catalog of community extensions
 
-[TODO: Auto-generated table of Name, Type, Version, Description]
 |Name|Type|Version|Description|
 |----|----|-------|-----------|
-|AwsCommunity::S3::BucketNotification|Resource|Alpha|Configure bucket notifications|
+|[./resources/BucketNotification](AwsCommunity::S3::BucketNotification)|Resource|Alpha|Configure bucket notifications|
+|[./resources/DeleteBucketContents](AwsCommunity::S3::DeleteBucketContents)|Resource|Alpha|Delete all objects in a bucket|
 
 ## Contributing
 
-See the contributer guide (TODO)
+See the contributer guide: [./CONTRIBUTING.md](CONTRIBUTING.md)
+
+Also check out how our release process works here: [./RELEASE.md](RELEASE.md)
+
 
 
 

@@ -59,6 +59,13 @@ sam local start-lambda
 Keep in mind that SAM local testing only simulates lambda locally, it will make SDK 
 calls into your account and create resources!
 
+Create the setup stack so that contract tests have something to interact with in your account.
+
+```sh
+aws cloudformation create-stack --stack-name bucketnotification-setup \
+    --template-body file://test/setup.yml
+```
+
 In the first tab:
 
 ```sh

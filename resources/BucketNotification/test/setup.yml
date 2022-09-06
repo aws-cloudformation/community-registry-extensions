@@ -1,0 +1,17 @@
+Resources:
+  Queue:
+    Type: AWS::SQS::Queue
+  Bucket:
+    Type: AWS::S3::Bucket
+Outputs:
+  BucketArn:
+    Value: !GetAtt Bucket.Arn
+    Export:
+      Name: BucketNotificationTestBucket
+  QueueArn:
+    Value: !GetAtt Queue.Arn
+    Export:
+      Name: BucketNotificationTestQueue
+
+
+
