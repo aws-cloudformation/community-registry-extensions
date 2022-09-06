@@ -1,0 +1,12 @@
+{
+    "properties": {
+        "DefaultLockEnabled": {
+            "description": "Default Lock Enabled true/false",
+            "default": "true",
+            "type": "boolean"
+        }
+    },
+    "additionalProperties": false,
+    "definitions": {},
+    "typeName": "Sample::S3::DefaultLockEnabled"
+}

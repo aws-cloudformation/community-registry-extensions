@@ -1,0 +1,36 @@
+{
+    "typeName": "Sample::S3::DefaultLockEnabled",
+    "description": "Validate that an S3 Bucket has Default Lock Enabled",
+    "sourceUrl": "https://github.com/aws-cloudformation/example-sse-hook",
+    "documentationUrl": "https://github.com/aws-cloudformation/example-sse-hook/blob/master/README.md",
+    "typeConfiguration": {
+        "properties": {
+            "DefaultLockEnabled": {
+                "description": "Default Lock Enabled true/false",
+                "default": "true",
+                "type": "boolean"
+            }
+        },
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        },
+        "preDelete": {
+            "targetNames": [],
+            "permissions": []
+        }
+    },
+    "additionalProperties": false
+}

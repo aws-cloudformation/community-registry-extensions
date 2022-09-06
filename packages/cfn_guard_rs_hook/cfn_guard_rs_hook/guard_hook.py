@@ -1,11 +1,12 @@
 """
     Primary Guard hook code
 """
-from typing import Type, Optional, MutableMapping, Any
+from typing import Optional, MutableMapping, Any
 import json
 import logging
-import importlib.resources as pkg_resources
-
+from dataclasses import asdict
+from types import ModuleType
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from cloudformation_cli_python_lib import (
     Hook,
     BaseHookHandlerRequest,
@@ -15,7 +16,6 @@ from cloudformation_cli_python_lib import (
     OperationStatus,
     HandlerErrorCode,
 )
-from cloudformation_cli_python_lib.interface import BaseModel
 import cfn_guard_rs
 
 LOG = logging.getLogger(__name__)
@@ -27,18 +27,22 @@ class GuardHook(Hook):
     Override the cloudformation_cli_python_lib Hook class for
     the purpose of using with CloudFormation Guard
     """
+
     def __init__(
         self,
         type_name: str,
-        type_configuration_model_cls: Type[BaseModel],
-        rules: pkg_resources.Package,
+        type_configuration: Any,
+        rules: ModuleType,
     ) -> None:
-        super().__init__(type_name, type_configuration_model_cls)
+        super().__init__(type_name, type_configuration)
         self._handlers = {
             HookInvocationPoint.CREATE_PRE_PROVISION: self.pre_create_handler,
             HookInvocationPoint.UPDATE_PRE_PROVISION: self.pre_update_handler,
             HookInvocationPoint.DELETE_PRE_PROVISION: self.pre_delete_handler,
         }
+        self.jinja = Environment(
+            loader=FileSystemLoader(rules.__path__), autoescape=select_autoescape()
+        )
         self.rules = rules
 
     # pylint: disable=unused-argument
@@ -47,12 +51,14 @@ class GuardHook(Hook):
         session: Optional[SessionProxy],
         request: BaseHookHandlerRequest,
         callback_context: MutableMapping[str, Any],
-        type_configuration: Type[BaseModel],
+        type_configuration: Any,
     ) -> ProgressEvent:
         """
         Pre Create Handler for CloudFormation Hook
         """
-        return self.__generic_handler(request=request)
+        return self.__generic_handler(
+            request=request, type_configuration=type_configuration
+        )
 
     # pylint: disable=unused-argument
     def pre_update_handler(
@@ -60,12 +66,14 @@ class GuardHook(Hook):
         session: Optional[SessionProxy],
         request: BaseHookHandlerRequest,
         callback_context: MutableMapping[str, Any],
-        type_configuration: Type[BaseModel],
+        type_configuration: Any,
     ) -> ProgressEvent:
         """
         Pre Update Handler for CloudFormation Hook
         """
-        return self.__generic_handler(request=request)
+        return self.__generic_handler(
+            request=request, type_configuration=type_configuration
+        )
 
     # pylint: disable=unused-argument
     def pre_delete_handler(
@@ -73,14 +81,20 @@ class GuardHook(Hook):
         session: Optional[SessionProxy],
         request: BaseHookHandlerRequest,
         callback_context: MutableMapping[str, Any],
-        type_configuration: Type[BaseModel],
+        type_configuration: Any,
     ) -> ProgressEvent:
         """
         Pre Delete Handler for CloudFormation Hook
         """
-        return self.__generic_handler(request=request)
+        return self.__generic_handler(
+            request=request, type_configuration=type_configuration
+        )
 
-    def __generic_handler(self, request: BaseHookHandlerRequest) -> ProgressEvent:
+    def __generic_handler(
+        self,
+        request: BaseHookHandlerRequest,
+        type_configuration: Any,
+    ) -> ProgressEvent:
         """
         A generic handler to handle all types of create, udpate, delete events
 
@@ -100,6 +114,7 @@ class GuardHook(Hook):
         target_model = request.hookContext.targetModel
         progress: ProgressEvent = ProgressEvent(status=OperationStatus.FAILED)
         LOG.debug("Request: %s", request)
+        LOG.debug("Type Configuration: %s", type_configuration)
         try:
             if (
                 target_model is not None
@@ -112,7 +127,7 @@ class GuardHook(Hook):
                     request.hookContext.targetName,
                 )
 
-                progress = self.__run_checks(template)
+                progress = self.__run_checks(template, type_configuration)
             else:
                 progress.status = OperationStatus.FAILED
                 progress.errorCode = HandlerErrorCode.NonCompliant
@@ -153,8 +168,10 @@ class GuardHook(Hook):
             "Resources": {resource_name: {"Type": resource_type, "Properties": props}}
         }
 
-    #pylint: disable=too-many-nested-blocks
-    def __run_checks(self, template: dict) -> ProgressEvent:
+    # pylint: disable=too-many-nested-blocks
+    def __run_checks(
+        self, template: dict, type_configuration: Any
+    ) -> ProgressEvent:
         """
         Runs checks agains Guard
 
@@ -175,12 +192,15 @@ class GuardHook(Hook):
         progress = ProgressEvent(status=OperationStatus.SUCCESS)
         LOG.debug("Template: %s", json.dumps(template))
 
-        for content in pkg_resources.contents(self.rules):
-            if content in ["__init__.py", "__pycache__"]:
+        for rule_file in self.jinja.list_templates():
+            if rule_file in ["__init__.py", "__pycache__"]:
                 continue
-            rules = pkg_resources.read_text(self.rules, content)
-            LOG.debug("Rules from %s: %s", content, rules)
-
+            if rule_file.startswith("__pycache__"):
+                continue
+            rules_jinja = self.jinja.get_template(rule_file)
+            rules = rules_jinja.render(asdict(type_configuration))
+            LOG.debug("Rules from %s: %s", rule_file, rules)
+            LOG.debug(type(rules))
             guard_result = cfn_guard_rs.run_checks(template, rules)
             LOG.debug("Raw Guard results: %s", guard_result)
 
