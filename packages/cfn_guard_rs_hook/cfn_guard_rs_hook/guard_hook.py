@@ -19,7 +19,6 @@ from cloudformation_cli_python_lib import (
 import cfn_guard_rs
 
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
 
 
 class GuardHook(Hook):
@@ -169,11 +168,9 @@ class GuardHook(Hook):
         }
 
     # pylint: disable=too-many-nested-blocks
-    def __run_checks(
-        self, template: dict, type_configuration: Any
-    ) -> ProgressEvent:
+    def __run_checks(self, template: dict, type_configuration: Any) -> ProgressEvent:
         """
-        Runs checks agains Guard
+        Runs checks against Guard
 
         Runs the actual checks and converts the result to a
         hook ProgressEvent
@@ -198,9 +195,10 @@ class GuardHook(Hook):
             if rule_file.startswith("__pycache__"):
                 continue
             rules_jinja = self.jinja.get_template(rule_file)
-            rules = rules_jinja.render(asdict(type_configuration))
+            rules = rules_jinja.render(
+                asdict(type_configuration) if type_configuration is not None else {}
+            )
             LOG.debug("Rules from %s: %s", rule_file, rules)
-            LOG.debug(type(rules))
             guard_result = cfn_guard_rs.run_checks(template, rules)
             LOG.debug("Raw Guard results: %s", guard_result)
 
