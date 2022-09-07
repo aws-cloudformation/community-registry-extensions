@@ -22,13 +22,6 @@ def test_version():
     """
     assert __version__ == "0.1.0"
 
-
-@dataclass
-class TypeConfigurationEmpty():
-    """
-        Test Configuration Item
-    """
-
 @dataclass
 class TypeConfigurationObjectLockEnabled():
     """
@@ -54,7 +47,7 @@ class TypeConfigurationObjectLockEnabled():
             },
             HookInvocationPoint.CREATE_PRE_PROVISION,
             rules_s3_bucket_public_access,
-            TypeConfigurationEmpty(),
+            None,
             ProgressEvent(
                 status=OperationStatus.SUCCESS,
                 errorCode=None,
@@ -81,7 +74,7 @@ class TypeConfigurationObjectLockEnabled():
             },
             HookInvocationPoint.CREATE_PRE_PROVISION,
             rules_s3_bucket_public_access,
-            TypeConfigurationEmpty(),
+            None,
             ProgressEvent(
                 status=OperationStatus.FAILED,
                 errorCode=HandlerErrorCode.NonCompliant,
