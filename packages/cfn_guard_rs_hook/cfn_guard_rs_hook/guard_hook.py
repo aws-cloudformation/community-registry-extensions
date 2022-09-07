@@ -170,7 +170,7 @@ class GuardHook(Hook):
     # pylint: disable=too-many-nested-blocks
     def __run_checks(self, template: dict, type_configuration: Any) -> ProgressEvent:
         """
-        Runs checks agains Guard
+        Runs checks against Guard
 
         Runs the actual checks and converts the result to a
         hook ProgressEvent
