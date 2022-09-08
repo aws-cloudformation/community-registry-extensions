@@ -1,10 +1,12 @@
 # Community Registry Extension Release Process
 
 This document covers the release process for registry extensions in the
-`AwsCommunity::` namespace, published by the AWS Community Engagement Program (CEP) team.
-Our intention with this guide, and with the related code we write, is for it to
-be useable by someone who wants to publish their own public resources to all
-available regions.
+`AwsCommunity::` namespace, published by the AWS Community Engagement Program
+(CEP) team.  
+
+Our intention with this release process is for it to be useable by someone who
+wants to publish their own public resources to all available regions from 
+their own account.
 
 ## Accounts
 
@@ -31,8 +33,12 @@ prerequisites. The resource developer creates `test/setup.yml` or
 testing to succeed. See
 https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test.html)
 for documentation on the input files and how to reference CloudFormation export
-names. Keep in mind that `cfn test` will ignore the files if there are special characters
-in the export names.
+names. Keep in mind that `cfn test` will ignore the files if there are special
+characters in the export names.
+
+When a PR is merged to the main branch in the repo, a CodePipeline pipeline is
+started. It invokes a step functions workflow to start parallel CodeBuild jobs
+for each resource. The jobs for resource types run `resources/buildspec.yml`.
 
 ### Beta account
 

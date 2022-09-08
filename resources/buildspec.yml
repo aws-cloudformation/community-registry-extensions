@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - echo Entered the install phase...
+      - pwd
+      - ls
+      - echo About to build $RESOURCE_PATH
+
+  pre_build:
+    commands:
+      - echo Entered the pre_build phase...
+  build:
+    commands:
+      - echo Entered the build phase...
+  post_build:
+    commands:
+      - echo Entered the post_build phase...
+

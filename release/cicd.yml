@@ -1,0 +1,236 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Infrastructure for the community registry extenstions CICD account
+
+Parameters:
+  RepoId:
+    Type: String
+    Description: The GitHub repository org/name
+  GitHubConnectionArn:
+    Type: String
+    Description: Arn to the CodeStarConnections GitHub connection
+
+Resources:
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+
+  StateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: stepfunctions.amazonaws.com
+        Version: '2012-10-17'
+
+  StateMachinePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles: 
+        - !Ref StateMachineRole
+      PolicyName: extensions-build-statemachine
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/stepfunctions/${StateMachine.Name}'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/stepfunctions/${StateMachine.Name}/*'
+
+  StateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Ref StateMachineRole
+      DefinitionString:
+        !Sub
+          - |-
+            {
+              "Comment": "Starts a CodeBuild job for each element in the input array",
+              "StartAt": "Map",
+              "States": {
+                "Map": {
+                  "Type": "Map",
+                  "End": true,
+                  "Iterator": {
+                    "StartAt": "StartBuild",
+                    "States": {
+                      "StartBuild": {
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::codebuild:startBuild.sync",
+                        "Parameters": {
+                          "ProjectName": "${projectName}",
+                          "environmentVariablesOverride": [
+                            {
+                              "name": "RESOURCE_PATH",
+                              "type": "PLAINTEXT",
+                              "value.$": "$.inputValue"
+                            }
+                          ]
+                        },
+                        "End": true
+                      }
+                    }
+                  },
+                  "ItemsPath": "$.resources",
+                  "MaxConcurrency": 5
+                }
+              }
+            }
+          - {projectName: !Ref BuildProject }  
+
+
+  BuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  BuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProject}'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProject}/*'
+
+          - Action:
+              - codebuild:CreateReportGroup
+              - codebuild:CreateReport
+              - codebuild:UpdateReport
+              - codebuild:BatchPutTestCases
+              - codebuild:BatchPutCodeCoverages
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${BuildProject}-*'
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - !GetAtt ArtifactBucket.Arn
+              - !Join
+                - ''
+                - - !GetAtt ArtifactBucket.Arn
+                  - /*
+        Version: '2012-10-17'
+      PolicyName: extensions-build-project-policy
+      Roles:
+        - !Ref BuildProjectRole
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: false
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "resources/placeholder"
+      ServiceRole: !GetAtt BuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: resources/buildspec.yml
+
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+        Version: '2012-10-17'
+
+  PipelinePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: extension-pipeline-policy
+      Roles: 
+        - !Ref PipelineRole
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - !GetAtt ArtifactBucket.Arn
+              - !Join
+                - ''
+                - - !GetAtt ArtifactBucket.Arn
+                  - /*
+
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !Ref PipelineRole
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: GitHub
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: 1
+              Configuration:
+                ConnectionArn: !Ref GitHubConnectionArn
+                FullRepositoryId: !Ref RepoId
+                BranchName: main
+                DetectChanges: true
+              OutputArtifacts:
+                - Name: extensions-source 
+        - Name: Build
+          Actions:
+            - Name: ResourceContractTests
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: StepFunctions
+                Version: 1
+              Configuration:
+                StateMachineArn: !GetAtt StateMachine.Arn
+                InputType: FilePath
+                Input: resources/build-input.json
+              InputArtifacts:
+                - Name: extensions-source 
+              OutputArtifacts:
+                - Name: extensions-build 
+              RunOrder: 1
+
+              
