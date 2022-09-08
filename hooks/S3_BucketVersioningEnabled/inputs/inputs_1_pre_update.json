@@ -1,0 +1,9 @@
+{
+  "AWS::S3::Bucket": {
+    "resourceProperties": {
+      "VersioningConfiguration": {
+        "Status": "Enabled"
+      }
+    }
+  }
+}
