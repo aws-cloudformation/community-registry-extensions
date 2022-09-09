@@ -75,9 +75,28 @@ Resources:
           - |-
             {
               "Comment": "Starts a CodeBuild job for each element in the input array",
-              "StartAt": "Map",
+              "StartAt": "CreateInputForMap",
               "States": {
-                "Map": {
+
+                "CreateInputForMap": {
+                    "Type": "Pass",
+                    "Next": "InvokeBuildJobs",
+                    "Result": {
+                      "resources": [
+                        {
+                          "path": "resources/BucketNotification",
+                          "location.$": "$"
+                        },
+                        {
+                          "path": "resources/DeleteBucketContents",
+                          "location.$": "$"
+                        }
+                      ]
+                    }
+                },
+
+
+                "InvokeBuildJobs": {
                   "Type": "Map",
                   "End": true,
                   "Iterator": {
@@ -92,7 +111,12 @@ Resources:
                             {
                               "Name": "RESOURCE_PATH",
                               "Type": "PLAINTEXT",
-                              "Value.$": "$.inputValue"
+                              "Value.$": "$.path"
+                            }, 
+                            {
+                              "Name": "SOURCE_LOCATION",
+                              "Type": "PLAINTEXT",
+                              "Value.$": "$.location"
                             }
                           ]
                         },
@@ -165,7 +189,7 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
-        Type: CODEPIPELINE
+        Type: NO_ARTIFACTS
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:5.0
@@ -175,11 +199,34 @@ Resources:
         EnvironmentVariables:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
-          Value: "resources/placeholder"
+          Value: "placeholder-for-path-to-resource"
+        - Name: SOURCE_LOCATION
+          Type: PLAINTEXT
+          Value: "placeholder-for-source-zip-in-s3"
       ServiceRole: !GetAtt BuildProjectRole.Arn
       Source:
-        Type: CODEPIPELINE
-        BuildSpec: resources/buildspec.yml
+        Type: NO_SOURCE
+        BuildSpec: > 
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                python: 3.7
+              commands:
+                - echo Entered the install phase...
+                - pwd
+                - ls
+                - echo About to build $RESOURCE_PATH
+            pre_build:
+              commands:
+                - echo Entered the pre_build phase...
+            build:
+              commands:
+                - echo Entered the build phase...
+            post_build:
+              commands:
+                - echo Entered the post_build phase...
+
 
   PipelineRole:
     Type: AWS::IAM::Role
@@ -214,7 +261,16 @@ Resources:
                 - ''
                 - - !GetAtt ArtifactBucket.Arn
                   - /*
-
+          - Action:
+              - "codestar-connections:UseConnection"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - states:DescribeExecution
+              - states:DescribeStateMachine
+              - states:StartExecution
+            Effect: Allow
+            Resource: !GetAtt StateMachine.Arn
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -249,12 +305,16 @@ Resources:
                 Version: 1
               Configuration:
                 StateMachineArn: !GetAtt StateMachine.Arn
-                InputType: FilePath
-                Input: resources/build-input.json
-              InputArtifacts:
-                - Name: extensions-source 
-              OutputArtifacts:
-                - Name: extensions-build 
+                InputType: Literal
+                Input: !Sub 
+                  - |-
+                    {
+                      "location": "${location}"
+                    }
+                  - location: !Sub 
+                      - "${bucket}/${key}"
+                      - bucket: !Fn:GetArtifactAtt [extensions-source, BucketName]
+                        key: !Fn::GetArtifactAtt [extensions-source, ObjectKey]
               RunOrder: 1
 
               
