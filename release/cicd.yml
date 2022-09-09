@@ -8,6 +8,9 @@ Parameters:
   GitHubConnectionArn:
     Type: String
     Description: Arn to the CodeStarConnections GitHub connection
+  Branch:
+    Type: String
+    Description: The name of the branch to trigger builds
 
 Resources:
 
@@ -22,7 +25,7 @@ Resources:
           - Action: sts:AssumeRole
             Effect: Allow
             Principal:
-              Service: stepfunctions.amazonaws.com
+              Service: !Sub "states.${AWS::Region}.amazonaws.com"
         Version: '2012-10-17'
 
   StateMachinePolicy:
@@ -39,13 +42,34 @@ Resources:
               - logs:PutLogEvents
             Effect: Allow
             Resource: 
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/stepfunctions/${StateMachine.Name}'
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/stepfunctions/${StateMachine.Name}/*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/stepfunctions/*'
+          - Effect: Allow
+            Action:
+              - events:PutTargets
+              - events:PutRule
+              - events:DescribeRule
+            Resource: 
+              - !Sub arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule
+          - Effect: Allow
+            Action:
+              - "codebuild:StartBuild"
+              - "codebuild:StopBuild"
+              - "codebuild:BatchGetBuilds"
+              - "codebuild:BatchGetReports"
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - "events:PutTargets"
+              - "events:PutRule"
+              - "events:DescribeRule"
+            Resource:
+              - !Sub "arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:rule/StepFunctionsGetEventForCodeBuildStartBuildRule"
 
   StateMachine:
     Type: AWS::StepFunctions::StateMachine
+    DependsOn: StateMachinePolicy
     Properties:
-      RoleArn: !Ref StateMachineRole
+      RoleArn: !GetAtt StateMachineRole.Arn
       DefinitionString:
         !Sub
           - |-
@@ -64,11 +88,11 @@ Resources:
                         "Resource": "arn:aws:states:::codebuild:startBuild.sync",
                         "Parameters": {
                           "ProjectName": "${projectName}",
-                          "environmentVariablesOverride": [
+                          "EnvironmentVariablesOverride": [
                             {
-                              "name": "RESOURCE_PATH",
-                              "type": "PLAINTEXT",
-                              "value.$": "$.inputValue"
+                              "Name": "RESOURCE_PATH",
+                              "Type": "PLAINTEXT",
+                              "Value.$": "$.inputValue"
                             }
                           ]
                         },
@@ -195,7 +219,7 @@ Resources:
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      RoleArn: !Ref PipelineRole
+      RoleArn: !GetAtt PipelineRole.Arn
       ArtifactStore:
         Type: S3
         Location: !Ref ArtifactBucket
@@ -211,7 +235,7 @@ Resources:
               Configuration:
                 ConnectionArn: !Ref GitHubConnectionArn
                 FullRepositoryId: !Ref RepoId
-                BranchName: main
+                BranchName: !Ref Branch
                 DetectChanges: true
               OutputArtifacts:
                 - Name: extensions-source 
@@ -219,7 +243,7 @@ Resources:
           Actions:
             - Name: ResourceContractTests
               ActionTypeId:
-                Category: Build
+                Category: Invoke
                 Owner: AWS
                 Provider: StepFunctions
                 Version: 1
