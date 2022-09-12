@@ -10,6 +10,9 @@ phases:
       - ENTRY_PATH=$(python resources/entry.py $RESOURCE_PATH/.rpdk-config)
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $RESOURCE_PATH
+      - python -m venv .env
+      - . .env/bin/activate
+      - pip install --upgrade pip
       - pip install -r requirements.txt
       - pip install -r src/requirements.txt
       - cfn --version
@@ -18,7 +21,7 @@ phases:
   build:
     commands:
       - echo Entered the build phase...
-      - pylint src/$ENTRY_PATH
+      - pylint --rcfile .pylintrc src/$ENTRY_PATH
       - pytest src
       - cfn validate
       - cfn generate
