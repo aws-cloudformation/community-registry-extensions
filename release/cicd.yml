@@ -68,6 +68,7 @@ Resources:
           - Action:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
+              - cloudformation:ListExports
             Effect: Allow
             Resource:
               - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
