@@ -68,10 +68,13 @@ Resources:
           - Action:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
-              - cloudformation:ListExports
             Effect: Allow
             Resource:
               - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
+          - Action:
+              - cloudformation:ListExports
+            Effect: Allow
+            Resource: "*"
         Version: '2012-10-17'
       PolicyName: extensions-build-project-policy
       Roles:
