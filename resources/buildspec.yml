@@ -9,14 +9,23 @@ phases:
       - pwd
       - ls
       - echo About to build $RESOURCE_PATH
+      - ENTRY_PATH=$(python resources/entry.py $RESOURCE_PATH/.rpdk-config)
+      - echo ENTRY_PATH is $ENTRY_PATH
+      - cd $RESOURCE_PATH
+      - pip install -r requirements.txt
+      - pip install -r src/requirements.txt
 
-  pre_build:
-    commands:
-      - echo Entered the pre_build phase...
   build:
     commands:
       - echo Entered the build phase...
-  post_build:
-    commands:
-      - echo Entered the post_build phase...
+      - pylint src/$ENTRY_PATH
+      - pytest src
+      - cfn validate
+      - cfn generate
+      - cfn submit --dry-run
+      - aws cloudformation create-stack --stack-name setup-$ENTRY_PATH --template-body file://test/setup.yml
+      - sam local start-lambda &
+      - cfn test
+    finally:
+      - aws cloudformation delete-stack --stack-name setup-$ENTRY_PATH
 

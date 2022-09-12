@@ -178,5 +178,24 @@ Resources:
                     }
                   ]
               RunOrder: 1
+            - Name: DeleteBucketContents
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref BuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/DeleteBucketContents"
+                    }
+                  ]
+              RunOrder: 1
 
               
