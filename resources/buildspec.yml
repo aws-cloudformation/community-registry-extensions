@@ -16,6 +16,9 @@ phases:
       - pip install -r src/requirements.txt
       - cfn --version
       - sam --version
+      - ls /
+      - ls /root
+      - mkdir /root/.docker
       - echo "{}" > /root/.docker/config.json
 
   build:
