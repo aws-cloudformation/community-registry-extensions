@@ -9,7 +9,7 @@ phases:
       - pwd
       - ls
       - mkdir /root/.docker
-      - cp dockercfg.json /root/.docker/config.json
+      - cp release/dockercfg.json /root/.docker/config.json
       - echo About to build $RESOURCE_PATH
       - ENTRY_PATH=$(python resources/entry.py $RESOURCE_PATH/.rpdk-config)
       - echo ENTRY_PATH is $ENTRY_PATH
