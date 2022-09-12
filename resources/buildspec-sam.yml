@@ -6,14 +6,24 @@ phases:
       python: 3.7
     commands:
       - echo Entered the install phase...
+      - pwd
+      - ls
+      - curl https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip -O -L
+      - ls -lh
+      - unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+      - ./sam-installation/install
+      - sam --version
+      - mkdir /root/.docker
+      - cp resources/dockercfg.json /root/.docker/config.json
       - echo About to build $RESOURCE_PATH
       - ENTRY_PATH=$(python resources/entry.py $RESOURCE_PATH/.rpdk-config)
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $RESOURCE_PATH
+      - python -m venv .env
+      - . .env/bin/activate
       - pip install -r requirements.txt
       - pip install -r src/requirements.txt
       - cfn --version
-      - sam --version
 
   build:
     commands:
@@ -23,11 +33,10 @@ phases:
       - cfn validate
       - cfn generate
       - cfn submit --dry-run
-      - SETUP_STACK_NAME="setup-$(echo $ENTRY_PATH | sed s/_/-/g)"
-      - aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
-      - sam local start-lambda &
+      - aws cloudformation create-stack --stack-name setup-$ENTRY_PATH --template-body file://test/setup.yml
+      - /usr/local/bin/sam local start-lambda &
       - cfn test
     finally:
       - cat rpdk.log
-      - aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME
+      - aws cloudformation delete-stack --stack-name setup-$ENTRY_PATH
 
