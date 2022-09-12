@@ -70,7 +70,7 @@ Resources:
               - cloudformation:DeleteStack
             Effect: Allow
             Resource:
-              - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
+              - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
         Version: '2012-10-17'
       PolicyName: extensions-build-project-policy
       Roles:

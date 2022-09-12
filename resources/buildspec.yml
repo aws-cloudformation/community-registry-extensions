@@ -14,6 +14,8 @@ phases:
       - cd $RESOURCE_PATH
       - pip install -r requirements.txt
       - pip install -r src/requirements.txt
+      - cfn --version
+      - sam --version
 
   build:
     commands:
@@ -27,7 +29,6 @@ phases:
       - sam local start-lambda &
       - cfn test
     finally:
-      - echo "rpdk.log"
       - cat rpdk.log
       - aws cloudformation delete-stack --stack-name setup-$ENTRY_PATH
 
