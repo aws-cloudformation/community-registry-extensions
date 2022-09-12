@@ -76,6 +76,27 @@ Resources:
               - cloudformation:DescribeStacks
             Effect: Allow
             Resource: "*"
+
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - lambda:AddPermission
+              - lambda:RemovePermission
+              - s3:GetBucketNotification
+              - s3:PutBucketNotification
+              - sns:AddPermission
+              - sns:ConfirmSubscription
+              - sns:GetTopicAttributes
+              - sns:RemovePermission
+              - sns:SetTopicAttributes
+              - sqs:AddPermission
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+              - sqs:SetQueueAttributes
+            Effect: Allow
+            Resource: "*"
+
         Version: '2012-10-17'
       PolicyName: extensions-build-project-policy
       Roles:
