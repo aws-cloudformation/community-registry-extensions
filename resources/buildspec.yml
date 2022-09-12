@@ -8,20 +8,22 @@ phases:
       - echo Entered the install phase...
       - pwd
       - ls
+      - curl https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip -O -L
+      - ls -lh
+      - unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
+      - ./sam-installation/install
+      - sam --version
       - mkdir /root/.docker
       - cp resources/dockercfg.json /root/.docker/config.json
       - echo About to build $RESOURCE_PATH
       - ENTRY_PATH=$(python resources/entry.py $RESOURCE_PATH/.rpdk-config)
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $RESOURCE_PATH
+      - python -m m venv .env
+      - source .env/bin/activate
       - pip install -r requirements.txt
       - pip install -r src/requirements.txt
       - cfn --version
-      - curl https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip -O -L
-      - ls -lh
-      - unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-      - ./sam-installation/install
-      - sam --version
 
   build:
     commands:
@@ -32,7 +34,7 @@ phases:
       - cfn generate
       - cfn submit --dry-run
       - aws cloudformation create-stack --stack-name setup-$ENTRY_PATH --template-body file://test/setup.yml
-      - sam local start-lambda &
+      - /usr/local/bin/sam local start-lambda &
       - cfn test
     finally:
       - cat rpdk.log
