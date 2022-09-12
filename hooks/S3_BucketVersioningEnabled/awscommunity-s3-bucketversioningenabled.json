@@ -1,0 +1,30 @@
+{
+    "typeName": "AwsCommunity::S3::BucketVersioningEnabled",
+    "description": "Validate AWS::S3::Bucket has versioning enabled",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/hooks/S3_BucketVersioningEnabled",
+    "documentationUrl": "https://github.com/aws-cloudformation/example-sse-hook/blob/main/hooks/S3_BucketVersioningEnabled/README.md",
+    "typeConfiguration": {
+        "properties": {},
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        },
+        "preDelete": {
+            "targetNames": [],
+            "permissions": []
+        }
+    },
+    "additionalProperties": false
+}
