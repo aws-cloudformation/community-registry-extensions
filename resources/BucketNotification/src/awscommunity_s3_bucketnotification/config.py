@@ -7,6 +7,7 @@ us to treat each indiidual notification as if it were an independent resource.
 The `model` argument to these functions is from the auto-generated `models.ResourceModel`.
 """
 
+import hashlib
 import json
 import logging
 from .models import ResourceModel, KeyVal
@@ -140,7 +141,10 @@ def delete(session, bucket_arn, model_id):
 
 def get_role_name(target_name, notification_id):
     "Get the name of the role we create for S3 to notify the target"
-    return target_name + "-bn-" + notification_id
+    
+    # Kept running into 64 character limit here
+    longname = target_name + "-bn-" + notification_id
+    return hashlib.md5(longname.encode("UTF8")).hexdigest()
 
 def get_policy_name(role_name):
     "Get the policy name for the role we create"

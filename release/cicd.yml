@@ -83,13 +83,19 @@ Resources:
               - iam:GetRole
               - lambda:AddPermission
               - lambda:RemovePermission
+              - s3:CreateBucket
+              - s3:DeleteBucket
               - s3:GetBucketNotification
               - s3:PutBucketNotification
               - sns:AddPermission
               - sns:ConfirmSubscription
+              - sns:CreateTopic
+              - sns:DeleteTopic
               - sns:GetTopicAttributes
               - sns:RemovePermission
               - sns:SetTopicAttributes
+              - sqs:CreateQueue
+              - sqs:DeleteQueue
               - sqs:AddPermission
               - sqs:GetQueueAttributes
               - sqs:GetQueueUrl
