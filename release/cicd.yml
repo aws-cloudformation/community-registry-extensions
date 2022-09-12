@@ -73,6 +73,7 @@ Resources:
               - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
           - Action:
               - cloudformation:ListExports
+              - cloudformation:DescribeStacks
             Effect: Allow
             Resource: "*"
         Version: '2012-10-17'

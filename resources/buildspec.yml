@@ -25,10 +25,10 @@ phases:
       - pytest src
       - cfn validate
       - cfn generate
-      - cfn submit --dry-run
       - SETUP_STACK_NAME="setup-$(echo $ENTRY_PATH | sed s/_/-/g)"
       - aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
       - aws cloudformation wait stack-create-complete --stack-name $SETUP_STACK_NAME
+      - cfn submit --dry-run
       - sam local start-lambda &
       - cfn test
     finally:
