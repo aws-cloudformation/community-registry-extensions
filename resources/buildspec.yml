@@ -19,7 +19,7 @@ phases:
       - ls /
       - ls /root
       - mkdir /root/.docker
-      - echo "{}" > /root/.docker/config.json
+      - echo "{ \"auths\": { \"https://index.docker.io/v1/\": {} } }" > /root/.docker/config.json
 
   build:
     commands:
