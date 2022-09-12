@@ -27,5 +27,7 @@ phases:
       - sam local start-lambda &
       - cfn test
     finally:
+      - echo "rpdk.log"
+      - cat rpdk.log
       - aws cloudformation delete-stack --stack-name setup-$ENTRY_PATH
 

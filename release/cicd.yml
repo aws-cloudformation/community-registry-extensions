@@ -65,6 +65,12 @@ Resources:
                 - ''
                 - - !GetAtt ArtifactBucket.Arn
                   - /*
+          - Action:
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
         Version: '2012-10-17'
       PolicyName: extensions-build-project-policy
       Roles:
