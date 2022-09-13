@@ -70,7 +70,7 @@ Resources:
               - cloudformation:DeleteStack
             Effect: Allow
             Resource:
-              - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
           - Action:
               - cloudformation:ListExports
               - cloudformation:DescribeStacks
