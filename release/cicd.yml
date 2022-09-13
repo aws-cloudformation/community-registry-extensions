@@ -61,10 +61,7 @@ Resources:
             Effect: Allow
             Resource:
               - !GetAtt ArtifactBucket.Arn
-              - !Join
-                - ''
-                - - !GetAtt ArtifactBucket.Arn
-                  - /*
+              - !Sub "${GetAtt ArtifactBucket.Arn}/*"
           - Action:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
