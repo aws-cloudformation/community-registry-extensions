@@ -87,6 +87,7 @@ Resources:
               - s3:PutBucketNotification
               - s3:GetBucketTagging
               - s3:PutBucketTagging
+              - s3:ListObjectVersions
               - sns:AddPermission
               - sns:ConfirmSubscription
               - sns:CreateTopic
