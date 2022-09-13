@@ -43,9 +43,7 @@ Create a virtual environment.
 cd resources/BucketNotification
 python3 -m venv .env
 source .env/bin/activate
-cd src
-pip install -r requirements.txt
-cd ..
+pip install -r src/requirements-dev.txt
 ```
 
 In the other tab, run SAM local:

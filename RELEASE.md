@@ -37,8 +37,8 @@ names. Keep in mind that `cfn test` will ignore the files if there are special
 characters in the export names.
 
 When a PR is merged to the main branch in the repo, a CodePipeline pipeline is
-started. It invokes a step functions workflow to start parallel CodeBuild jobs
-for each resource. The jobs for resource types run `resources/buildspec.yml`.
+started. It starts parallel CodeBuild jobs for each resource. The jobs for
+resource types run `resources/buildspec.yml`.
 
 There are some changes that need to be made to the `release/cicd.yml` template
 when adding a new resource. Each resource gets is own build action, and any 
