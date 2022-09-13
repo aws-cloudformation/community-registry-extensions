@@ -1,7 +1,8 @@
 set -eou pipefail
 
-cd src
-pylint awscommunity_s3_deletebucketcontents/*.py
-cd ..
+pylint src/awscommunity_s3_deletebucketcontents/*.py
+
+pytest src
+
 cfn validate && cfn generate && cfn submit --dry-run && cfn test
 

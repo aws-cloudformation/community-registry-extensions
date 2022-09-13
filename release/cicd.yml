@@ -1,0 +1,242 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Infrastructure for the community registry extenstions CICD account
+
+Parameters:
+  RepoId:
+    Type: String
+    Description: The GitHub repository org/name
+  GitHubConnectionArn:
+    Type: String
+    Description: Arn to the CodeStarConnections GitHub connection
+  Branch:
+    Type: String
+    Description: The name of the branch to trigger builds
+
+Resources:
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+
+  BuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  BuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProject}'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProject}*'
+
+          - Action:
+              - codebuild:CreateReportGroup
+              - codebuild:CreateReport
+              - codebuild:UpdateReport
+              - codebuild:BatchPutTestCases
+              - codebuild:BatchPutCodeCoverages
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${BuildProject}-*'
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - !GetAtt ArtifactBucket.Arn
+              - !Sub "${ArtifactBucket.Arn}/*"
+          - Action:
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
+          - Action:
+              - cloudformation:ListExports
+              - cloudformation:DescribeStacks
+            Effect: Allow
+            Resource: "*"
+
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - lambda:AddPermission
+              - lambda:RemovePermission
+              - s3:CreateBucket
+              - s3:DeleteBucket
+              - s3:ListBucket
+              - s3:GetBucketNotification
+              - s3:PutBucketNotification
+              - s3:GetBucketTagging
+              - s3:PutBucketTagging
+              - s3:ListObjectVersions
+              - s3:DeleteObject
+              - s3:ListBucketVersions
+              - sns:AddPermission
+              - sns:ConfirmSubscription
+              - sns:CreateTopic
+              - sns:DeleteTopic
+              - sns:GetTopicAttributes
+              - sns:RemovePermission
+              - sns:SetTopicAttributes
+              - sqs:CreateQueue
+              - sqs:DeleteQueue
+              - sqs:AddPermission
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+              - sqs:SetQueueAttributes
+            Effect: Allow
+            Resource: "*"
+
+        Version: '2012-10-17'
+      PolicyName: extensions-build-project-policy
+      Roles:
+        - !Ref BuildProjectRole
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt BuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: resources/buildspec.yml
+
+
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+        Version: '2012-10-17'
+
+  PipelinePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: extension-pipeline-policy
+      Roles: 
+        - !Ref PipelineRole
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - !GetAtt ArtifactBucket.Arn
+              - !Join
+                - ''
+                - - !GetAtt ArtifactBucket.Arn
+                  - /*
+          - Action:
+              - "codestar-connections:UseConnection"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+            Effect: Allow
+            Resource: !GetAtt BuildProject.Arn
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !GetAtt PipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: GitHub
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: 1
+              Configuration:
+                ConnectionArn: !Ref GitHubConnectionArn
+                FullRepositoryId: !Ref RepoId
+                BranchName: !Ref Branch
+                DetectChanges: true
+              OutputArtifacts:
+                - Name: extensions-source 
+        - Name: Build
+          Actions:
+            - Name: BucketNotification
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref BuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/BucketNotification"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: DeleteBucketContents
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref BuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/DeleteBucketContents"
+                    }
+                  ]
+              RunOrder: 1
+
+              
