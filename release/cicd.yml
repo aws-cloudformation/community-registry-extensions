@@ -85,7 +85,7 @@ Resources:
               - lambda:RemovePermission
               - s3:CreateBucket
               - s3:DeleteBucket
-              - s3:HeadBucket
+              - s3:ListBucket
               - s3:GetBucketNotification
               - s3:PutBucketNotification
               - sns:AddPermission
