@@ -29,7 +29,7 @@ phases:
       - aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
       - aws cloudformation wait stack-create-complete --stack-name $SETUP_STACK_NAME
       - cfn submit --dry-run
-      - sam local start-lambda &
+      - nohup sam local start-lambda &
       - cfn test
     finally:
       - cat rpdk.log
