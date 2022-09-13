@@ -50,7 +50,7 @@ Resources:
               - codebuild:BatchPutCodeCoverages
             Effect: Allow
             Resource: 
-              - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${BuildProject}-*'
+              - !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${BuildProject}-*'
           - Action:
               - s3:GetObject*
               - s3:GetBucket*
