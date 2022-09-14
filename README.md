@@ -16,7 +16,7 @@ for project setup and testing.
 
 ## Discord
 
-Please join us on our public Discord server dedicated to CloudFormation. [TODO - Instructions]
+[![Join our Discord](https://discordapp.com/api/guilds/981586120448020580/widget.png?style=banner3)](https://discord.gg/9zpd7TTRwq)
 
 ## Open Discussions
 
@@ -66,6 +66,7 @@ first be activated using the instructions [here](https://docs.aws.amazon.com/AWS
 |----|----|-------|-----------|
 |[./resources/BucketNotification](AwsCommunity::S3::BucketNotification)|Resource|Alpha|Configure bucket notifications|
 |[./resources/DeleteBucketContents](AwsCommunity::S3::DeleteBucketContents)|Resource|Alpha|Delete all objects in a bucket|
+|[./hooks/S3_BucketVersioningEnabled](AwsCommunity::S3::BucketVersioningEnabled)|Hook|Alpha|Validate an AWS::S3::Bucket has versioning enabled|
 
 ## Contributing
 
