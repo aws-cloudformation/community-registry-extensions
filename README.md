@@ -16,6 +16,10 @@ for project setup and testing.
 
 ## Discord
 
+Join us on Discord! Connect & interact with CloudFormation developers &
+experts, find channels to discuss the CloudFormation registry, StackSets,
+cfn-lint, Guard and more:
+
 [![Join our Discord](https://discordapp.com/api/guilds/981586120448020580/widget.png?style=banner3)](https://discord.gg/9zpd7TTRwq)
 
 ## Open Discussions
@@ -39,34 +43,27 @@ so we would like community input on the direction we take.
   want to avoid a situation where customers install experimental extensions in
   production and then get surprised by a breaking change because it wasn't
   obvious.
-* Testing. We need to make sure that the resources we publish remain stable
-  over time, especially after we designate one as "GA". We expect these
-  resources to be used in production by customers, and a change that leads to
-  the lambda handler code behind a resource failing could lead to outages for
-  customer release pipelines. Running "local" tests with SAM still results in
-  SDK calls being made in an AWS account, which requires a certain amount of
-  setup to be done beforehand. And these tests only cover the resource handlers
-  themselves, not an actual template that uses the resource. Full integration
-  testing requires even more setup, which is difficult to automate. We need to
-  decide what tests are run when new PRs are submitted, and which tests we
-  reserve for releases. And what the release branching strategy will be.
 
 ## How to use these extensions
+
+(Note that we are not yet actually publishing the extensions, pending approval 
+of out release process)
 
 Log in to your AWS account and go to the CloudFormation console. Under Registry
 in the menu, select Public extensions. Search under Third Party publishers for
 the AwsCommunity:: namespace. These extensions can be used from any template
 you author in a region where they are available and activated. Unlike public
 extensions under the AWS:: namespace, each of these community extensions must
-first be activated using the instructions [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-public.html).
+first be activated using the instructions
+[here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry-public.html).
 
 ## Catalog of community extensions
 
 |Name|Type|Version|Description|
 |----|----|-------|-----------|
-|[./resources/BucketNotification](AwsCommunity::S3::BucketNotification)|Resource|Alpha|Configure bucket notifications|
-|[./resources/DeleteBucketContents](AwsCommunity::S3::DeleteBucketContents)|Resource|Alpha|Delete all objects in a bucket|
-|[./hooks/S3_BucketVersioningEnabled](AwsCommunity::S3::BucketVersioningEnabled)|Hook|Alpha|Validate an AWS::S3::Bucket has versioning enabled|
+|[AwsCommunity::S3::BucketNotification](./resources/BucketNotification)|Resource|Alpha|Configure bucket notifications|
+|[AwsCommunity::S3::DeleteBucketContents](./resources/DeleteBucketContents)|Resource|Alpha|Delete all objects in a bucket|
+|[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Alpha|Validate an AWS::S3::Bucket has versioning enabled|
 
 ## Contributing
 
