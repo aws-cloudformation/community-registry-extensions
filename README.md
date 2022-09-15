@@ -47,7 +47,7 @@ so we would like community input on the direction we take.
 ## How to use these extensions
 
 (Note that we are not yet actually publishing the extensions, pending approval 
-of out release process)
+of our release process)
 
 Log in to your AWS account and go to the CloudFormation console. Under Registry
 in the menu, select Public extensions. Search under Third Party publishers for
