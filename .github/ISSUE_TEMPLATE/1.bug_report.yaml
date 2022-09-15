@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report! Try to include as much information as you can.
- - type: input
+  - type: input
     attributes:
       label: Extension Name
     validations:
