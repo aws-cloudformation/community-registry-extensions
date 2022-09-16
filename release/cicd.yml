@@ -380,7 +380,7 @@ Resources:
                     {
                       "name": "HOOK_PATH",
                       "type": "PLAINTEXT",
-                      "value": "S3_BucketVersioningEnabled"
+                      "value": "hooks/S3_BucketVersioningEnabled"
                     }
                   ]
               RunOrder: 1
