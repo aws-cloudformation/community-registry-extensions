@@ -17,6 +17,28 @@ Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
 
+  S3BucketVersioningEnabledBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  CloudFrontLoggingEnabledBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
   BucketNotificationBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -88,6 +110,8 @@ Resources:
       Roles:
         - !Ref BucketNotificationBuildProjectRole
         - !Ref DeleteBucketContentsBuildProjectRole
+        - !Ref S3BucketVersioningEnabledBuildProjectRole
+        - !Ref CloudFrontLoggingEnabledBuildProjectRole
 
   BucketNotificationBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -189,6 +213,46 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: resources/buildspec-python.yml
+
+  S3BucketVersioningEnabledBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-hook"
+      ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: hooks/buildspec-python.yml
+
+  CloudFrontLoggingEnabledBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: hooks/buildspec-python.yml
 
 
   PipelineRole:
@@ -296,6 +360,44 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "resources/DeleteBucketContents"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: S3BucketVersioningEnabled
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "S3_BucketVersioningEnabled"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: CloudFrontLoggingEnabled
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CloudFrontLoggingEnabledBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/CloudFront_LoggingEnabled"
                     }
                   ]
               RunOrder: 1

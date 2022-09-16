@@ -1,6 +1,6 @@
 set -eou pipefail
 
-pylint src/awscommunity_s3_deletebucketcontents/*.py
+pylint --rcfile ../../config/.pylintrc src/awscommunity_s3_deletebucketcontents/*.py
 
 pytest src
 
