@@ -1,6 +1,6 @@
 # AwsCommunity::CloudFront::LoggingEnabled
 
-Validates that CloudFront distribution has access logs enabled.
+Validates all CloudFront distributions created with CloudFormation stacks to ensure that they have access logs enabled.
 
 ## Configuration
 
@@ -27,7 +27,7 @@ aws cloudformation set-type-configuration \
 
 ## Example templates
 
-Hook will find this non-compliant
+The Hook will find this template to be non-compliant.
 ```yaml
 AWSTemplateFormatVersion: "2010-09-09"
 Resources:
@@ -50,7 +50,7 @@ Resources:
             QueryString: false
 ```
 
-This will be found as compliant
+This template will be found as compliant and deploy successfully.
 ```yaml
 AWSTemplateFormatVersion: "2010-09-09"
 Resources:
