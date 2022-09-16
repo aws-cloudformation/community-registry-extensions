@@ -1,0 +1,2 @@
+cloudformation-cli==0.2.25
+cloudformation-cli-go-plugin==2.0.4

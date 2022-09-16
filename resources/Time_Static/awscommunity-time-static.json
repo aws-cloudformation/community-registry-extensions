@@ -1,0 +1,63 @@
+{
+  "typeName": "AwsCommunity::Time::Static",
+  "description": "Creates a static time stamp.",
+  "sourceUrl": "https://github.com/aws-cloudformation/awscommunity-registry-extensions/resources/Time_Static.git",
+  "properties": {
+    "Id": {
+      "description": "UTC returns the time in UTC format.",
+      "type": "string"
+    },
+    "Day": {
+      "description": "Day returns the day of the month.",
+      "type": "string"
+    },
+    "Hour": {
+      "description": "Hour returns the hour within the day, in the range [0, 23].",
+      "type": "string"
+    },
+    "Minute": {
+      "description": "Minute returns the minute offset within the hour, in the range [0, 59].",
+      "type": "string"
+    },
+    "Month": {
+      "description": "Month returns the month of the year.",
+      "type": "string"
+    },
+    "Second": {
+      "description": "Second returns the second offset within the minute, in the range [0, 59].",
+      "type": "string"
+    },
+    "Unix": {
+      "description": "Unix returns a Unix time, the number of seconds elapsed since January 1, 1970 UTC.",
+      "type": "string"
+    },
+    "Year": {
+      "description": "Year returns the year.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [],
+  "readOnlyProperties": [
+    "/properties/Id",
+    "/properties/Day",
+    "/properties/Hour",
+    "/properties/Minute",
+    "/properties/Month",
+    "/properties/Second",
+    "/properties/Unix",
+    "/properties/Year"
+  ],
+  "primaryIdentifier": ["/properties/Id"],
+  "handlers": {
+    "create": {
+      "permissions": []
+    },
+    "read": {
+      "permissions": []
+    },
+    "delete": {
+      "permissions": []
+    }
+  }
+}
