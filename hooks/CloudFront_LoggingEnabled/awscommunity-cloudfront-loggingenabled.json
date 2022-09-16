@@ -1,0 +1,26 @@
+{
+    "typeName": "AwsCommunity::CloudFront::LoggingEnabled",
+    "description": "Validates that AWS::CloudFront::Distribution has access logging enabled.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/hooks/CloudFront_LoggingEnabled",
+    "documentationUrl": "https://github.com/aws-cloudformation/example-sse-hook/blob/main/hooks/CloudFront_LoggingEnabled/README.md",
+    "typeConfiguration": {
+        "properties": {},
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::CloudFront::Distribution"
+            ],
+            "permissions": []
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::CloudFront::Distribution"
+            ],
+            "permissions": []
+        }
+    },
+    "additionalProperties": false
+}

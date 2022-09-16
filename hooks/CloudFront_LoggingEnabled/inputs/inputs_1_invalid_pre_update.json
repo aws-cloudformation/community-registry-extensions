@@ -1,0 +1,67 @@
+{
+    "AWS::CloudFront::Distribution": {
+        "resourceProperties": {
+            "DistributionConfig": {
+                "DefaultCacheBehavior": {
+                    "AllowedMethods": [
+                        "GET",
+                        "HEAD"
+                    ],
+                    "ForwardedValues": {
+                        "QueryString": false
+                    },
+                    "TargetOriginId": "origin-id",
+                    "ViewerProtocolPolicy": "https-only"
+                },
+                "Origins": [
+                    {
+                        "DomainName": "test.com",
+                        "Id": "origin-id",
+                        "CustomOriginConfig": {
+                            "OriginProtocolPolicy": "https-only",
+                            "HTTPPort": 80,
+                            "HTTPSPort": 443,
+                            "OriginSSLProtocols": [
+                                "TLSv1.2"
+                            ]
+                        }
+                    }
+                ],
+                "Enabled": "False"
+            }
+        },
+        "previousResourceProperties": {
+            "DistributionConfig": {
+                "Logging": {
+                    "Bucket": "testbucket"
+                },
+                "DefaultCacheBehavior": {
+                    "AllowedMethods": [
+                        "GET",
+                        "HEAD"
+                    ],
+                    "ForwardedValues": {
+                        "QueryString": false
+                    },
+                    "TargetOriginId": "origin-id",
+                    "ViewerProtocolPolicy": "https-only"
+                },
+                "Origins": [
+                    {
+                        "DomainName": "test.com",
+                        "Id": "origin-id",
+                        "CustomOriginConfig": {
+                            "OriginProtocolPolicy": "https-only",
+                            "HTTPPort": 80,
+                            "HTTPSPort": 443,
+                            "OriginSSLProtocols": [
+                                "TLSv1.2"
+                            ]
+                        }
+                    }
+                ],
+                "Enabled": "False"
+            }
+        }
+    }
+}
