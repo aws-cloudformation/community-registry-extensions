@@ -103,6 +103,7 @@ Resources:
           - Action:
               - cloudformation:ListExports
               - cloudformation:DescribeStacks
+              - cloudformation:DescribeType
             Effect: Allow
             Resource: "*"
         Version: '2012-10-17'
