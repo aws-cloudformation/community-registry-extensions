@@ -17,7 +17,7 @@ Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
 
-  BuildProjectRole:
+  BucketNotificationBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -28,7 +28,18 @@ Resources:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
 
-  BuildProjectPolicy:
+  DeleteBucketContentsBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  CommonBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -39,8 +50,7 @@ Resources:
               - logs:PutLogEvents
             Effect: Allow
             Resource: 
-              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProject}'
-              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BuildProject}*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
 
           - Action:
               - codebuild:CreateReportGroup
@@ -50,7 +60,7 @@ Resources:
               - codebuild:BatchPutCodeCoverages
             Effect: Allow
             Resource: 
-              - !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${BuildProject}-*'
+              - !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
           - Action:
               - s3:GetObject*
               - s3:GetBucket*
@@ -73,7 +83,17 @@ Resources:
               - cloudformation:DescribeStacks
             Effect: Allow
             Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: common-build-project-policy
+      Roles:
+        - !Ref BucketNotificationBuildProjectRole
+        - !Ref DeleteBucketContentsBuildProjectRole
 
+  BucketNotificationBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
           - Action:
               - iam:CreateRole
               - iam:DeleteRole
@@ -82,14 +102,8 @@ Resources:
               - lambda:RemovePermission
               - s3:CreateBucket
               - s3:DeleteBucket
-              - s3:ListBucket
               - s3:GetBucketNotification
               - s3:PutBucketNotification
-              - s3:GetBucketTagging
-              - s3:PutBucketTagging
-              - s3:ListObjectVersions
-              - s3:DeleteObject
-              - s3:ListBucketVersions
               - sns:AddPermission
               - sns:ConfirmSubscription
               - sns:CreateTopic
@@ -105,13 +119,38 @@ Resources:
               - sqs:SetQueueAttributes
             Effect: Allow
             Resource: "*"
-
         Version: '2012-10-17'
-      PolicyName: extensions-build-project-policy
+      PolicyName: bucket-notification-build-project-policy
       Roles:
-        - !Ref BuildProjectRole
+        - !Ref BucketNotificationBuildProjectRole
 
-  BuildProject:
+  DeleteBucketContentsBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - s3:CreateBucket
+              - s3:DeleteBucket
+              - s3:ListBucket
+              - s3:GetBucketNotification
+              - s3:PutBucketNotification
+              - s3:GetBucketTagging
+              - s3:PutBucketTagging
+              - s3:ListObjectVersions
+              - s3:DeleteObject
+              - s3:ListBucketVersions
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: delete-bucket-contents-build-project-policy
+      Roles:
+        - !Ref DeleteBucketContentsBuildProjectRole
+
+  BucketNotificationBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
@@ -126,10 +165,30 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt BuildProjectRole.Arn
+      ServiceRole: !GetAtt BucketNotificationBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: resources/buildspec.yml
+        BuildSpec: resources/buildspec-python.yml
+
+  DeleteBucketContentsBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt DeleteBucketContentsBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: resources/buildspec-python.yml
 
 
   PipelineRole:
@@ -173,7 +232,9 @@ Resources:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
             Effect: Allow
-            Resource: !GetAtt BuildProject.Arn
+            Resource: 
+              - !GetAtt BucketNotificationBuildProject.Arn
+              - !GetAtt DeleteBucketContentsBuildProject.Arn
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -209,7 +270,7 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref BuildProject
+                ProjectName: !Ref BucketNotificationBuildProject
                 EnvironmentVariables: |-
                   [
                     {
@@ -228,7 +289,7 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref BuildProject
+                ProjectName: !Ref DeleteBucketContentsBuildProject
                 EnvironmentVariables: |-
                   [
                     {
