@@ -1,0 +1,4 @@
+cfn_guard_rs==0.1.2
+colorama>=0.4.1
+pip==19.0.3
+wheel==0.33.1

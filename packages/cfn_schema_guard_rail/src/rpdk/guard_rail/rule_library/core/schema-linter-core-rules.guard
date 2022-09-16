@@ -1,0 +1,107 @@
+let read = readOnlyProperties
+let create = createOnlyProperties
+let write = writeOnlyProperties
+
+
+
+
+rule ensure_primary_identifier_exists_and_not_empty
+{
+    primaryIdentifier exists
+    <<
+    {
+        "result": "NON_COMPLIANT",
+        "check_id": "P_ID_1",
+        "message": "primaryIdentifier MUST exist"
+    }
+    >>
+    primaryIdentifier not empty
+    <<
+    {
+        "result": "NON_COMPLIANT",
+        "check_id": "P_ID_2",
+        "message": "primaryIdentifier MUST contain values"
+    }
+    >>
+}
+
+rule ensure_primary_identifier_is_read_or_create_only when ensure_primary_identifier_exists_and_not_empty
+{
+    primaryIdentifier[*] {
+        this IN %read OR
+        this IN %create
+        <<
+        {
+            "result": "NON_COMPLIANT",
+            "check_id": "P_ID_2",
+            "message": "primaryIdentifier MUST be either readOnly or createOnly"
+        }
+        >>
+    }
+}
+
+
+
+rule ensure_create_and_read_only_intersection_is_empty
+{
+    readOnlyProperties[*] {
+        this !IN %create
+        <<
+        {
+            "result": "NON_COMPLIANT",
+            "check_id": "RO_PR_1",
+            "message": "read/createOnlyProperties MUST NOT have common properties"
+        }
+        >>
+    }
+
+    createOnlyProperties[*] {
+        this !IN %read
+        <<
+        {
+            "result": "NON_COMPLIANT",
+            "check_id": "CO_PR_1",
+            "message": "create/readOnlyProperties MUST NOT have common properties"
+        }
+        >>
+    }
+}
+
+rule ensure_write_and_read_only_intersection_is_empty
+{
+    readOnlyProperties[*] {
+        this !IN %write
+        <<
+        {
+            "result": "NON_COMPLIANT",
+            "check_id": "RO_PR_2",
+            "message": "read/writeOnlyProperties MUST NOT have common properties"
+        }
+        >>
+    }
+    writeOnlyProperties[*] {
+        this !IN %read
+        <<
+        {
+            "result": "NON_COMPLIANT",
+            "check_id": "WO_PR_1",
+            "message": "write/readOnlyProperties MUST NOT have common properties"
+        }
+        >>
+    }
+}
+
+
+
+rule ensure_description_is_descriptive {
+    description != /^Resource Type definition for/
+}
+
+# URLs should use https
+rule ensure_sourceUrl_uses_https when sourceUrl exists {
+    sourceUrl == /^https:/
+}
+
+rule ensure_default_replacementStrategy when replacementStrategy exists {
+    replacementStrategy == 'create_then_delete'
+}

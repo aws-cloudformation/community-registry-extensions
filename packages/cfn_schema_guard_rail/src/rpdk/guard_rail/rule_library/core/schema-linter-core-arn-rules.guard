@@ -1,0 +1,22 @@
+let props = properties[ keys == /(Arn|arn|ARN)/ ]
+rule ensure_arn_properties_type_string when %props !empty {
+    %props.type == 'string'
+    <<
+    {
+        "result": "NON_COMPLIANT",
+        "check_id": "ARN_1",
+        "message": "arn related property MUST have pattern specified"
+    }
+    >>
+}
+
+rule ensure_arn_properties_contain_pattern when %props !empty {
+    %props.pattern exists
+    <<
+    {
+        "result": "NON_COMPLIANT",
+        "check_id": "ARN_2",
+        "message": "arn related property MUST have pattern specified"
+    }
+    >>
+}

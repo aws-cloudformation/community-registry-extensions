@@ -1,0 +1,47 @@
+repos:
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+  hooks:
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+  - id: check-docstring-first
+  - id: debug-statements
+  - id: check-case-conflict
+  - id: mixed-line-ending
+  - id: detect-aws-credentials
+    args: [--allow-missing-credentials]
+  - id: detect-private-key
+  - id: pretty-format-json
+    args:
+        - --autofix
+        - --indent=4
+        - --no-sort-keys
+  - id: requirements-txt-fixer
+    verbose: true
+  - id: no-commit-to-branch
+
+- repo: https://github.com/pycqa/isort
+  rev: 5.10.1
+  hooks:
+  - id: isort
+    name: isort (python)
+    args: ["--profile", "black", "--filter-files"]
+
+- repo: https://github.com/psf/black
+  rev: 22.3.0
+  hooks:
+  - id: black
+    additional_dependencies: ['click==8.0.4']
+
+- repo: https://github.com/pycqa/pylint
+  rev: v2.15.2
+  hooks:
+  - id: pylint
+    name: pylint
+    description: Run pylint in the local virtualenv
+    entry: pylint "setup.py" "src/" "tests/"
+    language: system
+    pass_filenames: false
+    always_run: true
+    verbose: true

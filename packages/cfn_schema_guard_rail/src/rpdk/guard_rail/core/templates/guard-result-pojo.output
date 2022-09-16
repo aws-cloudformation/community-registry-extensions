@@ -1,0 +1,18 @@
+SKIPPED:
+{% for skipped in skipped_rules %}
+{{skipped.upper()}}
+{%- endfor %}
+
+PASSED:
+{% for passed in passed_rules %}
+{{passed.upper()}}
+{%- endfor %}
+
+FAILED:
+{% for rule, checks in failed_rules.items() %}
+{{rule.upper()}}:
+    {%- for check in checks %}
+    check-id: {{check.check_id}}
+    message: {{check.message}}
+    {%- endfor -%}
+{% endfor %}
