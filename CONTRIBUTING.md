@@ -114,9 +114,9 @@ predictable outputs and no side effects.
 
 ### Python Development
 
-- Formatting: [https://github.com/psf/black](Black)
-- Linting: [https://pylint.pycqa.org/en/latest/](Pylint)
-- Security checks: [https://bandit.readthedocs.io/en/latest/](Bandit)
+- Formatting: [Black](https://github.com/psf/black)
+- Linting: [Pylint](https://pylint.pycqa.org/en/latest/)
+- Security checks: [Bandit](https://bandit.readthedocs.io/en/latest/)
 
 Be careful with any changes you make to the basic project layout created by
 `cfn init`. The registry backend makes some assumptions that can lead to
