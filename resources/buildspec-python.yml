@@ -7,7 +7,7 @@ phases:
     commands:
       - echo Entered the install phase...
       - echo About to build $RESOURCE_PATH
-      - ENTRY_PATH=$(python resources/entry.py $RESOURCE_PATH/.rpdk-config)
+      - ENTRY_PATH=$(python scripts/entry.py $RESOURCE_PATH/.rpdk-config)
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $RESOURCE_PATH
       - python -m venv .env

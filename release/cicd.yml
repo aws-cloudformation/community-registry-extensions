@@ -299,6 +299,8 @@ Resources:
             Resource: 
               - !GetAtt BucketNotificationBuildProject.Arn
               - !GetAtt DeleteBucketContentsBuildProject.Arn
+              - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
+              - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
