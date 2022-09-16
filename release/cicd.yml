@@ -340,7 +340,7 @@ Resources:
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "resources/BucketNotification"
+                      "value": "resources/S3_BucketNotification"
                     }
                   ]
               RunOrder: 1
@@ -359,7 +359,7 @@ Resources:
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "resources/DeleteBucketContents"
+                      "value": "resources/S3_DeleteBucketContents"
                     }
                   ]
               RunOrder: 1
