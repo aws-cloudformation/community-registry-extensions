@@ -2,6 +2,7 @@
 Handler functions for the CloudFormation Hook:
 AwsCommunity::CloudFront::LoggingEnabled
 """
+#pylint: disable=W1203
 import logging
 
 from cloudformation_cli_python_lib import (
@@ -81,6 +82,7 @@ def pre_handler(
     target_name = request.hookContext.targetName
     progress: ProgressEvent = ProgressEvent(status=OperationStatus.IN_PROGRESS)
     LOG.debug(f"request: {request.__dict__}")
+    #pylint:disable=R1735
     LOG.debug(
         "type_configuration: "
         f"{type_configuration.__dict__ if type_configuration else dict()}"
