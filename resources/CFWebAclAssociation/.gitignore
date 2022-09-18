@@ -127,3 +127,7 @@ dmypy.json
 sam-tests/
 
 rpdk.log*
+
+# input files 
+example_inputs*
+awscommunity-cloudfront-webaclassociation.zip

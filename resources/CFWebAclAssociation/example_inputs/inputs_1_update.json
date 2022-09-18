@@ -1,4 +1,0 @@
-{
-     "DistributionArn" : "arn:aws:cloudfront::257477116237:distribution/E11TN1BE7GIJ3G",
-       "WebAclArn" : "arn:aws:wafv2:us-east-1:257477116237:global/webacl/cloudFrontACL/77e7566a-39ad-4d6e-bdb9-ba733bd8de3c"
-} 
