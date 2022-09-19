@@ -1,0 +1,16 @@
+{
+    "AWS::CloudTrail::Trail": {
+        "resourceProperties": {
+            "TrailName": "log-file-validation-disabled-non-compliant",
+            "EnableLogFileValidation": false,
+            "IsLogging": false,
+            "S3BucketName": "testbucket"
+        },
+        "previousResourceProperties": {
+            "TrailName": "log-file-validation-disabled-compliant",
+            "EnableLogFileValidation": true,
+            "IsLogging": false,
+            "S3BucketName": "testbucket"
+        }
+    }
+}
