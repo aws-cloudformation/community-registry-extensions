@@ -61,9 +61,10 @@ first be activated using the instructions
 
 |Name|Type|Version|Description|
 |----|----|-------|-----------|
-|[AwsCommunity::S3::BucketNotification](./resources/BucketNotification)|Resource|Alpha|Configure bucket notifications|
-|[AwsCommunity::S3::DeleteBucketContents](./resources/DeleteBucketContents)|Resource|Alpha|Delete all objects in a bucket|
-|[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Alpha|Validate an AWS::S3::Bucket has versioning enabled|
+|[AwsCommunity::S3::BucketNotification](./resources/S3_BucketNotification)|Resource|Alpha|Configure bucket notifications|
+|[AwsCommunity::S3::DeleteBucketContents](./resources/S3_DeleteBucketContents)|Resource|Alpha|Delete all objects in a bucket|
+|[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Alpha|Validate that an AWS::S3::Bucket has versioning enabled|
+|[AwsCommunity::S3::CloudFrontLoggingEnabled](./hooks/CloudFront_LoggingEnabled)|Hook|Alpha|Validate that a CloudFront distribution has logging enabled|
 
 ## Contributing
 
