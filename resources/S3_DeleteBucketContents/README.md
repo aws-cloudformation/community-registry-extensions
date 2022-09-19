@@ -1,36 +1,37 @@
-# AwsLabs::S3::BucketNotification
+# AwsCommunity::S3::DeleteBucketContents
 
-This CloudFormation registry extension resource type allows you to specify S3
-bucket notifications one at a time, in a way that does not result in a circular
-dependency error in your template.
+This registry extension resource type deletes all contents of a bucket when the resource is deleted. 
 
-Note that this resource intentionally introduces drift into your template,
-since the official way to configure bucket notifications is to specify them as
-part of the `AWS::S3::Bucket` resource.
+Use this resource with caution! In the sample below we show how to incorporate a condition to avoid deleting contents from a production environment.
 
 ## Sample template
 
 ```yml
+Parameters:
+  EnvType:
+    Description: Environment type.
+    Default: alpha
+    Type: String
+    AllowedValues:
+      - alpha
+      - beta
+      - gamma
+      - prod
+    ConstraintDescription: Specify alpha, beta, gamma, or prod
+Conditions:
+  IsNotProd: !Not 
+    - !Equals
+      - !Ref EnvType
+      - prod
 Resources:
-  Queue:
-    Type: AWS::SQS::Queue
   Bucket:
     Type: AWS::S3::Bucket
-  Notification:
-    Type: AwsCommunity::S3::BucketNotification
+  Deleter:
+    DependsOn: Bucket
+    Condition: IsNotProd
+    Type: AwsCommunity::S3::DeleteBucketContents
     Properties:
-      Id: MyNotification
-      Events: 
-        - s3:ObjectCreated:*
-      Filters:
-        - Name: suffix
-          Value: gif
-      BucketArn: !GetAtt Bucket.Arn
-      TargetType: Queue
-      TargetArn: !GetAtt Queue.Arn
-    DependsOn:
-      - Bucket
-      - Queue
+      BucketName: !Ref Bucket
 ```
 
 ## Development
@@ -43,7 +44,7 @@ Create a virtual environment.
 cd resources/BucketNotification
 python3 -m venv .env
 source .env/bin/activate
-pip install -r src/requirements-dev.txt
+pip install -r requirements-dev.txt
 ```
 
 In the other tab, run SAM local:

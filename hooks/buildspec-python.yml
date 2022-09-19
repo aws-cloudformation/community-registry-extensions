@@ -6,10 +6,10 @@ phases:
       python: 3.7
     commands:
       - echo Entered the install phase...
-      - echo About to build $RESOURCE_PATH
-      - ENTRY_PATH=$(python scripts/entry.py $RESOURCE_PATH/.rpdk-config)
+      - echo About to build $HOOK_PATH
+      - ENTRY_PATH=$(python scripts/entry.py $HOOK_PATH/.rpdk-config)
       - echo ENTRY_PATH is $ENTRY_PATH
-      - cd $RESOURCE_PATH
+      - cd $HOOK_PATH
       - python -m venv .env
       - . .env/bin/activate
       - pip install --upgrade pip
@@ -25,14 +25,10 @@ phases:
       - pytest src
       - cfn validate
       - cfn generate
-      - SETUP_STACK_NAME="setup-$(echo $ENTRY_PATH | sed s/_/-/g)"
-      - aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
-      - aws cloudformation wait stack-create-complete --stack-name $SETUP_STACK_NAME
       - cfn submit --dry-run
       - nohup sam local start-lambda &
       - sleep 10
       - cfn test
     finally:
       - cat rpdk.log
-      - aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME
 
