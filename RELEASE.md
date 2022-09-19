@@ -42,7 +42,7 @@ characters in the export names.
 
 When a PR is merged to the main branch in the repo, a CodePipeline pipeline is
 started. It starts parallel CodeBuild jobs for each resource. The jobs for
-resource types run `resources/buildspec.yml`.
+resource types run `resources/buildspec-{language}.yml`.
 
 There are some changes that need to be made to the `release/cicd.yml` template
 when adding a new resource. Each resource gets is own build action, and any 
@@ -68,6 +68,9 @@ same account.
 TODO: What about Alpha resources? It's Ok for them to break backwards
 compatibility, so we shouldn't fail the release process, but how do we tell the
 difference between this kind of failure and something we want to catch?
+
+The beta account uses the same template the CI/CD account: `release/cicd.yml`. The 
+difference is in the buildspecs.
 
 ### Prod account
 

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Infrastructure for the community registry extenstions CICD account
+Description: Infrastructure for the community registry extensions CICD
 
 Parameters:
   RepoId:
@@ -11,6 +11,10 @@ Parameters:
   Branch:
     Type: String
     Description: The name of the branch to trigger builds
+  Env:
+    Type: String
+    Description: The environment, cicd or beta
+    AllowedValues: ["cicd", "beta"]
 
 Resources:
 
@@ -193,7 +197,7 @@ Resources:
       ServiceRole: !GetAtt BucketNotificationBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: resources/buildspec-python.yml
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
 
   DeleteBucketContentsBuildProject:
     Type: AWS::CodeBuild::Project
@@ -213,7 +217,7 @@ Resources:
       ServiceRole: !GetAtt DeleteBucketContentsBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: resources/buildspec-python.yml
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
 
   S3BucketVersioningEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -233,7 +237,7 @@ Resources:
       ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: hooks/buildspec-python.yml
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
 
   CloudFrontLoggingEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -253,7 +257,7 @@ Resources:
       ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: hooks/buildspec-python.yml
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
 
 
   PipelineRole:
@@ -365,7 +369,7 @@ Resources:
                       "value": "resources/S3_DeleteBucketContents"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: S3BucketVersioningEnabled
               InputArtifacts:
                 - Name: extensions-source
@@ -384,7 +388,7 @@ Resources:
                       "value": "hooks/S3_BucketVersioningEnabled"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: CloudFrontLoggingEnabled
               InputArtifacts:
                 - Name: extensions-source
@@ -403,6 +407,6 @@ Resources:
                       "value": "hooks/CloudFront_LoggingEnabled"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
 
               
