@@ -1,7 +1,7 @@
 # AwsCommunity::CloudFront::S3Website::MODULE
 
 The module `AwsCommunity::CloudFront::S3Website::MODULE` creates a CloudFront distribution
-that points at a S3 bucket. This module will also use ACM to create a certificate, setup a 
+that points at an S3 bucket. This module will also use ACM to create a certificate and set up a 
 custom DNS name using Route53.
 
 ## Limitations
