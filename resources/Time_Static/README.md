@@ -2,6 +2,23 @@
 
 Creates a static time with the following properties:
 
+## Example
+
+```yaml
+Resources:
+  CreationTime:
+    Type: AwsCommunity::Time::Static
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      Tags:
+      - Key: CreatedAt
+        Value: !Ref CreationTime
+Outputs:
+  CreationDay:
+    Value: !Sub "${CreationTime.Year}-${CreationTime.Month}-${CreationTime.Day}"
+```
+
 ## Properties
 None
 
@@ -19,18 +36,12 @@ The following properties you can use in a `GetAtt`
 | **Unix** | integer  | Unix returns a Unix time, the number of seconds elapsed since January 1, 1970 UTC.
 | **Year** | integer  | Year returns the year.
 
-
 ## Development
 
 Open two tabs in your terminal.
 
-Create a virtual environment.
-
+Run SAM 
 ```sh
-cd resources/Time_Static
-python3 -m venv .env
-source .env/bin/activate
-pip install -r src/requirements.txt
 sam local start-lambda
 ```
 
@@ -38,6 +49,5 @@ In another tab, run cfn test:
 
 ```sh
 cd resources/Time_Static
-source .env/bin/activaate
 cfn test -- -k "contract_create_delete or contract_create_create or contract_create_read or contract_check_asserts_work"
 ```
