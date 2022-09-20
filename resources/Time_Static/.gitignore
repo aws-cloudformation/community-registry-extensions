@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+._*
+
+# our logs
+rpdk.log*
+.venv
+
+#compiled file
+bin/
+
+#vender
+vender/
+
+# contains credentials
+sam-tests/
+
+/awscommunity-time-static.zip
