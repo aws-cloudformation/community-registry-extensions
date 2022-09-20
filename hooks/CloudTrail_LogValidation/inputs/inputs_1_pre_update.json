@@ -4,12 +4,12 @@
             "TrailName": "log-file-validation-disabled-compliant",
             "EnableLogFileValidation": true,
             "IsLogging": false,
-            "S3BucketName": "testbucket"
+            "S3BucketName": "{{CloudTrailLoggingBucket}}"
         },
         "previousResourceProperties": {
             "TrailName": "log-file-validation-disabled-non-compliant",
             "IsLogging": false,
-            "S3BucketName": "testbucket"
+            "S3BucketName": "{{CloudTrailLoggingBucket}}"
         }
     }
 }
