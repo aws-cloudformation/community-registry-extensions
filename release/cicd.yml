@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Infrastructure for the community registry extenstions CICD account
+Description: Infrastructure for the community registry extensions CICD
 
 Parameters:
   RepoId:
@@ -11,6 +11,16 @@ Parameters:
   Branch:
     Type: String
     Description: The name of the branch to trigger builds
+  Env:
+    Type: String
+    Description: The environment, cicd or beta
+    AllowedValues: ["cicd", "beta"]
+  Prefix:
+    Type: String
+    Description: The extension prefix, for example, AwsCommunity
+  PrefixLower:
+    Type: String
+    Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
 
 Resources:
 
@@ -67,6 +77,43 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
+              - s3:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - kms:CreateKey
+              - kms:DeleteKey
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:GetRolePolicy
+              - iam:PassRole
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation*'
+          - Action:
               - logs:CreateLogGroup
               - logs:CreateLogStream
               - logs:PutLogEvents
@@ -97,13 +144,34 @@ Resources:
           - Action:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
             Effect: Allow
             Resource:
-              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-${PrefixLower}*'
           - Action:
               - cloudformation:ListExports
               - cloudformation:DescribeStacks
               - cloudformation:DescribeType
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:UpdateStack
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/CloudFormationManagedUploadInfrastructure/*'
+          - Action:
+              - cloudformation:RegisterType
+              - cloudformation:DescribeTypeRegistration
+              - cloudformation:SetTypeDefaultVersion
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/RESOURCE/${Prefix}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/resource/${Prefix}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/HOOK/${Prefix}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/hook/${Prefix}*'
+          - Action:
+              - cloudformation:DescribeTypeRegistration
             Effect: Allow
             Resource: "*"
         Version: '2012-10-17'
@@ -120,9 +188,6 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
-              - iam:CreateRole
-              - iam:DeleteRole
-              - iam:GetRole
               - lambda:AddPermission
               - lambda:RemovePermission
               - s3:CreateBucket
@@ -193,7 +258,7 @@ Resources:
       ServiceRole: !GetAtt BucketNotificationBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: resources/buildspec-python.yml
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
 
   DeleteBucketContentsBuildProject:
     Type: AWS::CodeBuild::Project
@@ -213,7 +278,7 @@ Resources:
       ServiceRole: !GetAtt DeleteBucketContentsBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: resources/buildspec-python.yml
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
 
   S3BucketVersioningEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -233,7 +298,7 @@ Resources:
       ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: hooks/buildspec-python.yml
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
 
   CloudFrontLoggingEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -253,7 +318,7 @@ Resources:
       ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: hooks/buildspec-python.yml
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
 
 
   PipelineRole:
@@ -365,7 +430,7 @@ Resources:
                       "value": "resources/S3_DeleteBucketContents"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: S3BucketVersioningEnabled
               InputArtifacts:
                 - Name: extensions-source
@@ -384,7 +449,7 @@ Resources:
                       "value": "hooks/S3_BucketVersioningEnabled"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: CloudFrontLoggingEnabled
               InputArtifacts:
                 - Name: extensions-source
@@ -403,6 +468,6 @@ Resources:
                       "value": "hooks/CloudFront_LoggingEnabled"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
 
               
