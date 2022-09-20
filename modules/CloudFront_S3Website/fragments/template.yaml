@@ -10,8 +10,15 @@ Parameters:
   HostedZoneId:
     Type: String
     Description: The Route53 HostedZoneId to use for certificates and registering the website DNS Name
+  AcmCertificateArn:
+    Type: String
+    Description: The ARN for the ACM Certificate to use
+    Default: ""
+Conditions:
+  IsAcmCertificateArn: !Not [!Equals [!Ref AcmCertificateArn, ""]] 
 Resources:
-  Certificate: 
+  Certificate:
+    Condition: IsAcmCertificateArn
     Type: AWS::CertificateManager::Certificate
     Properties: 
       DomainName: !Ref Alias
@@ -104,7 +111,7 @@ Resources:
               OriginAccessIdentity: ""
             OriginAccessControlId: !Ref Oac
         ViewerCertificate:
-          AcmCertificateArn: !Ref Certificate
+          AcmCertificateArn: !If [IsAcmCertificateArn, !Ref Certificate, !Ref AcmCertificateArn]
           SslSupportMethod: "sni-only"
   Dns:
     Type: AWS::Route53::RecordSet
