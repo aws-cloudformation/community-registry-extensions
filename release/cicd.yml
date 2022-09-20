@@ -15,6 +15,12 @@ Parameters:
     Type: String
     Description: The environment, cicd or beta
     AllowedValues: ["cicd", "beta"]
+  Prefix:
+    Type: String
+    Description: The extension prefix, for example, AwsCommunity
+  PrefixLower:
+    Type: String
+    Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
 
 Resources:
 
@@ -71,6 +77,43 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
+              - s3:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - kms:CreateKey
+              - kms:DeleteKey
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:GetRolePolicy
+              - iam:PassRole
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation*'
+          - Action:
               - logs:CreateLogGroup
               - logs:CreateLogStream
               - logs:PutLogEvents
@@ -101,13 +144,34 @@ Resources:
           - Action:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
             Effect: Allow
             Resource:
-              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-${PrefixLower}*'
           - Action:
               - cloudformation:ListExports
               - cloudformation:DescribeStacks
               - cloudformation:DescribeType
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:UpdateStack
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/CloudFormationManagedUploadInfrastructure/*'
+          - Action:
+              - cloudformation:RegisterType
+              - cloudformation:DescribeTypeRegistration
+              - cloudformation:SetTypeDefaultVersion
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/RESOURCE/${Prefix}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/resource/${Prefix}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/HOOK/${Prefix}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/hook/${Prefix}*'
+          - Action:
+              - cloudformation:DescribeTypeRegistration
             Effect: Allow
             Resource: "*"
         Version: '2012-10-17'
@@ -124,9 +188,6 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
-              - iam:CreateRole
-              - iam:DeleteRole
-              - iam:GetRole
               - lambda:AddPermission
               - lambda:RemovePermission
               - s3:CreateBucket
