@@ -1,7 +1,6 @@
 import logging
 import traceback
 from typing import Any, MutableMapping, Optional
-import botocore
 
 
 from cloudformation_cli_python_lib import (
@@ -11,7 +10,6 @@ from cloudformation_cli_python_lib import (
     ProgressEvent,
     Resource,
     SessionProxy,
-    exceptions,
     identifier_utils,
 )
 
@@ -35,14 +33,9 @@ test_entrypoint = resource.test_entrypoint
 def create_handler(
     session: Optional[SessionProxy],
     request: ResourceHandlerRequest,
-    callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
+    """Create Handler Method """
     model = request.desiredResourceState
-    progress: ProgressEvent = ProgressEvent(
-        status=OperationStatus.IN_PROGRESS,
-        resourceModel=model,
-    )
-
     # Example:
     try:
 
@@ -70,16 +63,15 @@ def create_handler(
                 HandlerErrorCode=HandlerErrorCode.AlreadyExists,
                 Message="The provided web ACL association configurations already exists",
             )
-        else:
-            etag = response["ResponseMetadata"]["HTTPHeaders"]["etag"]
-            new_config = old_config
-            new_config["WebACLId"] = webacl_association_kwargs["WebAclArn"]
-            response2 = client.update_distribution(
-                DistributionConfig=new_config,
-                Id=cloudfront_distribution_id,
-                IfMatch=etag,
-            )
-            model.Name = webacl_association_kwargs["DistributionArn"]
+        etag = response["ResponseMetadata"]["HTTPHeaders"]["etag"]
+        new_config = old_config
+        new_config["WebACLId"] = webacl_association_kwargs["WebAclArn"]
+        client.update_distribution(
+            DistributionConfig=new_config,
+            Id=cloudfront_distribution_id,
+            IfMatch=etag,
+        )
+        model.Name = webacl_association_kwargs["DistributionArn"]
 
     except Exception as e:
         return ProgressEvent.failed(
@@ -94,13 +86,9 @@ def create_handler(
 def update_handler(
     session: Optional[SessionProxy],
     request: ResourceHandlerRequest,
-    callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
+    """Update Handler Method """
     model = request.desiredResourceState
-    progress: ProgressEvent = ProgressEvent(
-        status=OperationStatus.IN_PROGRESS,
-        resourceModel=model,
-    )
     # TODO: put code here
     try:
 
@@ -125,15 +113,14 @@ def update_handler(
                 HandlerErrorCode.NotFound,
                 "The provided web ACL association configurations does not exists",
             )
-        else:
-            etag = response["ResponseMetadata"]["HTTPHeaders"]["etag"]
-            new_config = old_config
-            new_config["WebACLId"] = webacl_association_kwargs["WebAclArn"]
-            response2 = client.update_distribution(
-                DistributionConfig=new_config,
-                Id=cloudfront_distribution_id,
-                IfMatch=etag,
-            )
+        etag = response["ResponseMetadata"]["HTTPHeaders"]["etag"]
+        new_config = old_config
+        new_config["WebACLId"] = webacl_association_kwargs["WebAclArn"]
+        client.update_distribution(
+            DistributionConfig=new_config,
+            Id=cloudfront_distribution_id,
+            IfMatch=etag,
+        )
         LOG.debug("UPDATE working cp 5")
     except Exception as e:
         return ProgressEvent.failed(
@@ -148,13 +135,9 @@ def update_handler(
 def delete_handler(
     session: Optional[SessionProxy],
     request: ResourceHandlerRequest,
-    callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
+    """Delete Handler Method """
     model = request.desiredResourceState
-    progress: ProgressEvent = ProgressEvent(
-        status=OperationStatus.IN_PROGRESS,
-        resourceModel=None,
-    )
     # TODO: put code here
     try:
 
@@ -183,7 +166,7 @@ def delete_handler(
         etag = response["ResponseMetadata"]["HTTPHeaders"]["etag"]
         new_config = old_config
         new_config["WebACLId"] = ""
-        response2 = client.update_distribution(
+        client.update_distribution(
             DistributionConfig=new_config, Id=cloudfront_distribution_id, IfMatch=etag
         )
 
@@ -200,13 +183,9 @@ def delete_handler(
 def read_handler(
     session: Optional[SessionProxy],
     request: ResourceHandlerRequest,
-    callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
+    """Read Handler Method """
     model = request.desiredResourceState
-    progress: ProgressEvent = ProgressEvent(
-        status=OperationStatus.IN_PROGRESS,
-        resourceModel=None,
-    )
     # primary identifier from example
     try:
 
@@ -232,7 +211,8 @@ def read_handler(
     except Exception as e:
         return ProgressEvent.failed(
             HandlerErrorCode.NotFound,
-            "The provided web ACL association configurations does not exists. Or the read operation failed in the custom reesource type.",
+            "The provided web ACL association configurations does not exists."
+           + " Or the read operation failed in the custom reesource type. " + e,
         )
     return ProgressEvent(status=OperationStatus.SUCCESS, resourceModel=model)
 

@@ -38,7 +38,7 @@ In the other tab, run SAM local:
 
 ```sh
 cd resources/CloudFront_WebACLAssociation
-source .env/bin/activaate
+source .env/bin/activate
 sam local start-lambda
 ```
 
