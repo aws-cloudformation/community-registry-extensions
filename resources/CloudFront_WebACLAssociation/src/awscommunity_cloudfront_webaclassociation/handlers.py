@@ -45,7 +45,7 @@ def create_handler(
         )
 
         webacl_association_kwargs = _webacl_association_helper(
-            model=model, request=request
+            model=model
         )
 
         cloudfront_distribution_id = (
@@ -97,7 +97,7 @@ def update_handler(
             "cloudfront",
         )
         webacl_association_kwargs = _webacl_association_helper(
-            model=model, request=request
+            model=model
         )
 
         cloudfront_distribution_id = (
@@ -147,7 +147,7 @@ def delete_handler(
         )
 
         webacl_association_kwargs = _webacl_association_helper(
-            model=model, request=request
+            model=model
         )
 
         cloudfront_distribution_id = (
@@ -194,7 +194,7 @@ def read_handler(
         )
 
         webacl_association_kwargs = _webacl_association_helper(
-            model=model, request=request
+            model=model
         )
 
         cloudfront_distribution_id = (
@@ -235,7 +235,6 @@ def _get_session_client(
 
 def _webacl_association_helper(
     model: ResourceModel,
-    request: ResourceHandlerRequest,
 ) -> dict:
     """Create and return a dictionary of arguments for import_key_pair()"""
     LOG.debug("_webacl_association_helper()")
