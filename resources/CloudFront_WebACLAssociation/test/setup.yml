@@ -1,0 +1,157 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  WebsiteBucket:
+    Type: 'AWS::S3::Bucket'   
+    Properties:
+      BucketName: awscommunity-cfwebaclassociation-resource-bucket
+      WebsiteConfiguration:
+        IndexDocument: index.html
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+            AllowedOrigins:
+              - '*'
+            Id: OpenCors
+            MaxAge: '3600'
+  S3BucketPolicy:
+    Metadata:
+      Comment: 'Bucket policy to allow ¯ to access the data'
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: 'Allow'
+            Principal:
+              CanonicalUser: !GetAtt CfOriginAccessIdentity.S3CanonicalUserId
+            Resource:
+              - !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
+    Type: 'AWS::S3::BucketPolicy'
+  WebsiteCloudFront:
+    Type: 'AWS::CloudFront::Distribution'
+    DependsOn:
+      - WebsiteBucket
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt WebsiteBucket.RegionalDomainName
+            Id: !Sub 's3-origin-${WebsiteBucket}'
+            OriginPath: ''
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CfOriginAccessIdentity}'
+        Enabled: 'true'
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub 's3-origin-${WebsiteBucket}'
+          ViewerProtocolPolicy: 'https-only'
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: false
+          ForwardedValues:
+            QueryString: 'true'
+            Cookies:
+              Forward: none
+            Headers:
+              - Access-Control-Request-Headers
+              - Access-Control-Request-Method
+              - Origin
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+  CfOriginAccessIdentity:
+    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    Metadata:
+      Comment: 'Access S3 bucket content only through CloudFront'
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: 'Access S3 bucket content only through CloudFront'  
+  WafWebAcl1:
+    Type: "AWS::WAFv2::WebACL"
+    Properties:
+      Name: "WebACL1"
+      Scope: "CLOUDFRONT"
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: "WebACL1"
+        SampledRequestsEnabled: true
+      CustomResponseBodies:
+        AmazonVPNOnly:
+          ContentType: TEXT_PLAIN
+          Content: You are not allowed to view this page. 
+      Rules:          
+        - Name: "AWS-AWSManagedRulesCommonRuleSet"
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: "AWS"
+              Name: "AWSManagedRulesCommonRuleSet"
+          Priority: 1
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: "AWS-AWSManagedRulesCommonRuleSet"
+            SampledRequestsEnabled: true
+      Description: "This is an ACL for protecting CloudFront"
+  WafWebAcl2:
+    Type: "AWS::WAFv2::WebACL"
+    Properties:
+      Name: "WebACL2"
+      Scope: "CLOUDFRONT"
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: "WebACL2"
+        SampledRequestsEnabled: true
+      CustomResponseBodies:
+        AmazonVPNOnly:
+          ContentType: TEXT_PLAIN
+          Content: You are not allowed to view this page. 
+      Rules:                 
+        - Name: "AWS-AWSManagedRulesCommonRuleSet"
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: "AWS"
+              Name: "AWSManagedRulesCommonRuleSet"
+          Priority: 1
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: "AWS-AWSManagedRulesCommonRuleSet"
+            SampledRequestsEnabled: true
+      Description: "This is another ACL for protecting CloudFront"
+Outputs:
+  DistributionArn:
+    Value: !GetAtt WebsiteCloudFront.Arn
+    Export:
+      Name: CloudFrontDistributionArn
+  WebACL1Arn:
+    Value: !GetAtt WafWebAcl1.Arn
+    Export:
+      Name: WebACL1Arn
+  WebACL2Arn:
+    Value: !GetAtt WafWebAcl2.Arn
+    Export:
+      Name:   WebACL2Arn
+
+
