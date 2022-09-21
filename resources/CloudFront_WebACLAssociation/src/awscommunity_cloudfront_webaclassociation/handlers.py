@@ -1,6 +1,5 @@
 import logging
-import traceback
-from typing import Any, MutableMapping, Optional
+from typing import Optional
 
 
 from cloudformation_cli_python_lib import (
@@ -10,7 +9,6 @@ from cloudformation_cli_python_lib import (
     ProgressEvent,
     Resource,
     SessionProxy,
-    identifier_utils,
 )
 
 from .models import ResourceHandlerRequest, ResourceModel

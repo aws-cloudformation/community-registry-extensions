@@ -1,4 +1,4 @@
-# AwsCommunity::S3::DeleteBucketContents
+# AwsCommunity::CloudFront::WebACLAssociation
 
  Currently, CloudFormation ‘AWS::WAFv2::WebACLAssociation’ resource has a limitation that a new WebACL provisioned using CloudFormation cannot be associated to an existing CloudFront distribution (created outside of the CloudFormation template). For associating a web ACL to resources in CloudFormation, we can create a resource ‘AWS::WAFv2::WebACLAssociation’. However, this resource type only supports below ResourceArn values for Application Load Balancer, API Gateway and AppSync GraphQL API. This registry extension resource type associates a WebACL to a CloudFront distribution ARN. 
 
