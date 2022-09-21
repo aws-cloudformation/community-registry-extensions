@@ -1,4 +1,4 @@
 {
        "DistributionArn": "{{CloudFrontDistributionArn}}",
-       "WebAclArn": "{{DeleteBucketContentsTestBucket}}"
+       "WebAclArn": "{{WebACL1Arn}}"
 }
