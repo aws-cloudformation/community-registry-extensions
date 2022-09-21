@@ -148,7 +148,7 @@ Resources:
             Effect: Allow
             Resource:
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-${PrefixLower}*'
-              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-*'
           - Action:
               - cloudformation:ListExports
               - cloudformation:DescribeStacks
@@ -164,6 +164,8 @@ Resources:
               - cloudformation:RegisterType
               - cloudformation:DescribeTypeRegistration
               - cloudformation:SetTypeDefaultVersion
+              - cloudformation:SetTypeConfiguration
+              - cloudformation:DescribeType
             Effect: Allow
             Resource:
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/RESOURCE/${Prefix}*'
@@ -172,6 +174,8 @@ Resources:
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/hook/${Prefix}*'
           - Action:
               - cloudformation:DescribeTypeRegistration
+              - cloudformation:DescribeType
+              - cloudformation:ListTypes
             Effect: Allow
             Resource: "*"
         Version: '2012-10-17'
