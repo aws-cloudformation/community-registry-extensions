@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Infrastructure for the community registry extenstions CICD account
+Description: Infrastructure for the community registry extensions CICD
 
 Parameters:
   RepoId:
@@ -11,11 +11,43 @@ Parameters:
   Branch:
     Type: String
     Description: The name of the branch to trigger builds
+  Env:
+    Type: String
+    Description: The environment, cicd or beta
+    AllowedValues: ["cicd", "beta"]
+  Prefix:
+    Type: String
+    Description: The extension prefix, for example, AwsCommunity
+  PrefixLower:
+    Type: String
+    Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
 
 Resources:
 
   ArtifactBucket:
     Type: AWS::S3::Bucket
+
+  S3BucketVersioningEnabledBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  CloudFrontLoggingEnabledBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
 
   BucketNotificationBuildProjectRole:
     Type: AWS::IAM::Role
@@ -44,6 +76,43 @@ Resources:
     Properties:
       PolicyDocument:
         Statement:
+          - Action:
+              - s3:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - kms:CreateKey
+              - kms:DeleteKey
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:GetRolePolicy
+              - iam:PassRole
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation*'
           - Action:
               - logs:CreateLogGroup
               - logs:CreateLogStream
@@ -75,12 +144,34 @@ Resources:
           - Action:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
             Effect: Allow
             Resource:
-              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-${PrefixLower}*'
           - Action:
               - cloudformation:ListExports
               - cloudformation:DescribeStacks
+              - cloudformation:DescribeType
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:UpdateStack
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/CloudFormationManagedUploadInfrastructure/*'
+          - Action:
+              - cloudformation:RegisterType
+              - cloudformation:DescribeTypeRegistration
+              - cloudformation:SetTypeDefaultVersion
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/RESOURCE/${Prefix}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/resource/${Prefix}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/HOOK/${Prefix}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/hook/${Prefix}*'
+          - Action:
+              - cloudformation:DescribeTypeRegistration
             Effect: Allow
             Resource: "*"
         Version: '2012-10-17'
@@ -88,6 +179,8 @@ Resources:
       Roles:
         - !Ref BucketNotificationBuildProjectRole
         - !Ref DeleteBucketContentsBuildProjectRole
+        - !Ref S3BucketVersioningEnabledBuildProjectRole
+        - !Ref CloudFrontLoggingEnabledBuildProjectRole
 
   BucketNotificationBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -95,9 +188,6 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
-              - iam:CreateRole
-              - iam:DeleteRole
-              - iam:GetRole
               - lambda:AddPermission
               - lambda:RemovePermission
               - s3:CreateBucket
@@ -156,7 +246,7 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
       Environment:
-        ComputeType: BUILD_GENERAL1_SMALL
+        ComputeType: BUILD_GENERAL1_LARGE
         Image: aws/codebuild/standard:5.0
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
@@ -168,7 +258,7 @@ Resources:
       ServiceRole: !GetAtt BucketNotificationBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: resources/buildspec-python.yml
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
 
   DeleteBucketContentsBuildProject:
     Type: AWS::CodeBuild::Project
@@ -176,7 +266,7 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
       Environment:
-        ComputeType: BUILD_GENERAL1_SMALL
+        ComputeType: BUILD_GENERAL1_LARGE
         Image: aws/codebuild/standard:5.0
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
@@ -188,7 +278,47 @@ Resources:
       ServiceRole: !GetAtt DeleteBucketContentsBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: resources/buildspec-python.yml
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+
+  S3BucketVersioningEnabledBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-hook"
+      ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
+
+  CloudFrontLoggingEnabledBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
 
 
   PipelineRole:
@@ -235,6 +365,8 @@ Resources:
             Resource: 
               - !GetAtt BucketNotificationBuildProject.Arn
               - !GetAtt DeleteBucketContentsBuildProject.Arn
+              - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
+              - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -276,7 +408,7 @@ Resources:
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "resources/BucketNotification"
+                      "value": "resources/S3_BucketNotification"
                     }
                   ]
               RunOrder: 1
@@ -295,9 +427,47 @@ Resources:
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "resources/DeleteBucketContents"
+                      "value": "resources/S3_DeleteBucketContents"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
+            - Name: S3BucketVersioningEnabled
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/S3_BucketVersioningEnabled"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: CloudFrontLoggingEnabled
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CloudFrontLoggingEnabledBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/CloudFront_LoggingEnabled"
+                    }
+                  ]
+              RunOrder: 2
 
               

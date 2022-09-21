@@ -1,3 +1,4 @@
+"Handler implementation for the hook"
 import logging
 from cfn_guard_rs_hook import GuardHook
 
