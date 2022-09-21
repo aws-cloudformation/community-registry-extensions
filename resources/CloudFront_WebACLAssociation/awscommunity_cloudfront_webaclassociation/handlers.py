@@ -236,7 +236,6 @@ def read_handler(
         )
     return ProgressEvent(status=OperationStatus.SUCCESS, resourceModel=model)
 
-
 def _get_session_client(
     session: Optional[SessionProxy],
     service_name: str,
