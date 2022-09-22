@@ -1,13 +1,41 @@
 # AwsCommunity::IAM::PasswordPolicy
 
-Congratulations on starting development!
+This resource configures your AWS IAM password policy.
 
-Next steps:
+For more details see [the generated readme](docs/README.md)
 
-1. Populate the JSON schema describing your resource, `awscommunity-iam-passwordpolicy.json`
-2. The RPDK will automatically generate the correct resource model from the
-   schema whenever the project is built via Make.
-   You can also do this manually with the following command: `cfn-cli generate`
-3. Implement your resource handlers by adding code to provision your resources in your resource handler's methods.
+## Example
 
-Please don't modify files `model.go and main.go`, as they will be automatically overwritten.
+```yaml
+Resources:
+   PasswordPolicy: 
+      Type: AwsCommunity::IAM::PasswordPolicy
+      Properties:
+         AllowUsersToChangePassword: true
+         HardExpiry: false
+         MaxPasswordAge: 90
+         MinimumPasswordLength: 12
+         PasswordReusePrevention: 6
+         RequireLowercaseCharacters: true
+         RequireNumbers: true
+         RequireSymbols: true
+         RequireUppercaseCharacters: true
+```
+
+## Development
+
+Open two tabs in your terminal.
+
+Run SAM 
+```sh
+cd resources/IAM_PasswordPolicy
+make build
+sam local start-lambda
+```
+
+In another tab, run cfn test:
+
+```sh
+cd resources/IAM_PasswordPolicy
+cfn test
+```
