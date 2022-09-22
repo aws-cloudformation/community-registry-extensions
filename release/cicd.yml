@@ -178,6 +178,7 @@ Resources:
               - ecr:GetDownloadUrlForLayer
               - ecr:BatchGetImage
               - ecr:BatchCheckLayerAvailability
+              - ecr:GetAuthorizationToken
             Effect: Allow
             Resource: "*"
         Version: '2012-10-17'
@@ -254,7 +255,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: CODEBUILD
+        ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
@@ -274,7 +275,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: CODEBUILD
+        ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
@@ -294,7 +295,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: CODEBUILD
+        ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
@@ -314,7 +315,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: CODEBUILD
+        ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
