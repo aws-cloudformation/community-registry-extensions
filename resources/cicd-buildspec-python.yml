@@ -10,6 +10,9 @@ phases:
       - ENTRY_PATH=$(python scripts/entry.py $RESOURCE_PATH/.rpdk-config)
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $RESOURCE_PATH
+      - which python
+      - python --version
+      - ls /usr/local/bin
       - cfn --version
       - sam --version
 
