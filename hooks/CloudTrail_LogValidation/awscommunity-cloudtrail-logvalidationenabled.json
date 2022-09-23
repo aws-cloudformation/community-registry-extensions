@@ -1,0 +1,26 @@
+{
+    "typeName": "AwsCommunity::CloudTrail::LogValidationEnabled",
+    "description": "Checks whether log file integrity validation is enabled on a CloudTrail trail.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/hooks/CloudTrail_LogValidation",
+    "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/hooks/CloudTrail_LogValidation/README.md",
+    "typeConfiguration": {
+        "properties": {},
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::CloudTrail::Trail"
+            ],
+            "permissions": []
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::CloudTrail::Trail"
+            ],
+            "permissions": []
+        }
+    },
+    "additionalProperties": false
+}
