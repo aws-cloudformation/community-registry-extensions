@@ -13,6 +13,7 @@ phases:
       - which python
       - python --version
       - ls /usr/local/bin
+      - pip freeze
       - cfn --version
       - sam --version
 
