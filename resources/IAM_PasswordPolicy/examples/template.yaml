@@ -1,0 +1,4 @@
+Resources:
+  PasswordPolicy:
+    Type: AwsCommunity::IAM::PasswordPolicy
+    Properties: {}
