@@ -70,6 +70,16 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+  CloudFrontWebAclAssociationBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
 
   CommonBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -239,6 +249,48 @@ Resources:
       PolicyName: delete-bucket-contents-build-project-policy
       Roles:
         - !Ref DeleteBucketContentsBuildProjectRole
+  CloudFrontWebAclAssociationBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:GetRole
+              - iam:CreateRole
+              - iam:DeleteRole
+              - wafv2:ListTagsForResource
+              - wafv2:GetWebACL
+              - wafv2:CreateWebACL
+              - wafv2:DeleteWebACL
+              - cloudfront:ListCloudFrontOriginAccessIdentities
+              - cloudfront:TagResource
+              - cloudfront:CreateDistribution
+              - cloudfront:GetDistribution
+              - cloudfront:CreateCloudFrontOriginAccessIdentity
+              - cloudfront:ListDistributions
+              - cloudfront:GetCloudFrontOriginAccessIdentity
+              - cloudfront:DeleteDistribution
+              - cloudfront:UpdateDistribution
+              - cloudfront:DeleteCloudFrontOriginAccessIdentity
+              - s3:PutObject
+              - s3:GetObject
+              - s3:PutBucketWebsite
+              - s3:GetEncryptionConfiguration
+              - s3:ListAllMyBuckets
+              - s3:PutBucketPolicy
+              - s3:GetBucketLocation
+              - s3:DeleteBucket
+              - s3:CreateBucket
+              - s3:ListBucket
+              - s3:GetBucketPolicy
+              - s3:PutBucketCORS
+              - s3:DeleteBucketPolicy
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: cloudfront-webacl-association-build-project-policy
+      Roles:
+        - !Ref CloudFrontWebAclAssociationBuildProjectRole
 
   BucketNotificationBuildProject:
     Type: AWS::CodeBuild::Project
@@ -256,6 +308,25 @@ Resources:
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
       ServiceRole: !GetAtt BucketNotificationBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+  CloudFrontWebAclAssociationBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
@@ -319,7 +390,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
-
 
   PipelineRole:
     Type: AWS::IAM::Role
@@ -412,6 +482,25 @@ Resources:
                     }
                   ]
               RunOrder: 1
+            - Name: CloudFrontWebAclAssociation
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CloudFrontWebAclAssociationBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/CloudFront_WebACLAssociation"
+                    }
+                  ]
+              RunOrder: 2
             - Name: DeleteBucketContents
               InputArtifacts:
                 - Name: extensions-source
