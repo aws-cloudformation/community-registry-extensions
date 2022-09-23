@@ -18,7 +18,7 @@ Resources:
             MaxAge: '3600'
   S3BucketPolicy:
     Metadata:
-      Comment: 'Bucket policy to allow ¯ to access the data'
+      Comment: 'Bucket policy to allow cloudfront to access the data'
     Properties:
       Bucket: !Ref WebsiteBucket
       PolicyDocument:
@@ -142,7 +142,9 @@ Resources:
       Description: "This is another ACL for protecting CloudFront"
 Outputs:
   DistributionArn:
-    Value: !GetAtt WebsiteCloudFront.Arn
+    Value: !Sub 
+      -  arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontId}
+      -  CloudFrontId: !Ref WebsiteCloudFront
     Export:
       Name: CloudFrontDistributionArn
   WebACL1Arn:
