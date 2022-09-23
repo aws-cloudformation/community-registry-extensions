@@ -70,7 +70,19 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+
   CloudFrontWebAclAssociationBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+  
+  ResourceIamPasswordPolicyRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -295,6 +307,35 @@ Resources:
       PolicyName: cloudfront-webacl-association-build-project-policy
       Roles:
         - !Ref CloudFrontWebAclAssociationBuildProjectRole
+  
+  ResourceIamPasswordPolicyPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:GetRole
+              - iam:CreateRole
+              - iam:DeleteRole
+              - s3:PutObject
+              - s3:GetObject
+              - s3:PutBucketWebsite
+              - s3:GetEncryptionConfiguration
+              - s3:ListAllMyBuckets
+              - s3:PutBucketPolicy
+              - s3:GetBucketLocation
+              - s3:DeleteBucket
+              - s3:CreateBucket
+              - s3:ListBucket
+              - s3:GetBucketPolicy
+              - s3:PutBucketCORS
+              - s3:DeleteBucketPolicy
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: cloudfront-webacl-association-build-project-policy
+      Roles:
+        - !Ref ResourceIamPasswordPolicyRole
 
   BucketNotificationBuildProject:
     Type: AWS::CodeBuild::Project
@@ -312,6 +353,25 @@ Resources:
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
       ServiceRole: !GetAtt BucketNotificationBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+  ResourceIamPasswordPolicyBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt ResourceIamPasswordPolicyRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"

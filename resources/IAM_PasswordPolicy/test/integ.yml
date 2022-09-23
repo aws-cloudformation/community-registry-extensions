@@ -1,0 +1,13 @@
+Resources:
+  AccountPasswordPolicy:
+    Type: AwsCommunity::S3::BucketNotification
+    Properties:
+      AllowUsersToChangePassword: true
+      HardExpiry: false
+      MaxPasswordAge: 90
+      MinimumPasswordLength: 12
+      PasswordReusePrevention: 6
+      RequireLowercaseCharacters: true
+      RequireNumbers: true
+      RequireSymbols: true
+      RequireUppercaseCharacters: true
