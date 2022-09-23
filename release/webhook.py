@@ -3,26 +3,38 @@ import hashlib
 import hmac
 import boto3
 def handler(event, context):
-    print(json.dumps(event, default=str))
-    secret_name = 'github-webhook'
-    session = boto3.session.Session()
-    client = boto3.client("secretsmanager")
-    get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    secret = get_secret_value_response['SecretString']
-    digest = hmac.new(
-        secret.encode('utf-8'), event.encode('utf-8'), hashlib.sha1
-    ).hexdigest()
-    sig_parts = event['headers']['X-Hub-Signature'].split('=', 1)
-    if (
-        len(sig_parts) < 2
-        or sig_parts[0] != 'sha1'
-        or not hmac.compare_digest(sig_parts[1], digest)
-    ):
-        print('Digest comparison failed')
-        raise Exception()
-    print('Secret Ok')
-    return {
-      'statusCode': 200,
-      'headers': {},
-      'body': event['head_commit']['message'],
-    }
+print(json.dumps(event, default=str))
+secret_name = 'github-webhook'
+session = boto3.session.Session()
+client = boto3.client("secretsmanager")
+get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+secret = get_secret_value_response['SecretString']
+digest = hmac.new(
+  secret.encode('utf-8'), event['body'].encode('utf-8'), hashlib.sha1
+).hexdigest()
+sig_parts = event['headers']['X-Hub-Signature'].split('=', 1)
+if (
+  len(sig_parts) < 2
+  or sig_parts[0] != 'sha1'
+  or not hmac.compare_digest(sig_parts[1], digest)
+):
+  print('Digest comparison failed')
+  raise Exception()
+print('Secret Ok')
+payload = json.loads(event['body'])
+print('payload', json.dumps(payload, default=str))
+codebuild = session.client("codebuild")
+codebuild.start_build(projectName='${WebHookBuildProject}',
+environmentVariablesOverride=[
+  {
+    'name': 'COMMIT_MESSAGE',
+    'value': payload['head_commit']['message'],
+    'type': 'PLAINTEXT'
+  }])
+return {
+'statusCode': 200,
+'headers': {},
+'body': payload['head_commit']['message'],
+}
+
+
