@@ -1,0 +1,10 @@
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "TestingSomeRules"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          ToPort: 443
+          FromPort: 443
+          CidrIp: 0.0.0.0/0
