@@ -38,6 +38,17 @@ Resources:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
 
+  EC2SecurityGroupRestrictedSSHBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
   CloudFrontLoggingEnabledBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -206,6 +217,7 @@ Resources:
         - !Ref BucketNotificationBuildProjectRole
         - !Ref DeleteBucketContentsBuildProjectRole
         - !Ref S3BucketVersioningEnabledBuildProjectRole
+        - !Ref EC2SecurityGroupRestrictedSSHBuildProjectRole
         - !Ref CloudFrontLoggingEnabledBuildProjectRole
 
   BucketNotificationBuildProjectPolicy:
@@ -435,6 +447,26 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
 
+  EC2SecurityGroupRestrictedSSHBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/standard:5.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-hook"
+      ServiceRole: !GetAtt EC2SecurityGroupRestrictedSSHBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
+
   CloudFrontLoggingEnabledBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -500,6 +532,7 @@ Resources:
               - !GetAtt BucketNotificationBuildProject.Arn
               - !GetAtt DeleteBucketContentsBuildProject.Arn
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
+              - !GetAtt EC2SecurityGroupRestrictedSSHBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
 
   Pipeline:
@@ -600,6 +633,25 @@ Resources:
                       "name": "HOOK_PATH",
                       "type": "PLAINTEXT",
                       "value": "hooks/S3_BucketVersioningEnabled"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: EC2_SecurityGroupRestrictedSSH
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref EC2SecurityGroupRestrictedSSHBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/EC2_SecurityGroupRestrictedSSH"
                     }
                   ]
               RunOrder: 2
