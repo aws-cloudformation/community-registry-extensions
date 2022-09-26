@@ -1,0 +1,6 @@
+ceparch.png
+cicd.yml
+deploy-beta.sh
+deploy-cicd.sh
+dockerlogin-cicd.sh
+dockerlogin-beta.sh
