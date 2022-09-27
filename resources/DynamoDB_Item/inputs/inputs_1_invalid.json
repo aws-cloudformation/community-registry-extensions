@@ -1,0 +1,12 @@
+{
+    "TableName": "test",
+    "Item": {
+        "title":  {
+            "S": "one"}
+    },
+    "Key": {
+        "pk": {
+            "S": "one"
+        }
+    }
+}
