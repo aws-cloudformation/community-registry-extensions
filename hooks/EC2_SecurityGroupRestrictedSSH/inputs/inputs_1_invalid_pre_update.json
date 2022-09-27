@@ -1,0 +1,28 @@
+{
+  "AWS::EC2::SecurityGroup": {
+    "resourceProperties": {
+      "SecurityGroupIngress": [
+        {
+          "ToPort": "443",
+          "FromPort": "443",
+          "IpProtocol": "tcp",
+          "CidrIp": "0.0.0.0/0"
+        },
+        {
+          "ToPort": "22",
+          "FromPort": "22",
+          "IpProtocol": "tcp",
+          "CidrIp": "0.0.0.0/0"
+        }
+      ]
+    }
+  },
+  "AWS::EC2::SecurityGroupIngress": {
+    "resourceProperties": {
+      "ToPort": "22",
+      "FromPort": "22",
+      "IpProtocol": "tcp",
+      "CidrIp": "0.0.0.0/0"
+    }
+  }
+}
