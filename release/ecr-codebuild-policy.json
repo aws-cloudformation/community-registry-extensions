@@ -1,0 +1,24 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CodeBuild",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "codebuild.amazonaws.com"
+      },
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:GetAuthorizationToken"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceAccount": "531337079465",
+          "aws:SourceArn": "arn:aws:codebuild:us-east-1:531337079465:project/*"
+        }
+      }
+    }
+  ]
+}
