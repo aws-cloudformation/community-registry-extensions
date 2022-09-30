@@ -144,7 +144,9 @@ def get_role_name(target_name, notification_id):
     
     # Kept running into 64 character limit here
     longname = target_name + "-bn-" + notification_id
-    return hashlib.md5(longname.encode("UTF8")).hexdigest()
+    # Disabling bandit warning here since we are not using md5 for crypto, 
+    # we just need a stable unique identifier based on the name
+    return hashlib.md5(longname.encode("UTF8")).hexdigest() # nosec B324
 
 def get_policy_name(role_name):
     "Get the policy name for the role we create"

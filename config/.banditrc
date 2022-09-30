@@ -1,0 +1,3 @@
+# Skip assert warning
+skips: ["B101"]
+
