@@ -1,0 +1,50 @@
+Parameters:
+  Env:
+    Type: String
+    Description: The environment, cicd or beta
+    AllowedValues: ["cicd", "beta"]
+  BuildManagedPolicyArn:
+    Type: String
+    Description: The CodeBuild Managed Policy ARN
+  FolderName:
+    Type: String
+    Description: The folder name for the hook
+Resources:
+  BuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - !Ref BuildManagedPolicyArn
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: !Sub "./resources/${FolderName}"
+      ServiceRole: !GetAtt BuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
+Outputs:
+  BuildProjectRole:
+    Value: !Ref BuildProjectRole
+  BuildProjectArn:
+    Value: !GetAtt BuildProject.Arn
+  BuildProjectName:
+    Value: !Ref BuildProject
