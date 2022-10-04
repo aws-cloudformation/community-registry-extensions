@@ -23,6 +23,7 @@ phases:
       - echo Entered the build phase...
       - pylint --rcfile ../../config/.pylintrc src/$ENTRY_PATH
       - pytest src
+      - bandit -c ../../config/.banditrc -r src
       - cfn validate
       - cfn generate
       - cfn submit --dry-run

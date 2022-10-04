@@ -4,3 +4,5 @@ cloudformation-cli-python-lib==2.1.12
 git+https://github.com/kddejong/cloudformation-cli-python-plugin.git@fix/ecr/lambdaimage
 pylint==2.15.2
 pytest==7.1.3
+bandit==1.7.4
+
