@@ -32,22 +32,28 @@ there are files in the `inputs` folder, these inputs are used instead of
 randomly generated characters which are not useful for real resource testing.
 Since these inputs are not full templates and cannot create prerequisite
 resources, a template must be provided in each project to create those
-prerequisites. The resource developer creates `test/setup.yml` or
-`test/setup.json` to create any resources that are needed in order for contract
-testing to succeed. See
+prerequisites. The resource developer creates `test/setup.yml` to create any
+resources that are needed in order for contract testing to succeed. See
 https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test.html)
 for documentation on the input files and how to reference CloudFormation export
 names. Keep in mind that `cfn test` will ignore the files if there are special
 characters in the export names.
 
 When a PR is merged to the main branch in the repo, a CodePipeline pipeline is
-started. It starts parallel CodeBuild jobs for each resource. The jobs for
-resource types run `resources/buildspec-{language}.yml`.
+started via a GitHub webhook. The webhook is handled by a Lambda function that
+invokes a CodeBuild job. The CodeBuild job clones the repo and places a zip
+file into a bucket, which is detected by CodePipeline. The pipeline starts
+parallel CodeBuild jobs for each resource. The jobs for resource types run
+`resources/buildspec-{language}.yml`.
 
 There are some changes that need to be made to the `release/cicd.yml` template
 when adding a new resource. Each resource gets is own build action, and any 
 permissions that are needed to run the setup template and make SDK calls 
 during contract testing need to be added to the project policy.
+
+Each extension type and each language has its own build spec within each environment. 
+For example, `resources/cicd-buildspec-python.yml` is used in the CICD account
+when building Python resources.
 
 ### Beta account
 
@@ -60,21 +66,24 @@ should create all needed resources, and does not rely on the `test/setup.yml`
 template.
 
 The `test/integ.yml` template is created and deleted, and a second copy is
-created once and never deleted, to make sure that updates to the resource don't
-cause issues.  In the integ template, no hard-coded names should be used, to
-avoid issues with multiple stacks being deployed from the same template in the
-same account.
+created once and never deleted (TODO), to make sure that updates to the
+resource don't cause issues.  In the integ template, no hard-coded names should
+be used, to avoid issues with multiple stacks being deployed from the same
+template in the same account.
 
 TODO: What about Alpha resources? It's Ok for them to break backwards
 compatibility, so we shouldn't fail the release process, but how do we tell the
 difference between this kind of failure and something we want to catch?
 
-The beta account uses the same template the CI/CD account: `release/cicd.yml`. The 
-difference is in the buildspecs.
+The beta account uses the same CloudFormation template, `release/cicd.yml`, as 
+the CICD account, since the pipeline and permissions are very similar. The pipeline 
+is started by a commit being made on the `release` branch.
+
+The beta pipeline has one extra stage which copies the source zip to a bucket in the 
+prod account to start the publishing process, if all beta tests succeed.
+
 
 ### Prod account
 
 An account controlled by AWS that is the publisher for the registry extensions.
-We are planning to use a strategy that involves Systems Manager documents
-instead of Stack Sets for deployment to all available regions.
-
+If all integ tests succeed in the beta account, the prod pipeline is invoked.

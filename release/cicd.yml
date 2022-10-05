@@ -272,6 +272,7 @@ Resources:
       PolicyName: delete-bucket-contents-build-project-policy
       Roles:
         - !Ref DeleteBucketContentsBuildProjectRole
+
   CloudFrontWebAclAssociationBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:

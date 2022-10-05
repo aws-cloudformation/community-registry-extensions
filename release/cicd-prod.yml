@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Common infrastructure for the community registry extensions CICD in the prod account for publishing across all regions
+
+Parameters:
+  SourceBucketName:
+    Type: String
+    Description: We hard code a name here since we reference it cross-region. For prod it should be community-registry-extensions-prod-source.
+  TypeRegistrationLogBucketName:
+    Type: String
+    Description: For prod it should be community-registry-extensions-prod-logs
+
+Resources:
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref SourceBucketName
+      VersioningConfiguration: 
+        Status: Enabled
+
+  TypeRegistrationLogBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref TypeRegistrationLogBucketName
+
+  AmazonCloudWatchEventRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: community-registry-extensions-cloudwatch-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        -
+          PolicyName: cwe-pipeline-execution
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action: codepipeline:StartPipelineExecution
+                Resource: !Join [ '', [ 'arn:aws:codepipeline:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', "*" ] ]
+
+
+  AWSCloudTrailBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AWSCloudTrailBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Sid: AWSCloudTrailAclCheck
+            Effect: Allow
+            Principal:
+              Service:
+                - cloudtrail.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !GetAtt AWSCloudTrailBucket.Arn
+          -
+            Sid: AWSCloudTrailWrite
+            Effect: Allow
+            Principal:
+              Service:
+                - cloudtrail.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Join [ '', [ !GetAtt AWSCloudTrailBucket.Arn, '/AWSLogs/', !Ref 'AWS::AccountId', '/*' ] ]
+            Condition: 
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
+  
+  AWSCloudTrailBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+  
+  AwsCloudTrail:
+    DependsOn:
+      - AWSCloudTrailBucketPolicy
+    Type: AWS::CloudTrail::Trail
+    Properties:
+      S3BucketName: !Ref AWSCloudTrailBucket
+      EventSelectors:
+        -
+          DataResources:
+            -
+              Type: AWS::S3::Object
+              Values:
+                - !Join [ '', [ !GetAtt SourceBucket.Arn, '/', "source.zip" ] ]
+          ReadWriteType: WriteOnly
+          IncludeManagementEvents: false
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      IsMultiRegionTrail: true
+
+
