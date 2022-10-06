@@ -8,11 +8,19 @@ Parameters:
   TypeRegistrationLogBucketName:
     Type: String
     Description: For prod it should be community-registry-extensions-prod-logs
+  HandlerBucketName:
+    Type: String
+    Description: The name of the handler package bucket. For prod it should be community-registry-extensions-prod-handler
 
 Resources:
 
   ArtifactBucket:
     Type: AWS::S3::Bucket
+
+  HandlerBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket holds the handler package for `release/publish.sh`
 
   SourceBucket:
     Type: AWS::S3::Bucket

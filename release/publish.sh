@@ -1,10 +1,18 @@
 #!/bin/bash
 
+# Publish a resource type.
+# This runs from prod-buildspec.yml on CodeBuild but can also be run locally.
+#
+# Environment variables expected: TYPE_NAME, HANDLER_BUCKET
+
 set -euo pipefail
 
+# Create the package
 echo "About to run cfn submit --dry-run to create the package"
 echo ""
 
+cfn validate
+cfn generate
 cfn submit --dry-run
 echo ""
 
@@ -15,6 +23,7 @@ ROLE_STACK_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')-
 echo "ROLE_STACK_NAME is $ROLE_STACK_NAME"
 echo ""
 
+# Copy the package to S3
 echo "Copying schema package handler to $HANDLER_BUCKET"
 aws s3 cp $ZIPFILE s3://$HANDLER_BUCKET/$ZIPFILE
 
@@ -40,6 +49,7 @@ echo ""
 echo "ROLE_ARN is $ROLE_ARN"
 echo ""
 
+# Register the type
 echo "About to run register-type"
 echo ""
 TOKEN=$(aws cloudformation register-type --type RESOURCE --type-name $TYPE_NAME --schema-handler-package s3://$HANDLER_BUCKET/$ZIPFILE --execution-role-arn $ROLE_ARN | jq -r .RegistrationToken)
@@ -54,12 +64,14 @@ check_status() {
     echo $STATUS
 }
 
-# TODO Check status
+# Check status
 while [ "$STATUS" == "IN_PROGRESS" ]
 do
+    sleep 5
     check_status
 done
 
+# Set this version to be the default
 echo "About to get latest version id"
 VERSION_ID=$(aws cloudformation describe-type --type RESOURCE --type-name $TYPE_NAME | jq -r .Arn | awk -F/ '{print $NF}')
 echo ""
@@ -70,15 +82,30 @@ echo "About to set-type-default-version"
 aws cloudformation set-type-default-version --type RESOURCE --type-name $TYPE_NAME --version-id $VERSION_ID
 echo ""
 
+# TODO: Eventually we will hit the 50 version limit, how do we work around it?
+
+# Test the resource type
 echo "About to run test-type"
 echo ""
 TYPE_VERSION_ARN=$(aws cloudformation test-type --type RESOURCE --type-name $TYPE_NAME --log-delivery-bucket $HANDLER_BUCKET | jq .TypeVersionArn | sed s/\"//g)
 echo "TYPE_VERSION_ARN is $TYPE_VERSION_ARN"
 echo ""
 
-echo "About to run decribe-type to check test status"
-echo ""
-aws cloudformation describe-type --arn $TYPE_VERSION_ARN 
+TEST_STATUS="IN_PROGRESS"
 
+check_test_status() {
+    echo "Checking test status for $TYPE_VERSION_ARN..."
+    TEST_STATUS=$(aws cloudformation describe-type --arn $TYPE_VERSION_ARN | jq -r .TypeTestsStatus)
+    echo $TEST_STATUS
+}
+
+# Check status
+while [ "$TEST_STATUS" == "IN_PROGRESS" ]
+do
+    sleep 5
+    check_test_status
+done
+
+echo "Done"
 
 
