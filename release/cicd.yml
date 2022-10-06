@@ -863,7 +863,7 @@ Resources:
     Properties:
       Code: webhook.py
       Role: !GetAtt WebHookHandlerRole.Arn
-      Handler: index.handler
+      Handler: webhook.handler
       Runtime: python3.7
       MemorySize: 1024
       Environment:
@@ -872,6 +872,7 @@ Resources:
           SOURCE_KEY: "source.zip"
           GIT_URL: !Ref GitUrl
           GIT_BRANCH: !Ref GitBranch
+          BUILD_PROJECT: !Ref WebHookBuildProject
 
   WebHookRestApi:
     Type: AWS::ApiGateway::RestApi
