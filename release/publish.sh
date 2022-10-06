@@ -7,12 +7,29 @@
 
 set -euo pipefail
 
-# Create the package
-echo "About to run cfn submit --dry-run to create the package"
-echo ""
 
 cfn validate
 cfn generate
+
+# Create or update the setup stack
+SETUP_STACK_NAME="setup-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
+if ! aws cloudformation describe-stacks --stack-name $SETUP_STACK_NAME 2>&1 ; then
+    echo "Creating $SETUP_STACK_NAME"
+    aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
+    aws cloudformation wait stack-create-complete --stack-name $SETUP_STACK_NAME
+else
+    echo "Updating $SETUP_STACK_NAME"
+    update_output=$(aws cloudformation update-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
+    if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
+        echo "No updates to setup stack"
+    else
+        aws cloudformation wait stack-update-complete --stack-name $SETUP_STACK_NAME
+    fi
+fi
+
+# Create the package
+echo "About to run cfn submit --dry-run to create the package"
+echo ""
 cfn submit --dry-run
 echo ""
 
@@ -30,12 +47,12 @@ aws s3 cp $ZIPFILE s3://$HANDLER_BUCKET/$ZIPFILE
 # Create or update the role stack
 if ! aws cloudformation describe-stacks --stack-name $ROLE_STACK_NAME 2>&1 ; then
     echo "Creating role stack"
-    aws cloudformation create-stack --stack-name $ROLE_STACK_NAME --template-body file://resource-role.yaml --capabilities CAPABILITY_IAM
+    aws cloudformation create-stack --stack-name $ROLE_STACK_NAME --template-body file://resource-role-prod.yaml --capabilities CAPABILITY_IAM
     echo ""
     aws cloudformation wait stack-create-complete --stack-name $ROLE_STACK_NAME
 else
     echo "Updating role stack"
-    update_output=$(aws cloudformation update-stack --stack-name $ROLE_STACK_NAME --template-body file://resource-role.yaml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
+    update_output=$(aws cloudformation update-stack --stack-name $ROLE_STACK_NAME --template-body file://resource-role-prod.yaml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
     if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
         echo "No updates to role stack"
     else
@@ -59,17 +76,17 @@ echo "Registration token is $TOKEN"
 STATUS="IN_PROGRESS"
 
 check_status() {
-    echo "Checking status for $TOKEN..."
     STATUS=$(aws cloudformation describe-type-registration --registration-token $TOKEN | jq -r .ProgressStatus)
-    echo $STATUS
 }
 
+echo "About to poll status for $TOKEN"
 # Check status
 while [ "$STATUS" == "IN_PROGRESS" ]
 do
     sleep 5
     check_status
 done
+echo $STATUS
 
 # Set this version to be the default
 echo "About to get latest version id"
@@ -93,10 +110,9 @@ echo ""
 
 TEST_STATUS="IN_PROGRESS"
 
+echo "About to poll test status for $TYPE_VERSION_ARN"
 check_test_status() {
-    echo "Checking test status for $TYPE_VERSION_ARN..."
     TEST_STATUS=$(aws cloudformation describe-type --arn $TYPE_VERSION_ARN | jq -r .TypeTestsStatus)
-    echo $TEST_STATUS
 }
 
 # Check status
@@ -105,6 +121,8 @@ do
     sleep 5
     check_test_status
 done
+
+echo $TEST_STATUS
 
 echo "Done"
 
