@@ -24,7 +24,7 @@ print('Secret Ok')
 payload = json.loads(event['body'])
 print('payload', json.dumps(payload, default=str))
 codebuild = session.client("codebuild")
-codebuild.start_build(projectName='${WebHookBuildProject}',
+codebuild.start_build(projectName=os.environ['BUILD_PROJECT']),
 environmentVariablesOverride=[
   {
     'name': 'COMMIT_MESSAGE',

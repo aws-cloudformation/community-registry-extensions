@@ -180,9 +180,6 @@ def delete_handler(session, request, callback_context): #pylint:disable=unused-a
                 args["VersionIdMarker"] = next_version_id_marker
             contents = s3.list_object_versions(**args)
 
-            # This causes a failure if there are too many objects!
-            #LOG.debug("contents: %s", json.dumps(contents, default=str))
-
             if "Versions" not in contents and "DeleteMarkers" not in contents:
                 LOG.debug("Versions or DeleteMarkers not found in contents")
                 break
@@ -272,5 +269,4 @@ def read_handler(session, request, callback_context): #pylint:disable=unused-arg
         status=OperationStatus.SUCCESS,
         resourceModel=model,
     )
-
 

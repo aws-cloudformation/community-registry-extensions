@@ -2,9 +2,11 @@
 
 set -eou pipefail
 
-cfn-lint release/cicd.yml
+cfn-lint cicd.yml -i W3002
+
+aws --profile cep-beta cloudformation package --template-file cicd.yml --s3-bucket community-registry-extensions-beta-packages > cicd-package.yml
 
 rain --profile cep-beta deploy -y\
-    --params RepoId=ericzbeard/community-registry-extensions,Branch=beta,GitHubConnectionArn=arn:aws:codestar-connections:us-east-1:676545906896:connection/8310f1ae-92ef-415a-ae1a-176a04ce8ed4,Env=beta,Prefix=AwsCommunity,PrefixLower=awscommunity \
-    release/cicd.yml cep-beta
+    --params Env=beta,Prefix=AwsCommunity,PrefixLower=awscommunity,GitBranch=release,GitUrl=https://github.com/aws-cloudformation/community-registry-extensions.git,GitHubSecretArn=arn:aws:secretsmanager:us-east-1:676545906896:secret:cep-github-webhook-secret-L1HEni \
+    cicd-package.yml cep-beta
 
