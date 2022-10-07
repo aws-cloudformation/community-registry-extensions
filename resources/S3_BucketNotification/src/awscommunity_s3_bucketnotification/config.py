@@ -146,7 +146,7 @@ def get_role_name(target_name, notification_id):
     longname = target_name + "-bn-" + notification_id
     # Disabling bandit warning here since we are not using md5 for crypto, 
     # we just need a stable unique identifier based on the name
-    return hashlib.md5(longname.encode("UTF8")).hexdigest() # nosec B324
+    return hashlib.md5(longname.encode("UTF8")).hexdigest() # nosec B324 B303
 
 def get_policy_name(role_name):
     "Get the policy name for the role we create"
