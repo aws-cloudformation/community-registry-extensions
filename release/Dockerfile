@@ -1,6 +1,15 @@
 FROM public.ecr.aws/codebuild/amazonlinux2-x86_64-standard:3.0 
 
 COPY requirements.txt ./
+COPY dockercfg.json ./
 RUN pyenv global 3.7.13
 RUN python -m pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
+RUN curl https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip -O -L \
+    && unzip aws-sam-cli-linux-x86_64.zip -d sam-installation \
+    && ./sam-installation/install
+RUN mkdir /root/.docker && cp dockercfg.json /root/.docker/config.json
+
+# This gets ignored, we have to run it in the buildspec 
+ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
+

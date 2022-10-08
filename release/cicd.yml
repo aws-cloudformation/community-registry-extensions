@@ -198,6 +198,7 @@ Resources:
               - cloudformation:DescribeTypeRegistration
               - cloudformation:DescribeType
               - cloudformation:ListTypes
+              - cloudformation:ListExports
             Effect: Allow
             Resource: "*"
           - Action:
@@ -214,6 +215,7 @@ Resources:
         - !Ref DeleteBucketContentsBuildProjectRole
         - !Ref S3BucketVersioningEnabledBuildProjectRole
         - !Ref CloudFrontLoggingEnabledBuildProjectRole
+        - !Ref CloudFrontWebAclAssociationBuildProjectRole
 
   BucketNotificationBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -221,6 +223,9 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
               - lambda:AddPermission
               - lambda:RemovePermission
               - s3:CreateBucket
@@ -518,6 +523,7 @@ Resources:
               - !GetAtt DeleteBucketContentsBuildProject.Arn
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
+              - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
   
   AmazonCloudWatchEventRole:
     Type: AWS::IAM::Role
