@@ -39,7 +39,7 @@ for documentation on the input files and how to reference CloudFormation export
 names. Keep in mind that `cfn test` will ignore the files if there are special
 characters in the export names.
 
-When a PR is merged to the main branch in the repo, a CodePipeline pipeline is
+When a PR is merged to the `main` branch in the repo, a CodePipeline pipeline is
 started via a GitHub webhook. The webhook is handled by a Lambda function that
 invokes a CodeBuild job. The CodeBuild job clones the repo and places a zip
 file into a bucket, which is detected by CodePipeline. The pipeline starts
@@ -80,7 +80,7 @@ the CICD account, since the pipeline and permissions are very similar. The pipel
 is started by a commit being made on the `release` branch.
 
 The beta pipeline has one extra stage which copies the source zip to a bucket in the 
-prod account to start the publishing process, if all beta tests succeed.
+prod account to start the publishing process, if all beta tests succeed. (TODO)
 
 
 ### Prod account
@@ -103,7 +103,10 @@ template has parameters that you will need to override in the shell script.
 Once `deploy-cicd.sh` has run, you will need to manually confgure a GitHub
 webhook from your fork to point to the API Gateway `prod` stage that is created
 by the `cicd.yml` template. Set the content-type to `application-json` and
-leave the default of "Just the push event".
+leave the default of "Just the push event". The "Recent Deliveries" tab on the
+webhook screen can be used to re-deliver payloads if you are troubleshooting
+it.
+
 
 
 

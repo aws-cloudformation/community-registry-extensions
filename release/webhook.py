@@ -9,10 +9,10 @@ import boto3
 def handler(event, context): #pylint:disable=W0613
     "Lambda handler"
     print(json.dumps(event, default=str))
-    secret_name = "github-webhook"
+    secret_arn = os.environ["SECRET_ARN"]
     session = boto3.session.Session()
     client = boto3.client("secretsmanager")
-    get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    get_secret_value_response = client.get_secret_value(SecretId=secret_arn)
     secret = get_secret_value_response["SecretString"]
     digest = hmac.new(
         secret.encode("utf-8"), event["body"].encode("utf-8"), hashlib.sha1

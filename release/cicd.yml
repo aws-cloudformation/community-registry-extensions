@@ -378,7 +378,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: CODEBUILD
+        ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
@@ -398,7 +398,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: CODEBUILD
+        ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
@@ -879,6 +879,7 @@ Resources:
           GIT_URL: !Ref GitUrl
           GIT_BRANCH: !Ref GitBranch
           BUILD_PROJECT: !Ref WebHookBuildProject
+          SECRET_ARN: !Ref GitHubSecretArn
 
   WebHookRestApi:
     Type: AWS::ApiGateway::RestApi
