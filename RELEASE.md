@@ -86,4 +86,24 @@ prod account to start the publishing process, if all beta tests succeed.
 ### Prod account
 
 An account controlled by AWS that is the publisher for the registry extensions.
-If all integ tests succeed in the beta account, the prod pipeline is invoked.
+If all integ tests succeed in the beta account, the prod pipeline is invoked by copying the build to an S3 bucket that starts the pipeline in each configured region. A stack set is used to deploy `cicd-prod-regional.yml` across regions. The pipeline invokes a CodeBuild job that runs `release/publish.sh`.
+
+### Development
+
+If you need to make changes to the release process, deploy the CICD stacks to
+your own sandbox account for development and testing. 
+
+First, create a secret in Secrets Manager for the GitHub webhook secret. It should be a plaintext string that you determine. Note the ARN of the secret.
+
+Make copies of the `release-deploy-*.sh` scripts in the git-ignored `local/`
+folder and deploy each of them. (Deploying the build image will take a while,
+so it's recommended to do this from a Cloud9 instance in your account). Each
+template has parameters that you will need to override in the shell script.
+
+Once `deploy-cicd.sh` has run, you will need to manually confgure a GitHub
+webhook from your fork to point to the API Gateway `prod` stage that is created
+by the `cicd.yml` template. Set the content-type to `application-json` and
+leave the default of "Just the push event".
+
+
+
