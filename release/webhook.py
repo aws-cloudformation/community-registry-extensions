@@ -28,19 +28,25 @@ def handler(event, context): #pylint:disable=W0613
     print("Secret Ok")
     payload = json.loads(event["body"])
     print("payload", json.dumps(payload, default=str))
-    codebuild = session.client("codebuild")
-    commit_message = payload["head_commit"]["message"]
-    print("commit_message:", commit_message)
-    codebuild.start_build(
-        projectName=os.environ["BUILD_PROJECT"],
-        environmentVariablesOverride=[
-            {
-                "name": "COMMIT_MESSAGE",
-                "value": commit_message,
-                "type": "PLAINTEXT",
-            }
-        ],
-    )
+    # "ref": "refs/heads/release",
+    branch = payload["ref"].split("/")[2]
+    if branch == os.environ["GIT_BRANCH"]:
+        print("Starting build for branch:", branch)
+        codebuild = session.client("codebuild")
+        commit_message = payload["head_commit"]["message"]
+        print("commit_message:", commit_message)
+        codebuild.start_build(
+            projectName=os.environ["BUILD_PROJECT"],
+            environmentVariablesOverride=[
+                {
+                    "name": "COMMIT_MESSAGE",
+                    "value": commit_message,
+                    "type": "PLAINTEXT",
+                }
+            ],
+        )
+    else:
+        print("Not starting build for branch:", branch)
     return {
         "statusCode": 200,
         "headers": {},

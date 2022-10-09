@@ -885,7 +885,7 @@ Resources:
   WebHookRestApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: GitHubWebHook
+      Name: !Sub "cep-${Env}-github-webhook"
 
   WebHookCloudWatchRole:
     Type: AWS::IAM::Role
