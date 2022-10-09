@@ -793,6 +793,7 @@ Resources:
   WebHookBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub "cep-${Env}-webhook"
       Artifacts:
         Type: NO_ARTIFACTS
       Environment:
