@@ -377,8 +377,8 @@ Resources:
         Type: CODEPIPELINE
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
-        Image: aws/codebuild/standard:5.0
-        ImagePullCredentialsType: CODEBUILD
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
@@ -397,8 +397,8 @@ Resources:
         Type: CODEPIPELINE
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
-        Image: aws/codebuild/standard:5.0
-        ImagePullCredentialsType: CODEBUILD
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
@@ -793,6 +793,7 @@ Resources:
   WebHookBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub "cep-${Env}-webhook"
       Artifacts:
         Type: NO_ARTIFACTS
       Environment:
@@ -879,11 +880,12 @@ Resources:
           GIT_URL: !Ref GitUrl
           GIT_BRANCH: !Ref GitBranch
           BUILD_PROJECT: !Ref WebHookBuildProject
+          SECRET_ARN: !Ref GitHubSecretArn
 
   WebHookRestApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: GitHubWebHook
+      Name: !Sub "cep-${Env}-github-webhook"
 
   WebHookCloudWatchRole:
     Type: AWS::IAM::Role

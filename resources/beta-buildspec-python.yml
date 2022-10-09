@@ -7,14 +7,12 @@ phases:
     commands:
       - echo Entered the install phase...
       - echo About to build $RESOURCE_PATH
+      - export PATH="/usr/local/bin:$PATH"
+      - /usr/local/bin/dockerd-entrypoint.sh
+      - cat /var/log/docker.log
       - ENTRY_PATH=$(python scripts/entry.py $RESOURCE_PATH/.rpdk-config)
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $RESOURCE_PATH
-      - python -m venv .env
-      - . .env/bin/activate
-      - pip install --upgrade pip
-      - pip install -r requirements.txt
-      - pip install -r requirements-dev.txt
       - cfn --version
       - sam --version
 

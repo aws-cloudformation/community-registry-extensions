@@ -59,8 +59,8 @@ def create_handler(
         if old_config["WebACLId"] == web_acl_id:
             return ProgressEvent(
                 status=OperationStatus.FAILED,
-                HandlerErrorCode=HandlerErrorCode.AlreadyExists,
-                Message="The provided web ACL association configurations already exists",
+                errorCode=HandlerErrorCode.AlreadyExists,
+                message="The provided web ACL association configurations already exists",
             )
         etag = response["ResponseMetadata"]["HTTPHeaders"]["etag"]
         new_config = old_config
