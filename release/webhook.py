@@ -29,12 +29,14 @@ def handler(event, context): #pylint:disable=W0613
     payload = json.loads(event["body"])
     print("payload", json.dumps(payload, default=str))
     codebuild = session.client("codebuild")
+    commit_message = payload["head_commit"]["message"]
+    print("commit_message:", commit_message)
     codebuild.start_build(
         projectName=os.environ["BUILD_PROJECT"],
         environmentVariablesOverride=[
             {
                 "name": "COMMIT_MESSAGE",
-                "value": payload["head_commit"]["message"],
+                "value": commit_message,
                 "type": "PLAINTEXT",
             }
         ],

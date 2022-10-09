@@ -13,7 +13,7 @@ phases:
       - ENTRY_PATH=$(python scripts/entry.py $HOOK_PATH/.rpdk-config)
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $HOOK_PATH
-      - pip install cfn_guard_rs_hook
+      - pip install git+https://github.com/kddejong/cloudformation-cli-python-plugin.git@fix/ecr/lambdaimage
       - cfn --version
       - sam --version
 

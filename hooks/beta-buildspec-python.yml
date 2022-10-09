@@ -14,6 +14,7 @@ phases:
       - RESOURCE_NAME=$(cat $HOOK_PATH/.rpdk-config | jq -r '.typeName')
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $HOOK_PATH
+      - pip install git+https://github.com/kddejong/cloudformation-cli-python-plugin.git@fix/ecr/lambdaimage
       - cfn --version
       - sam --version
   build:
