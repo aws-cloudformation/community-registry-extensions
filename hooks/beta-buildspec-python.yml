@@ -15,6 +15,7 @@ phases:
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $HOOK_PATH
       - pip install git+https://github.com/kddejong/cloudformation-cli-python-plugin.git@fix/ecr/lambdaimage
+      - pip install cfn_guard_rs_hook
       - cfn --version
       - sam --version
   build:
