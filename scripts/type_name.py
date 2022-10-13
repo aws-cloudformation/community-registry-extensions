@@ -4,7 +4,7 @@ import json
 import sys
 
 def main(rpdk_path):
-    "Get the source folder from rpdk config"
+    "Get the type name from rpdk config"
 
     with open(rpdk_path) as f:
         obj = json.load(f)

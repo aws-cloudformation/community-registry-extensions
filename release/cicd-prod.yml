@@ -2,17 +2,45 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Common infrastructure for the community registry extensions CICD in the prod account for publishing across all regions
 
 Parameters:
-  SourceBucketName:
-    Type: String
-    Description: We hard code a name here since we reference it cross-region. For prod it should be community-registry-extensions-prod-source.
-  TypeRegistrationLogBucketName:
-    Type: String
-    Description: For prod it should be community-registry-extensions-prod-logs
+
   HandlerBucketName:
     Type: String
     Description: The name of the handler package bucket. For prod it should be community-registry-extensions-prod-handler
 
+  PublishBuildBucketName:
+    Type: String
+    Description: The name of the bucket to drop builds from the beta account when all integ tests succeed. In prod it should be community-registry-extensions-publish-build
+
+  BetaAccountId:
+    Type: String
+    Description: AccountId for the beta account, which pushes builds to the PublishBuildBucket 
+
 Resources:
+
+  PublishBuildBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PublishBuildBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: BetaAccountPut
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${BetaAccountId}:role/cep-publish-role" 
+            Action: s3:PutObject
+            Resource: 
+              - !Sub "arn:aws:s3:::${PublishBuildBucket}" 
+              - !Sub "arn:aws:s3:::${PublishBuildBucket}/*" 
+
+  PublishBuildBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket initiates the publishing process in the prod account when a file called build.zip is dropped from the beta account
+    Properties:
+      BucketName: !Ref PublishBuildBucketName
+      VersioningConfiguration: 
+        Status: Enabled
 
   ArtifactBucket:
     Type: AWS::S3::Bucket
@@ -20,21 +48,11 @@ Resources:
   HandlerBucket:
     Type: AWS::S3::Bucket
     Metadata:
-      Comment: This bucket holds the handler package for `release/publish.sh`
-
-  SourceBucket:
-    Type: AWS::S3::Bucket
+      Comment: This bucket holds the handler package and logs for `release/publish.sh`
     Properties:
-      BucketName: !Ref SourceBucketName
-      VersioningConfiguration: 
-        Status: Enabled
+      BucketName: !Ref HandlerBucketName
 
-  TypeRegistrationLogBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref TypeRegistrationLogBucketName
-
-  AmazonCloudWatchEventRole:
+  WebHookCloudWatchEventRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: community-registry-extensions-cloudwatch-role
@@ -60,10 +78,10 @@ Resources:
                 Resource: !Join [ '', [ 'arn:aws:codepipeline:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', "*" ] ]
 
 
-  AWSCloudTrailBucketPolicy:
+  WebHookCloudTrailBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref AWSCloudTrailBucket
+      Bucket: !Ref WebHookCloudTrailBucket
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -74,7 +92,7 @@ Resources:
               Service:
                 - cloudtrail.amazonaws.com
             Action: s3:GetBucketAcl
-            Resource: !GetAtt AWSCloudTrailBucket.Arn
+            Resource: !GetAtt WebHookCloudTrailBucket.Arn
           -
             Sid: AWSCloudTrailWrite
             Effect: Allow
@@ -82,29 +100,29 @@ Resources:
               Service:
                 - cloudtrail.amazonaws.com
             Action: s3:PutObject
-            Resource: !Join [ '', [ !GetAtt AWSCloudTrailBucket.Arn, '/AWSLogs/', !Ref 'AWS::AccountId', '/*' ] ]
+            Resource: !Join [ '', [ !GetAtt WebHookCloudTrailBucket.Arn, '/AWSLogs/', !Ref 'AWS::AccountId', '/*' ] ]
             Condition: 
               StringEquals:
                 s3:x-amz-acl: bucket-owner-full-control
   
-  AWSCloudTrailBucket:
+  WebHookCloudTrailBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
   
-  AwsCloudTrail:
+  WebHookCloudTrail:
     DependsOn:
-      - AWSCloudTrailBucketPolicy
+      - WebHookCloudTrailBucketPolicy
     Type: AWS::CloudTrail::Trail
     Properties:
-      S3BucketName: !Ref AWSCloudTrailBucket
+      S3BucketName: !Ref WebHookCloudTrailBucket
       EventSelectors:
         -
           DataResources:
             -
               Type: AWS::S3::Object
               Values:
-                - !Join [ '', [ !GetAtt SourceBucket.Arn, '/', "source.zip" ] ]
+                - !Join [ '', [ !GetAtt PublishBuildBucket.Arn, '/', "build.zip" ] ]
           ReadWriteType: WriteOnly
           IncludeManagementEvents: false
       IncludeGlobalServiceEvents: true

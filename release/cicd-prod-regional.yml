@@ -2,21 +2,22 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Regional infrastructure for the community registry extensions CICD in the prod account for publishing across all regions
 
 Parameters:
+
   Prefix:
     Type: String
     Description: The extension prefix, for example, AwsCommunity
+
   PrefixLower:
     Type: String
     Description: The extension prefix lowercase, for example, awscommunity.
-  SourceBucketName:
+
+  PublishBuildBucketName:
     Type: String
-    Description: We hard code a name here since we reference it cross-region. For prod it should be community-registry-extensions-prod-source.
-  BuildImageURL:
+    Description: The name of the bucket to drop builds from the beta account when all integ tests succeed. In prod it should be community-registry-extensions-publish-build
+
+  HandlerBucketName:
     Type: String
-    Description: The URL to the custom build image we created in the CICD account
-  TypeRegistrationLogBucket:
-    Type: String
-    Description: The name of the bucket to be used for CloudFormation type registration logs
+    Description: The name of the handler package bucket. For prod it should be community-registry-extensions-prod-handler
 
 
 Resources:
@@ -102,6 +103,8 @@ Resources:
             Resource:
               - !GetAtt ArtifactBucket.Arn
               - !Sub "${ArtifactBucket.Arn}/*"
+              - !Sub "arn:aws:s3:::${HandlerBucketName}"
+              - !Sub "arn:aws:s3:::${HandlerBucketName}/*"
           - Action:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
@@ -195,7 +198,7 @@ Resources:
       ServiceRole: !GetAtt DeleteBucketContentsBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+        BuildSpec: "resources/prod-buildspec-python.yml"
 
   PipelineRole:
     Type: AWS::IAM::Role
@@ -230,17 +233,17 @@ Resources:
                 - ''
                 - - !GetAtt ArtifactBucket.Arn
                   - /*
-              - !GetAtt SourceBucket.Arn
-              - !Join
-                - ''
-                - - !GetAtt SourceBucket.Arn
-                  - /*
+              - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
+              - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
           - Action:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
             Effect: Allow
             Resource: 
               - !GetAtt DeleteBucketContentsBuildProject.Arn
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -259,16 +262,16 @@ Resources:
                 Provider: S3
                 Version: 1
               Configuration: 
-                S3Bucket: !Ref SourceBucket
-                S3ObjectKey: "source.zip" 
+                S3Bucket: !Ref PublishBuildBucketName
+                S3ObjectKey: "build.zip" 
                 PollForSourceChanges: false
               OutputArtifacts:
-                - Name: extensions-source 
+                - Name: extensions-build 
         - Name: Build
           Actions:
             - Name: DeleteBucketContents
               InputArtifacts:
-                - Name: extensions-source
+                - Name: extensions-build
               ActionTypeId:
                 Category: Build
                 Owner: AWS
@@ -286,7 +289,7 @@ Resources:
                   ]
               RunOrder: 1
 
-  AmazonCloudWatchEventRule:
+  BuildEventRule:
     Type: AWS::Events::Rule
     Properties:
       EventPattern:
@@ -303,9 +306,9 @@ Resources:
             - CompleteMultipartUpload
           requestParameters:
             bucketName:
-              - !Ref SourceBucketName
+              - !Ref PublishBuildBucketName
             key:
-              - "source.zip" 
+              - "build.zip" 
       Targets:
         -
           Arn:
