@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Deploy the publishing process to the prod account.
 #
@@ -8,17 +8,17 @@
 
 set -eou pipefail
 
-cfn-lint release/cicd-prod.yml
-cfn-lint release/cicd-prod-regional.yml
+cfn-lint cicd-prod.yml
+cfn-lint cicd-prod-regional.yml
 
-rain --profile $PROFILE deploy -y\
-    --params SourceBucketName=$SOURCE_BUCKET_NAME,TypeRegistrationLogBucketName=$TYPE_REGISTRATION_BUCKET_NAME,HandlerBucketName=$HANDLER_BUCKET_NAME,PublishBuildBucketName=$PUBLISH_BUILD_BUCKET_NAME \
-    release/cicd-prod.yml cep-prod
+rain --profile $PROFILE deploy -y \
+    --params HandlerBucketName=$HANDLER_BUCKET_NAME,PublishBuildBucketName=$PUBLISH_BUILD_BUCKET_NAME,BetaAccountId=$BETA_ACCOUNT_ID \
+    cicd-prod.yml cep-prod
+#|| [ $? -eq 1 ]
 
 echo "cep-prod deployed, about to deploy stack sets"
 
 STACK_SET_NAME="cep-prod-pipelines"
-PARAMETERS=[{"ParameterKey":"Prefix","ParameterValue":"AwsCommunity"},{"ParameterKey":"PrefixLower","ParameterValue":"awscommunity"},{"ParameterKey":"PublishBuildBucketName","ParameterValue":"$PUBLISH_BUILD_BUCKET_NAME"},{"ParameterKey":"HandlerBucketName","ParameterValue":"$HANDLER_BUCKET_NAME"}]
 
 if ! aws --profile $PROFILE --no-cli-pager cloudformation describe-stack-set --stack-set-name $STACK_SET_NAME 2>&1 > /dev/null ; then
     echo "Creating $STACK_SET_NAME"

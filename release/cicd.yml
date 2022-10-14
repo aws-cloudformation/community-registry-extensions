@@ -26,9 +26,6 @@ Parameters:
     Description: The name of the bucket to drop builds from the beta account when all integ tests succeed. In prod it should be community-registry-extensions-publish-build
 
 Conditions:
-  IsCICD: !Equals
-    - !Ref Env
-    - cicd
   IsBeta: !Equals
     - !Ref Env
     - beta
@@ -37,14 +34,6 @@ Resources:
 
   ArtifactBucket:
     Type: AWS::S3::Bucket
-
-  CICDOutputBucket:
-    Type: AWS::S3::Bucket
-    Metadata:
-      Comment: This bucket is only created in the CICD account, as a place to drop the build after all build projects succeed. In the CICD account it does nothing but we need a place to reference for the output artifact, since we reuse this template for the cicd and beta accounts. For beta, the referenced bucket is in the prod account.
-    Condition: IsCICD 
-    Properties:
-      BucketName: !Ref PublishBuildBucketName
 
   S3BucketVersioningEnabledBuildProjectRole:
     Type: AWS::IAM::Role
