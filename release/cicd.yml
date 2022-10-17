@@ -679,25 +679,25 @@ Resources:
                     }
                   ]
               RunOrder: 2
-            - Name: CloudFrontWebAclAssociation
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref CloudFrontWebAclAssociationBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "RESOURCE_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "resources/CloudFront_WebACLAssociation"
-                    }
-                  ]
-              RunOrder: 2
+                #            - Name: CloudFrontWebAclAssociation
+                #              InputArtifacts:
+                #                - Name: extensions-source
+                #              ActionTypeId:
+                #                Category: Build
+                #                Owner: AWS
+                #                Provider: CodeBuild
+                #                Version: 1
+                #              Configuration:
+                #                ProjectName: !Ref CloudFrontWebAclAssociationBuildProject
+                #                EnvironmentVariables: |-
+                #                  [
+                #                    {
+                #                      "name": "RESOURCE_PATH",
+                #                      "type": "PLAINTEXT",
+                #                      "value": "resources/CloudFront_WebACLAssociation"
+                #                    }
+                #                  ]
+                #              RunOrder: 2
             - Name: DeleteBucketContents
               InputArtifacts:
                 - Name: extensions-source
@@ -717,44 +717,44 @@ Resources:
                     }
                   ]
               RunOrder: 1
-            - Name: S3BucketVersioningEnabled
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "HOOK_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "hooks/S3_BucketVersioningEnabled"
-                    }
-                  ]
-              RunOrder: 2
-            - Name: CloudFrontLoggingEnabled
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref CloudFrontLoggingEnabledBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "HOOK_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "hooks/CloudFront_LoggingEnabled"
-                    }
-                  ]
-              RunOrder: 2
+                #            - Name: S3BucketVersioningEnabled
+                #              InputArtifacts:
+                #                - Name: extensions-source
+                #              ActionTypeId:
+                #                Category: Build
+                #                Owner: AWS
+                #                Provider: CodeBuild
+                #                Version: 1
+                #              Configuration:
+                #                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
+                #                EnvironmentVariables: |-
+                #                  [
+                #                    {
+                #                      "name": "HOOK_PATH",
+                #                      "type": "PLAINTEXT",
+                #                      "value": "hooks/S3_BucketVersioningEnabled"
+                #                    }
+                #                  ]
+                #              RunOrder: 2
+                #            - Name: CloudFrontLoggingEnabled
+                #              InputArtifacts:
+                #                - Name: extensions-source
+                #              ActionTypeId:
+                #                Category: Build
+                #                Owner: AWS
+                #                Provider: CodeBuild
+                #                Version: 1
+                #              Configuration:
+                #                ProjectName: !Ref CloudFrontLoggingEnabledBuildProject
+                #                EnvironmentVariables: |-
+                #                  [
+                #                    {
+                #                      "name": "HOOK_PATH",
+                #                      "type": "PLAINTEXT",
+                #                      "value": "hooks/CloudFront_LoggingEnabled"
+                #                    }
+                #                  ]
+                #              RunOrder: 2
         - Name: CopyBuildToProd
           Actions:
             - Name: Copy
