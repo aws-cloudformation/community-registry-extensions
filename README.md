@@ -56,6 +56,3 @@ Also check out how our release process works here: [./RELEASE.md](RELEASE.md)
 [![](https://github.com/kddejong.png?size=50)](https://github.com/kddejong)
 [![](https://github.com/mmaeng.png?size=50)](https://github.com/mmaeng)
 
-
-
-
