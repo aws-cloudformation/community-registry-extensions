@@ -50,12 +50,12 @@ See the contributer guide: [./CONTRIBUTING.md](CONTRIBUTING.md)
 
 Also check out how our release process works here: [./RELEASE.md](RELEASE.md)
 
-## Contributors
+## Maintainers
 
 [![](https://github.com/ericzbeard.png?size=50)](https://github.com/ericzbeard)
 [![](https://github.com/kddejong.png?size=50)](https://github.com/kddejong)
-[![](https://github.com/greengangsta.png?size=50)](https://github.com/greengangsta)
-[![](https://github.com/jonloza.png?size=50)](https://github.com/jonloza)
+[![](https://github.com/mmaeng.png?size=50)](https://github.com/mmaeng)
+
 
 
 
