@@ -522,6 +522,8 @@ Resources:
                 - ''
                 - - !GetAtt SourceBucket.Arn
                   - /*
+              - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
+              - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
           - Action:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
@@ -755,20 +757,23 @@ Resources:
                 #                    }
                 #                  ]
                 #              RunOrder: 2
-        - Name: CopyBuildToProd
-          Actions:
-            - Name: Copy
-              InputArtifacts: 
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Provider: S3
-                Version: 1
-              Configuration:
-                BucketName: !Ref PublishBuildBucketName
-                Extract: false
-                ObjectKey: build.zip
+        - !If
+          - IsBeta
+          - Name: CopyBuildToProd
+            Actions:
+              - Name: Copy
+                InputArtifacts: 
+                  - Name: extensions-source
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Provider: S3
+                  Version: 1
+                Configuration:
+                  BucketName: !Ref PublishBuildBucketName
+                  Extract: false
+                  ObjectKey: build.zip
+          - !Ref AWS::NoValue
 
 
   WebHookBuildProjectRole:
@@ -1031,5 +1036,8 @@ Resources:
               -
                 Effect: Allow
                 Action: s3:PutObject
-                Resource: !Sub "arn:aws:s3:::${PublishBuildBucketName}"
+                Resource: 
+                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
+                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
+
 

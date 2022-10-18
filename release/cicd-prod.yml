@@ -18,6 +18,8 @@ Parameters:
 Resources:
 
   PublishBuildBucketPolicy:
+    Metadata:
+      Comment: Allows the beta account to drop builds into the prod account
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref PublishBuildBucket
@@ -128,5 +130,89 @@ Resources:
       IncludeGlobalServiceEvents: true
       IsLogging: true
       IsMultiRegionTrail: true
+
+  StackSetAdministrationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: AWSCloudFormationStackSetAdministrationRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: AssumeRole-AWSCloudFormationStackSetExecutionRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole"
+
+  StackSetExecutionRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: We can limit this role to this account, since we are using stack sets to deploy across all regions, but not to multiple accounts
+    Properties:
+      RoleName: AWSCloudFormationStackSetExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "${AWS::AccountId}"
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  StackSetExecutionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles:
+        - !Ref StackSetExecutionRole
+      PolicyName: cep-stack-set-execution
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:GetRolePolicy
+              - iam:PassRole
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codebuild:*
+            Effect: Allow
+            Resource: "*" 
+          - Action:
+              - codepipeline:*
+            Effect: Allow
+            Resource: "*"
+          - Action: 
+              - s3:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - events:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - cloudformation:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sns:*
+            Effect: Allow
+            Resource: "*"
+
 
 

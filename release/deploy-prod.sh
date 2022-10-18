@@ -13,8 +13,7 @@ cfn-lint cicd-prod-regional.yml
 
 rain --profile $PROFILE deploy -y \
     --params HandlerBucketName=$HANDLER_BUCKET_NAME,PublishBuildBucketName=$PUBLISH_BUILD_BUCKET_NAME,BetaAccountId=$BETA_ACCOUNT_ID \
-    cicd-prod.yml cep-prod
-#|| [ $? -eq 1 ]
+    cicd-prod.yml cep-prod || [ $? -eq 1 ]
 
 echo "cep-prod deployed, about to deploy stack sets"
 
@@ -25,7 +24,7 @@ if ! aws --profile $PROFILE --no-cli-pager cloudformation describe-stack-set --s
 
     aws --profile $PROFILE cloudformation create-stack-set --stack-set-name $STACK_SET_NAME \
         --template-body file://cicd-prod-regional.yml \
-        --parameters $PARAMETERS 
+        --parameters $PARAMETERS --capabilities CAPABILITY_NAMED_IAM
 
 else
     
@@ -33,9 +32,12 @@ else
 
     aws --profile $PROFILE cloudformation update-stack-set --stack-set-name $STACK_SET_NAME \
         --template-body file://cicd-prod-regional.yml \
-        --parameters $PARAMETERS 
+        --parameters $PARAMETERS --capabilities CAPABILITY_NAMED_IAM 
 
 fi
+
+aws --profile $PROFILE --no-cli-pager \
+        cloudformation describe-stack-set --stack-set-name $STACK_SET_NAME 
 
 echo "About to poll for status"
 
@@ -55,27 +57,61 @@ do
 done
 echo $STATUS
 
+echo "About to check detailed status of all instances"
+
+IS_ANY_PENDING=1
+while [ $IS_ANY_PENDING -eq 1 ]
+do
+    IS_ANY_PENDING=0
+
+    for region in "$@" 
+    do
+        echo "Checking $region"
+
+        DETAILED_STATUS=$(aws --profile $PROFILE cloudformation describe-stack-instance \
+            --stack-set-name $STACK_SET_NAME \
+            --stack-instance-account "$ACCOUNT" \
+            --stack-instance-region "$region" | jq .StackInstance | jq .StackInstanceStatus | jq -r .DetailedStatus)
+        echo $DETAILED_STATUS
+        if [ $DETAILED_STATUS == "PENDING" ]
+        then
+            IS_ANY_PENDING=1
+        fi
+    done
+done
+
+
 echo "About to create or update stack instances"
 
-for region in "$@" 
-do
-    echo "$region"
+aws --profile $PROFILE cloudformation create-stack-instances \
+    --stack-set-name $STACK_SET_NAME \
+    --accounts "$ACCOUNT" \
+    --regions "$@" 
 
-    if ! aws --profile $PROFILE cloudformation describe-stack-instance \
-        --stack-set-name $STACK_SET_NAME \
-        --stack-instance-account "$ACCOUNT" \
-        --stack-instance-region "$region" > /dev/null 2>&1 ; 
-    then
-        echo "Creating stack instance in $region"
-        aws --profile $PROFILE cloudformation create-stack-instances \
-            --stack-set-name $STACK_SET_NAME \
-            --accounts "$ACCOUNT" \
-            --regions "$region"
-    else
-        echo "Stack instance already exists in $region"
-    fi
-
-done
+#for region in "$@" 
+#do
+#    echo "$region"
+#
+#    if ! aws --profile $PROFILE cloudformation describe-stack-instance \
+#        --stack-set-name $STACK_SET_NAME \
+#        --stack-instance-account "$ACCOUNT" \
+#        --stack-instance-region "$region" > /dev/null 2>&1 ; 
+#    then
+#        echo "Creating stack instance in $region"
+#        aws --profile $PROFILE cloudformation create-stack-instances \
+#            --stack-set-name $STACK_SET_NAME \
+#            --accounts "$ACCOUNT" \
+#            --regions "$region" 
+#    else
+#        echo "Updating stack instance in $region"
+#        aws --profile $PROFILE cloudformation update-stack-instances \
+#            --stack-set-name $STACK_SET_NAME \
+#            --accounts "$ACCOUNT" \
+#            --regions "$region" 
+#    fi
+#
+#
+#done
 
 
 
