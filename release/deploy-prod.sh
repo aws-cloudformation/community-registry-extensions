@@ -73,7 +73,7 @@ do
             --stack-instance-account "$ACCOUNT" \
             --stack-instance-region "$region" | jq .StackInstance | jq .StackInstanceStatus | jq -r .DetailedStatus)
         echo $DETAILED_STATUS
-        if [ $DETAILED_STATUS == "PENDING" ]
+        if [ $DETAILED_STATUS == "PENDING" ] || [ $DETAILED_STATUS == "RUNNING" ]
         then
             IS_ANY_PENDING=1
         fi
