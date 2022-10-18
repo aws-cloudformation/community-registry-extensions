@@ -21,6 +21,14 @@ Parameters:
   PrefixLower:
     Type: String
     Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
+  PublishBuildBucketName:
+    Type: String
+    Description: The name of the bucket to drop builds from the beta account when all integ tests succeed. In prod it should be community-registry-extensions-publish-build
+
+Conditions:
+  IsBeta: !Equals
+    - !Ref Env
+    - beta
 
 Resources:
 
@@ -514,6 +522,8 @@ Resources:
                 - ''
                 - - !GetAtt SourceBucket.Arn
                   - /*
+              - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
+              - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
           - Action:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
@@ -670,26 +680,26 @@ Resources:
                       "value": "resources/S3_BucketNotification"
                     }
                   ]
-              RunOrder: 1
-            - Name: CloudFrontWebAclAssociation
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref CloudFrontWebAclAssociationBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "RESOURCE_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "resources/CloudFront_WebACLAssociation"
-                    }
-                  ]
               RunOrder: 2
+                #            - Name: CloudFrontWebAclAssociation
+                #              InputArtifacts:
+                #                - Name: extensions-source
+                #              ActionTypeId:
+                #                Category: Build
+                #                Owner: AWS
+                #                Provider: CodeBuild
+                #                Version: 1
+                #              Configuration:
+                #                ProjectName: !Ref CloudFrontWebAclAssociationBuildProject
+                #                EnvironmentVariables: |-
+                #                  [
+                #                    {
+                #                      "name": "RESOURCE_PATH",
+                #                      "type": "PLAINTEXT",
+                #                      "value": "resources/CloudFront_WebACLAssociation"
+                #                    }
+                #                  ]
+                #              RunOrder: 2
             - Name: DeleteBucketContents
               InputArtifacts:
                 - Name: extensions-source
@@ -708,45 +718,63 @@ Resources:
                       "value": "resources/S3_DeleteBucketContents"
                     }
                   ]
-              RunOrder: 2
-            - Name: S3BucketVersioningEnabled
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "HOOK_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "hooks/S3_BucketVersioningEnabled"
-                    }
-                  ]
-              RunOrder: 2
-            - Name: CloudFrontLoggingEnabled
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref CloudFrontLoggingEnabledBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "HOOK_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "hooks/CloudFront_LoggingEnabled"
-                    }
-                  ]
-              RunOrder: 2
+              RunOrder: 1
+                #            - Name: S3BucketVersioningEnabled
+                #              InputArtifacts:
+                #                - Name: extensions-source
+                #              ActionTypeId:
+                #                Category: Build
+                #                Owner: AWS
+                #                Provider: CodeBuild
+                #                Version: 1
+                #              Configuration:
+                #                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
+                #                EnvironmentVariables: |-
+                #                  [
+                #                    {
+                #                      "name": "HOOK_PATH",
+                #                      "type": "PLAINTEXT",
+                #                      "value": "hooks/S3_BucketVersioningEnabled"
+                #                    }
+                #                  ]
+                #              RunOrder: 2
+                #            - Name: CloudFrontLoggingEnabled
+                #              InputArtifacts:
+                #                - Name: extensions-source
+                #              ActionTypeId:
+                #                Category: Build
+                #                Owner: AWS
+                #                Provider: CodeBuild
+                #                Version: 1
+                #              Configuration:
+                #                ProjectName: !Ref CloudFrontLoggingEnabledBuildProject
+                #                EnvironmentVariables: |-
+                #                  [
+                #                    {
+                #                      "name": "HOOK_PATH",
+                #                      "type": "PLAINTEXT",
+                #                      "value": "hooks/CloudFront_LoggingEnabled"
+                #                    }
+                #                  ]
+                #              RunOrder: 2
+        - !If
+          - IsBeta
+          - Name: CopyBuildToProd
+            Actions:
+              - Name: Copy
+                InputArtifacts: 
+                  - Name: extensions-source
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Provider: S3
+                  Version: 1
+                Configuration:
+                  BucketName: !Ref PublishBuildBucketName
+                  Extract: false
+                  ObjectKey: build.zip
+          - !Ref AWS::NoValue
+
 
   WebHookBuildProjectRole:
     Type: AWS::IAM::Role
@@ -981,5 +1009,35 @@ Resources:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
         Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebHookHandler.Arn}/invocations"
+
+  PublishBuildBucketRole:
+    Type: AWS::IAM::Role
+    Condition: IsBeta
+    Metadata:
+      Comment: Allows the beta account to put builds into the prod bucket
+    Properties:
+      RoleName: cep-publish-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        -
+          PolicyName: put-builds
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: 
+                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
+                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
 
 

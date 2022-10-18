@@ -93,12 +93,16 @@ If all integ tests succeed in the beta account, the prod pipeline is invoked by 
 If you need to make changes to the release process, deploy the CICD stacks to
 your own sandbox account for development and testing. 
 
-First, create a secret in Secrets Manager for the GitHub webhook secret. It should be a plaintext string that you determine. Note the ARN of the secret.
+First, create a secret in Secrets Manager for the GitHub webhook secret. 
+It should be a plaintext string that you determine. Note the ARN of the secret.
 
-Make copies of the `release-deploy-*.sh` scripts in the git-ignored `local/`
-folder and deploy each of them. (Deploying the build image will take a while,
-so it's recommended to do this from a Cloud9 instance in your account). Each
-template has parameters that you will need to override in the shell script.
+Make copies of the `scripts/deploy-*.sh` scripts in the git-ignored `local/`
+folder and deploy each of them after changing the environment variables. 
+
+Manually create an ECR repository called cep-cicd in your account.
+
+Deploying the build image will take a while from outside the PROD network,
+so it's recommended to do this from a Cloud9 instance in your account.
 
 Once `deploy-cicd.sh` has run, you will need to manually confgure a GitHub
 webhook from your fork to point to the API Gateway `prod` stage that is created
