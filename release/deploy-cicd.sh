@@ -2,11 +2,12 @@
 
 set -eou pipefail
 
+
 cfn-lint cicd.yml -i W3002
 
-aws --profile cep-cicd cloudformation package --template-file cicd.yml --s3-bucket community-registry-extensions-cicd-packages > cicd-package.yml
+aws --profile $PROFILE cloudformation package --template-file cicd.yml --s3-bucket $PACKAGE_BUCKET > cicd-package.yml
 
-rain --profile cep-cicd deploy -y\
-    --params Env=cicd,Prefix=AwsCommunity,PrefixLower=awscommunity,GitBranch=main,GitUrl=https://github.com/aws-cloudformation/community-registry-extensions.git,GitHubSecretArn=arn:aws:secretsmanager:us-east-1:531337079465:secret:github-webhook-kqkHT9 \
+rain --profile $PROFILE deploy -y\
+    --params Env=$CEP_ENV,Prefix=$PREFIX,PrefixLower=$PREFIX_LOWER,GitBranch=$GIT_BRANCH,GitUrl=$GIT_URL,GitHubSecretArn=$GITHUB_SECRET_ARN,PublishBuildBucketName=$PUBLISH_BUILD_BUCKET_NAME \
     cicd-package.yml cep-cicd
 
