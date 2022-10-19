@@ -29,7 +29,9 @@ Resources:
           - Sid: BetaAccountPut
             Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${BetaAccountId}:role/cep-publish-role" 
+              AWS: 
+                - !Sub "arn:aws:iam::${BetaAccountId}:role/cep-publish-role" 
+                - !GetAtt PublishCrossAccountRole.Arn
             Action: s3:PutObject
             Resource: 
               - !Sub "arn:aws:s3:::${PublishBuildBucket}" 
@@ -213,6 +215,51 @@ Resources:
               - sns:*
             Effect: Allow
             Resource: "*"
+
+  PublishCrossAccountRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Assumed by codepipeline in the beta account to access the publish bucket
+    Properties:
+      RoleName: community-registry-extensions-publish-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              AWS:
+                #- !Sub "arn:aws:iam::${BetaAccountId}:role/cep-beta-pipeline-role"
+                # Circular reference with this and cicd.yml in sandbox deployment
+                - !Sub "arn:aws:iam::${BetaAccountId}:root"
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        -
+          PolicyName: cross-account-pipeline-deploy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - s3:Get*
+                  - s3:List*
+                  - s3:Put*
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
+                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
+                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket"
+                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket/*"
+              - Action: 
+                  - kms:Encrypt
+                  - kms:Decrypt
+                  - kms:ReEncrypt
+                  - kms:GenerateDataKey*
+                  - kms:DescribeKey
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
+              
 
 
 

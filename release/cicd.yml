@@ -24,6 +24,9 @@ Parameters:
   PublishBuildBucketName:
     Type: String
     Description: The name of the bucket to drop builds from the beta account when all integ tests succeed. In prod it should be community-registry-extensions-publish-build
+  ProdAccountId:
+    Type: String
+    Description: Account ID for prod, required to share the KMS key so beta can deploy builds to the publish bucket
 
 Conditions:
   IsBeta: !Equals
@@ -34,6 +37,30 @@ Resources:
 
   ArtifactBucket:
     Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "cep-${Env}-${AWS::AccountId}-artifact-bucket"
+
+  ArtifactBucketPolicy:
+    Metadata:
+      Comment: Allows the beta account to use an assumed role in the prod account to drop builds into the prod account
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ArtifactBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: BetaProdCrossAccount
+            Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub "arn:aws:iam::${ProdAccountId}:root"
+            Action: 
+              - s3:Put*
+              - s3:Get*
+              - s3:List*
+            Resource: 
+              - !Sub "arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifact-bucket"
+              - !Sub "arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifact-bucket/*" 
 
   S3BucketVersioningEnabledBuildProjectRole:
     Type: AWS::IAM::Role
@@ -487,6 +514,7 @@ Resources:
   PipelineRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "cep-${Env}-pipeline-role"
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -503,6 +531,12 @@ Resources:
         - !Ref PipelineRole
       PolicyDocument:
         Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Resource:
+              #- !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
+              # Circular reference between this and cicd-prod.yml for sandbox deployment
+              - !Sub "arn:aws:iam::${ProdAccountId}:role/community-*"
           - Action:
               - s3:GetObject*
               - s3:GetBucket*
@@ -534,6 +568,10 @@ Resources:
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
+          - Action:
+              - kms:*
+            Effect: Allow
+            Resource: "*"
   
   AmazonCloudWatchEventRole:
     Type: AWS::IAM::Role
@@ -637,14 +675,83 @@ Resources:
       IsLogging: true
       IsMultiRegionTrail: true
 
+  PipelineKey:
+    Type: AWS::KMS::Key
+    Metadata: 
+      Comment: Required for cross account deployment from beta CodePipeline to the prod bucket
+    Condition: IsBeta
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties: 
+      Description: This key is used by the CEP beta build process to deploy builds to the prod bucket
+      KeyPolicy: 
+        Statement:
+          - Action: 
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+              - kms:GenerateDataKey
+              - kms:TagResource
+              - kms:UntagResource
+            Effect: Allow
+            Principal: 
+              AWS: 
+                - !Sub "arn:aws:iam::${ProdAccountId}:root"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/Admin"
+            Resource: "*"
+          - Action: 
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Effect: Allow
+            Principal: 
+              AWS: 
+                - !GetAtt PipelineRole.Arn
+                - !Sub "arn:aws:iam::${ProdAccountId}:root"
+                #- !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
+                # Circular reference in sandbox deployments with cicd-prod.yml
+                - !GetAtt BucketNotificationBuildProjectRole.Arn
+                - !GetAtt DeleteBucketContentsBuildProjectRole.Arn
+                - !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
+                - !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
+                - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
+            Resource: "*"
+      MultiRegion: true
+
+  PipelineKeyAlias:
+    Type: AWS::KMS::Alias
+    Condition: IsBeta
+    Properties:
+      AliasName: alias/cep-pipeline-publish-key
+      TargetKeyId: !Ref PipelineKey
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
+    Metadata:
+      Comment: This pipeline runs integ tests on all extensions, then drops the build into the prod account for publishing
     Properties:
       RoleArn: !GetAtt PipelineRole.Arn
-      ArtifactStore:
-        Type: S3
-        Location: !Ref ArtifactBucket
+      ArtifactStore: !If
+        - IsBeta
+        - Type: S3
+          Location: !Ref ArtifactBucket
+          EncryptionKey:
+            Id: !Ref PipelineKey
+            Type: KMS
+        - Type: S3
+          Location: !Ref ArtifactBucket
+          EncryptionKey: !Ref AWS::NoValue
       Stages:
         - Name: Source
           Actions:
@@ -762,6 +869,7 @@ Resources:
           - Name: CopyBuildToProd
             Actions:
               - Name: Copy
+                RoleArn: !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
                 InputArtifacts: 
                   - Name: extensions-source
                 ActionTypeId:
@@ -773,6 +881,7 @@ Resources:
                   BucketName: !Ref PublishBuildBucketName
                   Extract: false
                   ObjectKey: build.zip
+                  KMSEncryptionKeyARN: !GetAtt PipelineKey.Arn
           - !Ref AWS::NoValue
 
 
