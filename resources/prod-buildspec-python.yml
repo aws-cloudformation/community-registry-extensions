@@ -11,6 +11,7 @@ phases:
       - echo ENTRY_PATH is $ENTRY_PATH
       - TYPE_NAME=$(python scripts/type_name.py $RESOURCE_PATH/.rpdk-config)
       - echo TYPE_NAME is $TYPE_NAME
+      - pip install git+https://github.com/kddejong/cloudformation-cli-python-plugin.git@fix/ecr/lambdaimage
       - cd $RESOURCE_PATH
 
   build:
