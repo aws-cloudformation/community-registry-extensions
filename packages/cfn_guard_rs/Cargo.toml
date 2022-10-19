@@ -13,4 +13,4 @@ python-source = "python"
 
 [dependencies]
 pyo3 = { version = "0.16.5", features = ["extension-module"] }
-cfn-guard = { git = "https://github.com/aws-cloudformation/cloudformation-guard", tag = "2.1.0" }
+cfn-guard = { git = "https://github.com/aws-cloudformation/cloudformation-guard", branch = "main" }
