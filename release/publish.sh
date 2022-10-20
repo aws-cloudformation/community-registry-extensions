@@ -12,7 +12,7 @@ cfn validate
 cfn generate
 
 # Create or update the setup stack
-SETUP_STACK_NAME="setup-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
+SETUP_STACK_NAME="setup-prod-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
 if ! aws cloudformation describe-stacks --stack-name $SETUP_STACK_NAME 2>&1 ; then
     echo "Creating $SETUP_STACK_NAME"
     aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml

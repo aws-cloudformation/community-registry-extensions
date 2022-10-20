@@ -199,6 +199,12 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
+        - Name: TYPE_NAME
+          Type: PLAINTEXT
+          Value: "AwsCommunity::S3::DeleteBucketContents"
+        - Name: HANDLER_BUCKET
+          Type: PLAINTEXT
+          Value: !Ref HandlerBucketName
       ServiceRole: !GetAtt DeleteBucketContentsBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
