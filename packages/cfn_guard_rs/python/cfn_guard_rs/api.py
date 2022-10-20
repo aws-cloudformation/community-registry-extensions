@@ -31,7 +31,12 @@ def run_checks(data: dict, rules: str) -> DataOutput:
         DataOutput representation of the result of running guard
     """
     # hard code the verbose value.  This will change the output to be a list
-    output = json.loads(run_checks_rs(json.dumps(data), rules, False))
+    guard_output = run_checks_rs(json.dumps(data), rules, False)
+    try:
+        output = json.loads(run_checks_rs(json.dumps(data), rules, False))
+    except json.JSONDecodeError:
+        output = guard_output
+
     # remove the lib set items and replace with our defaults
     result = DataOutput(**output)
 

@@ -6,12 +6,10 @@
   to validate a payload using a string version of the rules
 """
 
-from .api import (
-  run_checks
-)
+from .api import run_checks
 
 from .interface import (
-  DataOutput,
-  Comparison,
-  NameInfo,
+    DataOutput,
+    Comparison,
+    NameInfo,
 )
