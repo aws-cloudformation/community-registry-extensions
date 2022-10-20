@@ -75,6 +75,7 @@ Resources:
               - iam:DeleteRolePolicy
               - iam:GetRolePolicy
               - iam:PassRole
+              - iam:Update*
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
@@ -115,7 +116,7 @@ Resources:
               - cloudformation:DescribeStacks
             Effect: Allow
             Resource:
-              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-prod-${PrefixLower}*'
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-*'
           - Action:
               - cloudformation:ListExports

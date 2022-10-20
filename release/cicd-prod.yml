@@ -5,7 +5,7 @@ Parameters:
 
   HandlerBucketName:
     Type: String
-    Description: The name of the handler package bucket. For prod it should be community-registry-extensions-prod-handler
+    Description: The name of the handler package bucket. For prod it should be community-registry-extensions-prod-handler.
 
   PublishBuildBucketName:
     Type: String
@@ -19,7 +19,7 @@ Resources:
 
   PublishBuildBucketPolicy:
     Metadata:
-      Comment: Allows the beta account to drop builds into the prod account
+      Comment: Allows the beta account to drop builds into the prod account.
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref PublishBuildBucket

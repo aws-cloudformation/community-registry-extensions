@@ -24,7 +24,7 @@ else
         echo "No updates to setup stack"
     else
         echo "Waiting for stack update to complete"
-        aws cloudformation wait stack-update-complete --stack-name $SETUP_STACK_NAME
+        aws cloudformation wait stack-update-complete --stack-name $SETUP_STACK_NAME --debug
     fi
 fi
 
