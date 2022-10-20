@@ -25,7 +25,9 @@ else
         echo "No updates to setup stack"
     else
         echo "Waiting for stack update to complete"
-        aws cloudformation wait stack-update-complete --stack-name $SETUP_STACK_NAME --debug
+        aws cloudformation wait stack-update-complete --stack-name $SETUP_STACK_NAME
+        # This just blocks forever if the previous command failed for another reason, 
+        # since it never sees update stack complete
     fi
 fi
 
@@ -38,7 +40,7 @@ echo ""
 ZIPFILE="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]').zip"
 echo "ZIPFILE is $ZIPFILE"
 
-ROLE_STACK_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')-role-stack"
+ROLE_STACK_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')-prod-role-stack"
 echo "ROLE_STACK_NAME is $ROLE_STACK_NAME"
 echo ""
 

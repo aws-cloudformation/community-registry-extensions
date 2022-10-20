@@ -112,12 +112,14 @@ Resources:
               - !Sub "arn:aws:s3:::${HandlerBucketName}/*"
           - Action:
               - cloudformation:CreateStack
+              - cloudformation:UpdateStack
               - cloudformation:DeleteStack
               - cloudformation:DescribeStacks
             Effect: Allow
             Resource:
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-prod-${PrefixLower}*'
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}-*'
           - Action:
               - cloudformation:ListExports
               - cloudformation:DescribeStacks
