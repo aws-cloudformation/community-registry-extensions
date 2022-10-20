@@ -20,6 +20,7 @@ if ! aws cloudformation describe-stacks --stack-name $SETUP_STACK_NAME 2>&1 ; th
 else
     echo "Updating $SETUP_STACK_NAME"
     update_output=$(aws cloudformation update-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
+    echo $update_output
     if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
         echo "No updates to setup stack"
     else
