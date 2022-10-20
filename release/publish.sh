@@ -23,6 +23,7 @@ else
     if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
         echo "No updates to setup stack"
     else
+        echo "Waiting for stack update to complete"
         aws cloudformation wait stack-update-complete --stack-name $SETUP_STACK_NAME
     fi
 fi
