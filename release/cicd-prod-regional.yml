@@ -137,6 +137,7 @@ Resources:
               - cloudformation:SetTypeDefaultVersion
               - cloudformation:SetTypeConfiguration
               - cloudformation:DescribeType
+              - cloudformation:TestType
             Effect: Allow
             Resource:
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/RESOURCE/${Prefix}*'
@@ -147,6 +148,7 @@ Resources:
               - cloudformation:DescribeTypeRegistration
               - cloudformation:DescribeType
               - cloudformation:ListTypes
+              - cloudformation:TestType
             Effect: Allow
             Resource: "*"
           - Action:
