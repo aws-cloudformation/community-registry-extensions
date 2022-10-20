@@ -1,0 +1,11 @@
+let ecs_task_definition_task_role_arn = 'arn:aws:iam::123456789012:role/my-task-role-name'
+
+rule check_ecs_task_definition_task_role_arn
+{
+    Resources.*.Properties.TaskRoleArn == %ecs_task_definition_task_role_arn
+}
+
+rule check_ecs_task_definition_execution_role_arn
+{
+    Resources.*.Properties.ExecutionRoleArn == %ecs_task_definition_execution_role_arn
+}

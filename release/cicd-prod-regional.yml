@@ -19,6 +19,10 @@ Parameters:
     Type: String
     Description: The name of the handler package bucket. For prod it should be community-registry-extensions-prod-handler
 
+  BetaAccountId:
+    Type: String
+    Description: AccountId for the beta account, which pushes builds to the PublishBuildBucket 
+  
 
 Resources:
 
@@ -241,6 +245,15 @@ Resources:
             Effect: Allow
             Resource: 
               - !GetAtt DeleteBucketContentsBuildProject.Arn
+          - Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
 
   ArtifactBucket:
     Type: AWS::S3::Bucket

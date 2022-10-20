@@ -13,7 +13,8 @@ cfn-lint cicd-prod-regional.yml
 
 rain --profile $PROFILE deploy -y \
     --params HandlerBucketName=$HANDLER_BUCKET_NAME,PublishBuildBucketName=$PUBLISH_BUILD_BUCKET_NAME,BetaAccountId=$BETA_ACCOUNT_ID \
-    cicd-prod.yml cep-prod || [ $? -eq 1 ]
+    cicd-prod.yml cep-prod
+#|| [ $? -eq 1 ]
 
 echo "cep-prod deployed, about to deploy stack sets"
 
@@ -62,6 +63,7 @@ echo "About to check detailed status of all instances"
 IS_ANY_PENDING=1
 while [ $IS_ANY_PENDING -eq 1 ]
 do
+    sleep 5
     IS_ANY_PENDING=0
 
     for region in "$@" 
