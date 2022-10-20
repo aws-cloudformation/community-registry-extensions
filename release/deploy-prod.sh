@@ -62,6 +62,7 @@ echo "About to check detailed status of all instances"
 IS_ANY_PENDING=1
 while [ $IS_ANY_PENDING -eq 1 ]
 do
+    sleep 5
     IS_ANY_PENDING=0
 
     for region in "$@" 

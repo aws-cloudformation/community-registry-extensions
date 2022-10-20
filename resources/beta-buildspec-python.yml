@@ -14,6 +14,7 @@ phases:
       - echo ENTRY_PATH is $ENTRY_PATH
       - BUILD_FILE_NAME=$(cat ENTRY_PATH | sed s/_/-/g)
       - BUILD_FILE_NAME="${BUILD_FILE_NAME}.zip"
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
       - cd $RESOURCE_PATH
       - cfn --version
       - sam --version

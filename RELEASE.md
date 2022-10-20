@@ -99,6 +99,12 @@ It should be a plaintext string that you determine. Note the ARN of the secret.
 Make copies of the `scripts/deploy-*.sh` scripts in the git-ignored `local/`
 folder and deploy each of them after changing the environment variables. 
 
+Deploy them in this order:
+
+1. `deploy-cicd.sh`
+2. `deploy-prod.sh`
+3. `deploy-beta.sh`
+
 Manually create an ECR repository called cep-cicd in your account.
 
 Deploying the build image will take a while from outside the PROD network,
