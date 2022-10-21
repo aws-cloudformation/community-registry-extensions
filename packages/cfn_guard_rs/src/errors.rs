@@ -1,25 +1,43 @@
-use pyo3::PyErr;
-use pyo3::create_exception;
-use pyo3::exceptions::PyException;
+use pyo3::{
+    PyErr,
+    create_exception,
+    import_exception,
+    exceptions,
+};
 use cfn_guard::{Error, ErrorKind};
 
-create_exception!(cfn_guard_rs, JsonError, PyException);
-create_exception!(cfn_guard_rs, YamlError, PyException);
-create_exception!(cfn_guard_rs, FormatError, PyException);
-create_exception!(cfn_guard_rs, IoError, PyException);
-create_exception!(cfn_guard_rs, ParseError, PyException);
-create_exception!(cfn_guard_rs, RegexError, PyException);
-create_exception!(cfn_guard_rs, MissingProperty, PyException);
-create_exception!(cfn_guard_rs, MissingVariable, PyException);
-create_exception!(cfn_guard_rs, MultipleValues, PyException);
-create_exception!(cfn_guard_rs, IncompatibleRetrievalError, PyException);
-create_exception!(cfn_guard_rs, IncompatibleError, PyException);
-create_exception!(cfn_guard_rs, NotComparable, PyException);
-create_exception!(cfn_guard_rs, ConversionError, PyException);
-create_exception!(cfn_guard_rs, Errors, PyException);
-create_exception!(cfn_guard_rs, RetrievalError, PyException);
-create_exception!(cfn_guard_rs, MissingValue, PyException);
-create_exception!(cfn_guard_rs, FileNotFoundError, PyException);
+import_exception!(json, JSONDecodeError);
+import_exception!(yaml, YAMLError);
+
+create_exception!(cfn_guard_rs, JsonError, JSONDecodeError);
+create_exception!(cfn_guard_rs, YamlError, YAMLError);
+// Standard IO Error
+create_exception!(cfn_guard_rs, IoError, exceptions::PyIOError);
+// ParseError is used a lot
+create_exception!(cfn_guard_rs, ParseError, exceptions::PyValueError);
+// When a variable isn't found in the in the rule
+create_exception!(cfn_guard_rs, MissingVariable, exceptions::PyAttributeError);
+// Key already exists in map
+create_exception!(cfn_guard_rs, MultipleValues, exceptions::PyValueError);
+// Used in lots of locations. Type or variable has incompatible types
+create_exception!(cfn_guard_rs, IncompatibleRetrievalError, exceptions::PyTypeError);
+// Used in lots of locations. Types or variable assignments are incompatible
+create_exception!(cfn_guard_rs, IncompatibleError, exceptions::PyTypeError);
+// Used in lots of locations. Comparing incoming context with literals or dynamic results wasn't possible
+create_exception!(cfn_guard_rs, NotComparable, exceptions::PyTypeError);
+// Used in lots of locations. Could not retrieve data from incoming context.
+create_exception!(cfn_guard_rs, RetrievalError, exceptions::PyException);
+// There was no variable or value object to resolve.
+create_exception!(cfn_guard_rs, MissingValue, exceptions::PyNameError);
+// Standard FileNotFoundError
+create_exception!(cfn_guard_rs, FileNotFoundError, exceptions::PyFileNotFoundError);
+
+// Can't find where these errors are actually used
+create_exception!(cfn_guard_rs, FormatError, exceptions::PyException);
+create_exception!(cfn_guard_rs, RegexError, exceptions::PyException);
+create_exception!(cfn_guard_rs, MissingProperty, exceptions::PyException);
+create_exception!(cfn_guard_rs, ConversionError, exceptions::PyException);
+create_exception!(cfn_guard_rs, Errors, exceptions::PyException);
 
 pub struct CfnGuardError(pub Error);
 

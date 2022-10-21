@@ -97,21 +97,23 @@ def test_run_checks(template, rules, expected):
 
 
 @pytest.mark.parametrize(
-    "template,rules,error",
+    "template,rules,error,parent_error",
     [
         (
             "python/tests/fixtures/templates/s3_bucket_public_access_valid.yaml",
             "python/tests/fixtures/rules/invalid_missing_value.guard",
             cfn_guard_rs.errors.MissingValue,
+            NameError,
         ),
         (
             "python/tests/fixtures/templates/s3_bucket_public_access_valid.yaml",
             "python/tests/fixtures/rules/invalid_format.guard",
             cfn_guard_rs.errors.ParseError,
+            ValueError,
         ),
     ],
 )
-def test_run_checks_errors(template, rules, error):
+def test_run_checks_errors(template, rules, error, parent_error):
     """Test transactions against run_checks"""
     with open(template, encoding="utf8") as file:
         template_str = yaml.safe_load(file)
@@ -119,4 +121,7 @@ def test_run_checks_errors(template, rules, error):
         rules = file.read()
 
     with pytest.raises(error):
+        run_checks(template_str, rules)
+
+    with pytest.raises(parent_error):
         run_checks(template_str, rules)
