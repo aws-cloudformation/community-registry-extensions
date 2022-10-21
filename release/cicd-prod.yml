@@ -5,7 +5,7 @@ Parameters:
 
   HandlerBucketName:
     Type: String
-    Description: The name of the handler package bucket. For prod it should be community-registry-extensions-prod-handler
+    Description: The name of the handler package bucket. For prod it should be community-registry-extensions-prod-handler.
 
   PublishBuildBucketName:
     Type: String

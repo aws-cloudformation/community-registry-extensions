@@ -75,6 +75,7 @@ Resources:
               - iam:DeleteRolePolicy
               - iam:GetRolePolicy
               - iam:PassRole
+              - iam:Update*
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
@@ -111,12 +112,14 @@ Resources:
               - !Sub "arn:aws:s3:::${HandlerBucketName}/*"
           - Action:
               - cloudformation:CreateStack
+              - cloudformation:UpdateStack
               - cloudformation:DeleteStack
               - cloudformation:DescribeStacks
             Effect: Allow
             Resource:
-              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-prod-${PrefixLower}*'
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}-*'
           - Action:
               - cloudformation:ListExports
               - cloudformation:DescribeStacks
@@ -134,6 +137,7 @@ Resources:
               - cloudformation:SetTypeDefaultVersion
               - cloudformation:SetTypeConfiguration
               - cloudformation:DescribeType
+              - cloudformation:TestType
             Effect: Allow
             Resource:
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/RESOURCE/${Prefix}*'
@@ -144,6 +148,7 @@ Resources:
               - cloudformation:DescribeTypeRegistration
               - cloudformation:DescribeType
               - cloudformation:ListTypes
+              - cloudformation:TestType
             Effect: Allow
             Resource: "*"
           - Action:
@@ -199,6 +204,12 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
+        - Name: TYPE_NAME
+          Type: PLAINTEXT
+          Value: "AwsCommunity::S3::DeleteBucketContents"
+        - Name: HANDLER_BUCKET
+          Type: PLAINTEXT
+          Value: !Ref HandlerBucketName
       ServiceRole: !GetAtt DeleteBucketContentsBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
