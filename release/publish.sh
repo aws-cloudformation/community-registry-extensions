@@ -12,7 +12,7 @@ cfn validate
 cfn generate
 
 # Create or update the setup stack
-SETUP_STACK_NAME="setup-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
+SETUP_STACK_NAME="setup-prod-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
 if ! aws cloudformation describe-stacks --stack-name $SETUP_STACK_NAME 2>&1 ; then
     echo "Creating $SETUP_STACK_NAME"
     aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
@@ -20,12 +20,20 @@ if ! aws cloudformation describe-stacks --stack-name $SETUP_STACK_NAME 2>&1 ; th
 else
     echo "Updating $SETUP_STACK_NAME"
     update_output=$(aws cloudformation update-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
+    echo $update_output
     if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
         echo "No updates to setup stack"
     else
+        echo "Waiting for stack update to complete"
         aws cloudformation wait stack-update-complete --stack-name $SETUP_STACK_NAME
+        # This just blocks forever if the previous command failed for another reason, 
+        # since it never sees update stack complete
     fi
 fi
+
+# Overwrite the role stack to fix the broken Condition.
+# test-type does not use the role we register, it re-deploys the stack
+cp resource-role-prod.yaml resource-role.yaml
 
 # Create the package
 echo "About to run cfn submit --dry-run to create the package"
@@ -36,7 +44,7 @@ echo ""
 ZIPFILE="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]').zip"
 echo "ZIPFILE is $ZIPFILE"
 
-ROLE_STACK_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')-role-stack"
+ROLE_STACK_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')-prod-role-stack"
 echo "ROLE_STACK_NAME is $ROLE_STACK_NAME"
 echo ""
 
@@ -53,6 +61,7 @@ if ! aws cloudformation describe-stacks --stack-name $ROLE_STACK_NAME 2>&1 ; the
 else
     echo "Updating role stack"
     update_output=$(aws cloudformation update-stack --stack-name $ROLE_STACK_NAME --template-body file://resource-role-prod.yaml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
+    echo $update_output
     if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
         echo "No updates to role stack"
     else
