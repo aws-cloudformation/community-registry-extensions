@@ -125,3 +125,6 @@ def test_run_checks_errors(template, rules, error, parent_error):
 
     with pytest.raises(parent_error):
         run_checks(template_str, rules)
+
+    with pytest.raises(cfn_guard_rs.errors.GuardError):
+        run_checks(template_str, rules)
