@@ -44,7 +44,7 @@ def handler(event, context): #pylint:disable=W0613
     # We have to hard code associations between repos and extension prefixes here
     # so we can re-use this webhook across all namespaces.
     extension_prefix = None
-    repo1 = repo.split("/").tokens[1]
+    repo1 = repo.split("/")[1]
     if repo1 == "community-registry-extensions":
         extension_prefix = "awscommunity"
     elif repo1 == "cloudformation-okta-resource-providers":
@@ -71,7 +71,7 @@ def handler(event, context): #pylint:disable=W0613
                 },
                 {
                     "name": "REPO",
-                    "value": repo
+                    "value": repo,
                     "type": "PLAINTEXT"
                 },
                 {

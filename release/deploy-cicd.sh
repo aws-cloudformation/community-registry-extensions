@@ -31,5 +31,5 @@ cfn-lint $TEMPLATE_FILE -i W3002,W2001
 
 aws --profile $PROFILE cloudformation package --template-file $TEMPLATE_FILE --s3-bucket $PACKAGE_BUCKET > cicd-package.yml
 
-rain --profile $PROFILE deploy -y --params Env=$CEP_ENV,Prefix=$PREFIX,PrefixLower=$PREFIX_LOWER,GitUrl=$GIT_URL,GitBranch=$GIT_BRANCH,GitHubSecretArn=$GITHUB_SECRET_ARN,PublishBuildBucketName=$PUBLISH_BUILD_BUCKET_NAME,ProdAccountId=$PROD_ACCOUNT_ID cicd-package.yml $STACK_NAME
+rain --profile $PROFILE deploy --params Env=$CEP_ENV,Prefix=$PREFIX,PrefixLower=$PREFIX_LOWER,GitUrl=$GIT_URL,GitBranch=$GIT_BRANCH,GitHubSecretArn=$GITHUB_SECRET_ARN,PublishBuildBucketName=$PUBLISH_BUILD_BUCKET_NAME,ProdAccountId=$PROD_ACCOUNT_ID cicd-package.yml $STACK_NAME
 
