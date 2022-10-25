@@ -1,39 +1,38 @@
 # AwsCommunity::DynamoDB::Item
 
-Congratulations on starting development! Next steps:
+Creates an item in a DynamoDB Table:
 
-1. Write the JSON schema describing your resource, `awscommunity-dynamodb-item.json`
-2. Implement your resource handlers in `awscommunity_dynamodb_item/handlers.py`
+## Example
 
-> Don't modify `models.py` by hand, any modifications will be overwritten when the `generate` or `package` commands are run.
-
-Implement CloudFormation resource here. Each function must always return a ProgressEvent.
-
-```python
-ProgressEvent(
-    # Required
-    # Must be one of OperationStatus.IN_PROGRESS, OperationStatus.FAILED, OperationStatus.SUCCESS
-    status=OperationStatus.IN_PROGRESS,
-    # Required on SUCCESS (except for LIST where resourceModels is required)
-    # The current resource model after the operation; instance of ResourceModel class
-    resourceModel=model,
-    resourceModels=None,
-    # Required on FAILED
-    # Customer-facing message, displayed in e.g. CloudFormation stack events
-    message="",
-    # Required on FAILED: a HandlerErrorCode
-    errorCode=HandlerErrorCode.InternalFailure,
-    # Optional
-    # Use to store any state between re-invocation via IN_PROGRESS
-    callbackContext={},
-    # Required on IN_PROGRESS
-    # The number of seconds to delay before re-invocation
-    callbackDelaySeconds=0,
-)
+```yaml
+Resources:
+    Table:
+        Type: AWS::DynamoDB::Table
+    ...
+    Item:
+        Type: AwsCommunity::DynamoDB::Item
+        Properties:
+            TableName: !Ref Table
+            Item:
+                title:
+                    S: Workshop 101
+            Key:
+                pk:
+                    S: wks101
 ```
 
-Failures can be passed back to CloudFormation by either raising an exception from `cloudformation_cli_python_lib.exceptions`, or setting the ProgressEvent's `status` to `OperationStatus.FAILED` and `errorCode` to one of `cloudformation_cli_python_lib.HandlerErrorCode`. There is a static helper function, `ProgressEvent.failed`, for this common case.
+## Development
 
-## What's with the type hints?
+Open two tabs in your terminal.
 
-We hope they'll be useful for getting started quicker with an IDE that support type hints. Type hints are optional - if your code doesn't use them, it will still work.
+Run SAM 
+```sh
+sam local start-lambda
+```
+
+In another tab, run cfn test:
+
+```sh
+cd resources/DynamoDB_Item
+cfn test
+```
