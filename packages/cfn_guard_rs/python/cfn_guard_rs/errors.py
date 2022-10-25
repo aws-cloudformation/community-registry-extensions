@@ -7,6 +7,10 @@ class GuardError(BaseException):
     """General exception to cover all Guard exceptions"""
 
 
+class UnknownError(GuardError):
+    """Raised when having an unknown error is encountered"""
+
+
 class ParseError(GuardError, ValueError):
     """Raised when having an issue parsing rules"""
 

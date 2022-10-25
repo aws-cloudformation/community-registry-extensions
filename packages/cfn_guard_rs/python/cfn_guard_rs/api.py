@@ -40,15 +40,26 @@ def run_checks(data: dict, rules: str) -> DataOutput:
     """
     try:
         output = json.loads(run_checks_rs(json.dumps(data), rules, False))
+
+        # remove the lib set items and replace with our defaults
+        result = DataOutput(**output)
+
+        return result
     except json.JSONDecodeError as err:
-        LOG.debug("JSON decoding error when processing return value [%s] got error: %s", output, err)
+        LOG.debug(
+            "JSON decoding error when processing return value [%s] got error: %s",
+            output,
+            err,
+        )
         raise err
     except CfnGuardMissingValue as err:
         raise errors.MissingValue() from err
     except CfnGuardParseError as err:
         raise errors.ParseError() from err
-
-    # remove the lib set items and replace with our defaults
-    result = DataOutput(**output)
-
-    return result
+    except Exception as err:
+        LOG.debug(
+            "Received unknown exception [%s] while running checks, got error: %s",
+            type(err),
+            err,
+        )
+        raise errors.UnknownError() from err
