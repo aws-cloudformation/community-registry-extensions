@@ -588,6 +588,10 @@ Resources:
               - kms:*
             Effect: Allow
             Resource: "*"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref PipelineTopic
   
   SourceEventRole:
     Type: AWS::IAM::Role
@@ -1219,5 +1223,3 @@ Resources:
         - TargetAddress: !Ref PipelineTopic
           TargetType: SNS
 
-# Properties validation failed for resource PipelineNotification with message: #/Resource: failed validation constraint for keyword [pattern]
-# NotificationRule Properties validation failed for resource with message: #/Resource: failed validation constraint for keyword [pattern]

@@ -23,6 +23,9 @@ Parameters:
     Type: String
     Description: AccountId for the beta account, which pushes builds to the PublishBuildBucket 
   
+  NotificationEmail:
+    Type: String
+    Description: Email address for pipeline notifications
 
 Resources:
 
@@ -265,6 +268,10 @@ Resources:
             Effect: Allow
             Resource:
               - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref PipelineTopic
 
   ArtifactBucket:
     Type: AWS::S3::Bucket
@@ -340,4 +347,28 @@ Resources:
           RoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/community-registry-extensions-cloudwatch-role" 
           Id: codepipeline-Pipeline
 
+  PipelineTopic:
+    Type: AWS::SNS::Topic
+    Metadata:
+      Comment: Topic for pipeline notifications
+    Properties:
+      TopicName: !Sub "prod-${PrefixLower}-pipeline"
+      Subscription:
+        - Endpoint: !Ref NotificationEmail 
+          Protocol: email
+
+  PipelineNotification:
+    Type: AWS::CodeStarNotifications::NotificationRule
+    Metadata:
+      Comment: Notify when the pipeline succeeds or fails
+    Properties:
+      DetailType: FULL
+      EventTypeIds:
+        - codepipeline-pipeline-pipeline-execution-failed
+        - codepipeline-pipeline-pipeline-execution-succeeded
+      Name: !Sub "prod-${PrefixLower}-pipeline"
+      Resource: !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}"
+      Targets:
+        - TargetAddress: !Ref PipelineTopic
+          TargetType: SNS
 
