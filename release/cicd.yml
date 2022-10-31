@@ -1190,4 +1190,30 @@ Resources:
                   - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
                   - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
 
+  PipelineTopic:
+    Type: AWS::SNS::Topic
+    Metadata:
+      Comment: Topic for pipeline notifications
+    Properties:
+      TopicName: !Sub "${Env}-pipeline-topic"
+      Subscription:
+        - Endpoint: !Sub "tfc-builderexperience-iac-cep+${Env}@amazon.com"
+          Protocol: email
 
+  PipelineNotification:
+    Type: AWS::CodeStarNotifications::NotificationRule
+    Metadata:
+      Comment: Notify when the pipeline succeeds or fails
+    Properties:
+      DetailType: FULL
+      EventTypeIds:
+        - codepipeline-pipeline-pipeline-execution-failed
+        - codepipeline-pipeline-pipeline-execution-succeeded
+      Name: !Sub "${Env}-pipeline-notifications"
+      Resource: !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}"
+      Targets:
+        - TargetAddress: !Ref PipelineTopic
+          TargetType: SNS
+
+# Properties validation failed for resource PipelineNotification with message: #/Resource: failed validation constraint for keyword [pattern]
+# NotificationRule Properties validation failed for resource with message: #/Resource: failed validation constraint for keyword [pattern]
