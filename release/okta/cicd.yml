@@ -305,9 +305,7 @@ Resources:
               AWS: 
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-                #- !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
-                # Circular reference in sandbox deployments with cicd-prod.yml
-                - !GetAtt OktaGroupMembershipBuildProject.Arn
+                - !GetAtt OktaGroupMembershipBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -450,7 +448,7 @@ Resources:
       ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: "cicd-buildspec.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   OktaGroupMembershipBuildProjectPolicy:
     Type: AWS::IAM::Policy
