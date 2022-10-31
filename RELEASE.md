@@ -122,6 +122,25 @@ leave the default of "Just the push event". The "Recent Deliveries" tab on the
 webhook screen can be used to re-deliver payloads if you are troubleshooting
 it.
 
+### 3rd party resources
+
+If we want to publish namespaces other than `AwsCommunity`, we can still use
+this release process and publish the extensions via AWS accounts. This
+will require making copies of the template files and template deployment
+scripts. Example for a third party called "Oktank".
+
+- `cicd.yml` -> `oktank/cicd.yml`
+- `cicd-prod.yml` -> `oktank/cicd-prod.yml`
+- `cicd-prod-regional.yml` -> `oktank/cicd-prod-regional.yml`
+
+Copy-pasting templates is not ideal, but they are full of extension-specific stuff
+that is not easily abstracted without use of something like CDK, which we are not using
+here on purpose, in order to dogfood CloudFormation tools as much as possible.
+
+These templates are deployed to the same accounts as `AwsCommunity`. This is required 
+since we need these all to be published by us from a single account.
+
+
 
 
 

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Common infrastructure for the community registry extensions CICD in the prod account for publishing across all regions
+Description: Common infrastructure for the Okta community registry extensions CICD in the prod account for publishing across all regions
 
 Parameters:
 
@@ -30,7 +30,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS: 
-                - !Sub "arn:aws:iam::${BetaAccountId}:role/cep-publish-role" 
+                - !Sub "arn:aws:iam::${BetaAccountId}:role/cep-okta-publish-role" 
                 - !GetAtt PublishCrossAccountRole.Arn
             Action: s3:PutObject
             Resource: 
@@ -55,83 +55,6 @@ Resources:
       Comment: This bucket holds the handler package and logs for `release/publish.sh`
     Properties:
       BucketName: !Ref HandlerBucketName
-
-  WebHookCloudWatchEventRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: community-registry-extensions-cloudwatch-role
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          -
-            Effect: Allow
-            Principal:
-              Service:
-                - events.amazonaws.com
-            Action: sts:AssumeRole
-      Path: /
-      Policies:
-        -
-          PolicyName: cwe-pipeline-execution
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              -
-                Effect: Allow
-                Action: codepipeline:StartPipelineExecution
-                Resource: !Join [ '', [ 'arn:aws:codepipeline:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', "*" ] ]
-
-
-  WebHookCloudTrailBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref WebHookCloudTrailBucket
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          -
-            Sid: AWSCloudTrailAclCheck
-            Effect: Allow
-            Principal:
-              Service:
-                - cloudtrail.amazonaws.com
-            Action: s3:GetBucketAcl
-            Resource: !GetAtt WebHookCloudTrailBucket.Arn
-          -
-            Sid: AWSCloudTrailWrite
-            Effect: Allow
-            Principal:
-              Service:
-                - cloudtrail.amazonaws.com
-            Action: s3:PutObject
-            Resource: !Join [ '', [ !GetAtt WebHookCloudTrailBucket.Arn, '/AWSLogs/', !Ref 'AWS::AccountId', '/*' ] ]
-            Condition: 
-              StringEquals:
-                s3:x-amz-acl: bucket-owner-full-control
-  
-  WebHookCloudTrailBucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-  
-  WebHookCloudTrail:
-    DependsOn:
-      - WebHookCloudTrailBucketPolicy
-    Type: AWS::CloudTrail::Trail
-    Properties:
-      S3BucketName: !Ref WebHookCloudTrailBucket
-      EventSelectors:
-        -
-          DataResources:
-            -
-              Type: AWS::S3::Object
-              Values:
-                - !Join [ '', [ !GetAtt PublishBuildBucket.Arn, '/', "build.zip" ] ]
-          ReadWriteType: WriteOnly
-          IncludeManagementEvents: false
-      IncludeGlobalServiceEvents: true
-      IsLogging: true
-      IsMultiRegionTrail: true
 
   StackSetAdministrationRole:
     Type: AWS::IAM::Role
@@ -248,8 +171,8 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
                   - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
-                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket"
-                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket/*"
+                  - !Sub "arn:aws:s3:::cep-okta-beta-${BetaAccountId}-artifact-bucket"
+                  - !Sub "arn:aws:s3:::cep-okta-beta-${BetaAccountId}-artifact-bucket/*"
               - Action: 
                   - kms:Encrypt
                   - kms:Decrypt

@@ -11,7 +11,7 @@ set -eou pipefail
 cfn-lint cicd-prod.yml
 cfn-lint cicd-prod-regional.yml
 
-rain --profile $PROFILE deploy -y \
+rain --profile $PROFILE deploy  \
     --params HandlerBucketName=$HANDLER_BUCKET_NAME,PublishBuildBucketName=$PUBLISH_BUILD_BUCKET_NAME,BetaAccountId=$BETA_ACCOUNT_ID \
     cicd-prod.yml cep-prod
 #|| [ $? -eq 1 ]
