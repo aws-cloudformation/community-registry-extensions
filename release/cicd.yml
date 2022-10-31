@@ -36,6 +36,10 @@ Parameters:
     Type: String
     Description: Account ID for prod, required to share the KMS key so beta can deploy builds to the publish bucket
 
+  NotificationEmail:
+    Type: String
+    Description: Email address for pipeline notifications
+
 Conditions:
   IsBeta: !Equals
     - !Ref Env
@@ -1197,7 +1201,7 @@ Resources:
     Properties:
       TopicName: !Sub "${Env}-pipeline-topic"
       Subscription:
-        - Endpoint: !Sub "tfc-builderexperience-iac-cep+${Env}@amazon.com"
+        - Endpoint: !Ref NotificationEmail 
           Protocol: email
 
   PipelineNotification:
