@@ -1,6 +1,7 @@
 """
     Test cfn_guard_rs
 """
+from unittest.mock import patch
 import yaml
 import pytest
 import cfn_guard_rs.errors
@@ -97,21 +98,23 @@ def test_run_checks(template, rules, expected):
 
 
 @pytest.mark.parametrize(
-    "template,rules,error",
+    "template,rules,error,parent_error",
     [
         (
             "python/tests/fixtures/templates/s3_bucket_public_access_valid.yaml",
             "python/tests/fixtures/rules/invalid_missing_value.guard",
             cfn_guard_rs.errors.MissingValue,
+            NameError,
         ),
         (
             "python/tests/fixtures/templates/s3_bucket_public_access_valid.yaml",
             "python/tests/fixtures/rules/invalid_format.guard",
             cfn_guard_rs.errors.ParseError,
+            ValueError,
         ),
     ],
 )
-def test_run_checks_errors(template, rules, error):
+def test_run_checks_errors(template, rules, error, parent_error):
     """Test transactions against run_checks"""
     with open(template, encoding="utf8") as file:
         template_str = yaml.safe_load(file)
@@ -120,3 +123,25 @@ def test_run_checks_errors(template, rules, error):
 
     with pytest.raises(error):
         run_checks(template_str, rules)
+
+    with pytest.raises(parent_error):
+        run_checks(template_str, rules)
+
+    with pytest.raises(cfn_guard_rs.errors.GuardError):
+        run_checks(template_str, rules)
+
+
+def test_run_unknown_errors():
+    """Test unknown errors"""
+
+    template_filename = "python/tests/fixtures/templates/s3_bucket_name_valid.yaml"
+    rules_filename = "python/tests/fixtures/rules/s3_bucket_name.guard"
+    with open(template_filename, encoding="utf8") as file:
+        template_str = yaml.safe_load(file)
+    with open(rules_filename, encoding="utf8") as file:
+        rules = file.read()
+
+    with patch("json.loads") as mock_method:
+        mock_method.side_effect = Exception("test")
+        with pytest.raises(cfn_guard_rs.errors.UnknownError):
+            run_checks(template_str, rules)

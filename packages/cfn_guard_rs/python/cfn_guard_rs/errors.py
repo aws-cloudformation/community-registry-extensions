@@ -3,23 +3,17 @@
 """
 
 
-# pylint: disable=no-name-in-module,unused-import
-from .cfn_guard_rs import (
-    JsonError,
-    YamlError,
-    FormatError,
-    IoError,
-    ParseError,
-    RegexError,
-    MissingProperty,
-    MissingVariable,
-    MultipleValues,
-    IncompatibleRetrievalError,
-    IncompatibleError,
-    NotComparable,
-    ConversionError,
-    Errors,
-    RetrievalError,
-    MissingValue,
-    FileNotFoundError as GuardFileNotFoundError,  # rename for redefined-builtin
-)
+class GuardError(BaseException):
+    """General exception to cover all Guard exceptions"""
+
+
+class UnknownError(GuardError):
+    """Raised when having an unknown error is encountered"""
+
+
+class ParseError(GuardError, ValueError):
+    """Raised when having an issue parsing rules"""
+
+
+class MissingValue(ParseError, NameError):
+    """There was no variable or value object to resolve"""
