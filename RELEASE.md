@@ -5,11 +5,13 @@ _Note that this is a work in progress and we welcome your feedback!_
 _The final step in the release process, publishing, will not activated until
 we complete an appsec review internally_
 
-See the tracking issue [here](https://github.com/aws-cloudformation/community-registry-extensions/issues/22)
-
 This document covers the release process for registry extensions in the
 `AwsCommunity::` namespace, published by the AWS Community Engagement Program
 (CEP) team.  
+
+See the tracking issue [here](https://github.com/aws-cloudformation/community-registry-extensions/issues/22)
+
+<img src="https://github.com/aws-cloudformation/community-registry-extensions/blob/main/release/ceparch.png?raw=true" width="80%" />
 
 
 ## Accounts
@@ -80,7 +82,7 @@ the CICD account, since the pipeline and permissions are very similar. The pipel
 is started by a commit being made on the `release` branch.
 
 The beta pipeline has one extra stage which copies the source zip to a bucket in the 
-prod account to start the publishing process, if all beta tests succeed. (TODO)
+prod account to start the publishing process, if all beta tests succeed. 
 
 
 ### Prod account
@@ -89,6 +91,9 @@ An account controlled by AWS that is the publisher for the registry extensions.
 If all integ tests succeed in the beta account, the prod pipeline is invoked by copying the build to an S3 bucket that starts the pipeline in each configured region. A stack set is used to deploy `cicd-prod-regional.yml` across regions. The pipeline invokes a CodeBuild job that runs `release/publish.sh`.
 
 ### Development
+
+*Note that you do not have to follow these steps to create a new extension, or to fix a bug that is not related to the release process. 
+See the [CONTRIBUTOR](./CONTRIBUTOR.md) guide for instructions instead.*
 
 If you need to make changes to the release process, deploy the CICD stacks to
 your own sandbox account for development and testing. 
@@ -116,6 +121,25 @@ by the `cicd.yml` template. Set the content-type to `application-json` and
 leave the default of "Just the push event". The "Recent Deliveries" tab on the
 webhook screen can be used to re-deliver payloads if you are troubleshooting
 it.
+
+### 3rd party resources
+
+If we want to publish namespaces other than `AwsCommunity`, we can still use
+this release process and publish the extensions via AWS accounts. This
+will require making copies of the template files and template deployment
+scripts. Example for a third party called "Oktank".
+
+- `cicd.yml` -> `oktank/cicd.yml`
+- `cicd-prod.yml` -> `oktank/cicd-prod.yml`
+- `cicd-prod-regional.yml` -> `oktank/cicd-prod-regional.yml`
+
+Copy-pasting templates is not ideal, but they are full of extension-specific stuff
+that is not easily abstracted without use of something like CDK, which we are not using
+here on purpose, in order to dogfood CloudFormation tools as much as possible.
+
+These templates are deployed to the same accounts as `AwsCommunity`. This is required 
+since we need these all to be published by us from a single account.
+
 
 
 
