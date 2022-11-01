@@ -5,7 +5,6 @@ import hmac
 import os
 import boto3
 
-
 def handler(event, context): #pylint:disable=W0613
     "Lambda handler"
     print(json.dumps(event, default=str))

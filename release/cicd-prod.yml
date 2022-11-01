@@ -215,6 +215,10 @@ Resources:
               - sns:*
             Effect: Allow
             Resource: "*"
+          - Action:
+              - codestar-notifications:*
+            Effect: Allow
+            Resource: "*"
 
   PublishCrossAccountRole:
     Type: AWS::IAM::Role
