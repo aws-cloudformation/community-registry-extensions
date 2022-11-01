@@ -1,83 +1,66 @@
 name: packages-cfn_guard_rs-CD
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "packages/cfn_guard_rs/**"
-      - "packages/cfn_guard_rs_hook/**"
-  pull_request:
-    paths:
-      - "packages/cfn_guard_rs/**"
-      - "packages/cfn_guard_rs_hook/**"
+  release:
+    types: [published]
 jobs:
   linux:
     strategy:
       matrix:
         target: [aarch64, x86_64]
-        directory:
-          - ./packages/cfn_guard_rs
-          - ./packages/cfn_guard_rs_hook
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ matrix.directory }}
     steps:
       - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v1
+      - uses: messense/maturin-action@v1
         with:
-          python-version: "3.7"
-      - name: Install Tox and any other packages
-        run: pip3 install tox
-      - name: Run Tox
-        run: |
-          python3 --version
-          tox -e py
+          manylinux: auto
+          command: build
+          target: ${{ matrix.target }}
+          args: --release -m packages/cfn_guard_rs/Cargo.toml --sdist -o packages/cfn_guard_rs/dist --find-interpreter
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: packages/cfn_guard_rs/dist
 
   windows:
-    strategy:
-      matrix:
-        directory:
-          - ./packages/cfn_guard_rs
-          - ./packages/cfn_guard_rs_hook
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: ${{ matrix.directory }}
     steps:
       - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v1
+      - uses: messense/maturin-action@v1
         with:
-          python-version: "3.7"
-      - name: Install Tox and any other packages
-        run: pip3 install tox
-      - name: Run Tox
-        run: |
-          python3 --version
-          tox -e py
+          command: build
+          args: --release -m packages/cfn_guard_rs/Cargo.toml -o packages/cfn_guard_rs/dist --find-interpreter
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: packages/cfn_guard_rs/dist
 
   macos:
-    strategy:
-      matrix:
-        directory:
-          - ./packages/cfn_guard_rs
-          - ./packages/cfn_guard_rs_hook
     runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: ${{ matrix.directory }}
     steps:
       - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v1
+      - uses: messense/maturin-action@v1
         with:
-          python-version: "3.7"
-      - name: Install Tox and any other packages
-        run: pip3 install tox
-      - name: Run Tox
-        run: |
-          python3 --version
-          tox -e py
+          command: build
+          args: --release -m packages/cfn_guard_rs/Cargo.toml -o packages/cfn_guard_rs/dist --universal2 --find-interpreter
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: packages/cfn_guard_rs/dist
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: "startsWith(github.ref, 'refs/tags/cfn-guard-rs-v')"
+    needs: [macos, windows, linux]
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: wheels
+      - name: Publish to PyPI
+        uses: messense/maturin-action@v1
+        env:
+          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        with:
+          command: upload
+          args: --skip-existing *
