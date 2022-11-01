@@ -36,6 +36,10 @@ Parameters:
     Type: String
     Description: Account ID for prod, required to share the KMS key so beta can deploy builds to the publish bucket
 
+  NotificationEmail:
+    Type: String
+    Description: Email address for pipeline notifications
+
 Conditions:
   IsBeta: !Equals
     - !Ref Env
@@ -584,6 +588,10 @@ Resources:
               - kms:*
             Effect: Allow
             Resource: "*"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref PipelineTopic
   
   SourceEventRole:
     Type: AWS::IAM::Role
@@ -1190,4 +1198,44 @@ Resources:
                   - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
                   - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
 
+  PipelineTopic:
+    Type: AWS::SNS::Topic
+    Metadata:
+      Comment: Topic for pipeline notifications
+    Properties:
+      TopicName: !Sub "${Env}-pipeline-topic"
+      Subscription:
+        - Endpoint: !Ref NotificationEmail 
+          Protocol: email
+
+  PipelineTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyTopicPolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: topic-policy
+          Effect: Allow
+          Principal:
+            Service: codestar-notifications.amazonaws.com
+          Action: sns:Publish
+          Resource: !Ref PipelineTopic
+      Topics:
+      - !Ref PipelineTopic
+
+  PipelineNotification:
+    Type: AWS::CodeStarNotifications::NotificationRule
+    Metadata:
+      Comment: Notify when the pipeline succeeds or fails
+    Properties:
+      DetailType: FULL
+      EventTypeIds:
+        - codepipeline-pipeline-pipeline-execution-failed
+        - codepipeline-pipeline-pipeline-execution-succeeded
+      Name: !Sub "${Env}-pipeline-notifications"
+      Resource: !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}"
+      Targets:
+        - TargetAddress: !Ref PipelineTopic
+          TargetType: SNS
 
