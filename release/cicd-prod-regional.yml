@@ -352,10 +352,26 @@ Resources:
     Metadata:
       Comment: Topic for pipeline notifications
     Properties:
-      TopicName: !Sub "prod-${PrefixLower}-pipeline"
+      TopicName: !Sub "prod-${AWS::Region}-${PrefixLower}-pipeline"
       Subscription:
         - Endpoint: !Ref NotificationEmail 
           Protocol: email
+
+  PipelineTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyTopicPolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: topic-policy
+          Effect: Allow
+          Principal:
+            Service: codestar-notifications.amazonaws.com
+          Action: sns:Publish
+          Resource: !Ref PipelineTopic
+      Topics:
+      - !Ref PipelineTopic
 
   PipelineNotification:
     Type: AWS::CodeStarNotifications::NotificationRule
@@ -366,7 +382,7 @@ Resources:
       EventTypeIds:
         - codepipeline-pipeline-pipeline-execution-failed
         - codepipeline-pipeline-pipeline-execution-succeeded
-      Name: !Sub "prod-${PrefixLower}-pipeline"
+      Name: !Sub "prod-${AWS::Region}-${PrefixLower}"
       Resource: !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}"
       Targets:
         - TargetAddress: !Ref PipelineTopic
