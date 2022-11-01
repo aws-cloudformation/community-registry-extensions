@@ -1,0 +1,1307 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Infrastructure for the community registry extensions CICD pipeline
+Parameters:
+  Env:
+    Type: String
+    Description: The environment, alpha, beta, or prod. In a sandbox these are all
+      in one account, but the actual deployment is to three different accounts.
+    AllowedValues:
+    - alpha
+    - beta
+    - prod
+  GitUrl:
+    Type: String
+    Description: The URL to the Git repo to clone
+  GitBranch:
+    Type: String
+    Description: The branch to clone
+  GitHubSecretArn:
+    Type: String
+    Description: The arn to the github webhook secret
+  Prefix:
+    Type: String
+    Description: The extension prefix, for example, AwsCommunity
+  PrefixLower:
+    Type: String
+    Description: The extension prefix lowercase, for example, awscommunity. It's either
+      this or depend on a macro, or put more stars in policies.
+  BetaAccountId:
+    Type: String
+    Description: AccountId for the beta account, which pushes builds to the prod source
+      bucket
+  ProdAccountId:
+    Type: String
+    Description: Account ID for prod, required to share the KMS key so beta can deploy
+      builds to the prod source bucket
+  NotificationEmail:
+    Type: String
+    Description: Email address for pipeline notifications
+Conditions:
+  IsBeta:
+    Fn::Equals:
+    - Ref: Env
+    - beta
+  IsProd:
+    Fn::Equals:
+    - Ref: Env
+    - prod
+  IsNotProd:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: Env
+      - prod
+Resources:
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: CodePipeline artifacts
+    Properties:
+      BucketName:
+        Fn::Sub: cep-${Env}-${AWS::AccountId}-artifacts
+  ArtifactBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsBeta
+    Metadata:
+      Comment: Allows the beta account to use an assumed role in the prod account
+        to drop builds into the prod account
+    Properties:
+      Bucket:
+        Ref: ArtifactBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Sid: BetaProdCrossAccount
+          Effect: Allow
+          Principal:
+            AWS:
+            - Fn::Sub: arn:aws:iam::${ProdAccountId}:root
+          Action:
+          - s3:Put*
+          - s3:Get*
+          - s3:List*
+          Resource:
+          - Fn::Sub: arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifact-bucket
+          - Fn::Sub: arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifact-bucket/*
+  S3BucketVersioningEnabledBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+  CloudFrontLoggingEnabledBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+  BucketNotificationBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+  DeleteBucketContentsBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+  CloudFrontWebAclAssociationBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+  ResourceIamPasswordPolicyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+  CommonBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - s3:*
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - kms:CreateKey
+          - kms:DeleteKey
+          - kms:Create*
+          - kms:Describe*
+          - kms:Enable*
+          - kms:List*
+          - kms:Put*
+          - kms:Update*
+          - kms:Revoke*
+          - kms:Disable*
+          - kms:Get*
+          - kms:Delete*
+          - kms:ScheduleKeyDeletion
+          - kms:CancelKeyDeletion
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncrypt*
+          - kms:GenerateDataKey*
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - iam:CreateRole
+          - iam:DeleteRole
+          - iam:GetRole
+          - iam:PutRolePolicy
+          - iam:DeleteRolePolicy
+          - iam:GetRolePolicy
+          - iam:PassRole
+          Effect: Allow
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*
+          - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation*
+        - Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Effect: Allow
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*
+        - Action:
+          - codebuild:CreateReportGroup
+          - codebuild:CreateReport
+          - codebuild:UpdateReport
+          - codebuild:BatchPutTestCases
+          - codebuild:BatchPutCodeCoverages
+          Effect: Allow
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*
+        - Action:
+          - s3:GetObject*
+          - s3:GetBucket*
+          - s3:List*
+          - s3:DeleteObject*
+          - s3:PutObject*
+          - s3:Abort*
+          Effect: Allow
+          Resource:
+          - Fn::GetAtt:
+            - ArtifactBucket
+            - Arn
+          - Fn::Sub: ${ArtifactBucket.Arn}/*
+        - Action:
+          - cloudformation:CreateStack
+          - cloudformation:DeleteStack
+          - cloudformation:DescribeStacks
+          Effect: Allow
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-${PrefixLower}*
+          - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-*
+        - Action:
+          - cloudformation:ListExports
+          - cloudformation:DescribeStacks
+          - cloudformation:DescribeType
+          - cloudformation:CreateStack
+          - cloudformation:DeleteStack
+          - cloudformation:UpdateStack
+          Effect: Allow
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}*
+          - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/CloudFormationManagedUploadInfrastructure/*
+        - Action:
+          - cloudformation:RegisterType
+          - cloudformation:DescribeTypeRegistration
+          - cloudformation:SetTypeDefaultVersion
+          - cloudformation:SetTypeConfiguration
+          - cloudformation:DescribeType
+          Effect: Allow
+          Resource:
+          - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/RESOURCE/${Prefix}*
+          - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/resource/${Prefix}*
+          - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/HOOK/${Prefix}*
+          - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/hook/${Prefix}*
+        - Action:
+          - cloudformation:DescribeTypeRegistration
+          - cloudformation:DescribeType
+          - cloudformation:ListTypes
+          - cloudformation:ListExports
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - ecr:GetDownloadUrlForLayer
+          - ecr:BatchGetImage
+          - ecr:BatchCheckLayerAvailability
+          - ecr:GetAuthorizationToken
+          Effect: Allow
+          Resource: '*'
+        Version: '2012-10-17'
+      PolicyName: common-build-project-policy
+      Roles:
+      - Ref: BucketNotificationBuildProjectRole
+      - Ref: DeleteBucketContentsBuildProjectRole
+      - Ref: S3BucketVersioningEnabledBuildProjectRole
+      - Ref: CloudFrontLoggingEnabledBuildProjectRole
+      - Ref: CloudFrontWebAclAssociationBuildProjectRole
+  BucketNotificationBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - iam:CreateRole
+          - iam:DeleteRole
+          - iam:GetRole
+          - lambda:AddPermission
+          - lambda:RemovePermission
+          - s3:CreateBucket
+          - s3:DeleteBucket
+          - s3:GetBucketNotification
+          - s3:PutBucketNotification
+          - sns:AddPermission
+          - sns:ConfirmSubscription
+          - sns:CreateTopic
+          - sns:DeleteTopic
+          - sns:GetTopicAttributes
+          - sns:RemovePermission
+          - sns:SetTopicAttributes
+          - sqs:CreateQueue
+          - sqs:DeleteQueue
+          - sqs:AddPermission
+          - sqs:GetQueueAttributes
+          - sqs:GetQueueUrl
+          - sqs:SetQueueAttributes
+          Effect: Allow
+          Resource: '*'
+        Version: '2012-10-17'
+      PolicyName: bucket-notification-build-project-policy
+      Roles:
+      - Ref: BucketNotificationBuildProjectRole
+  DeleteBucketContentsBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - iam:CreateRole
+          - iam:DeleteRole
+          - iam:GetRole
+          - s3:CreateBucket
+          - s3:DeleteBucket
+          - s3:ListBucket
+          - s3:GetBucketNotification
+          - s3:PutBucketNotification
+          - s3:GetBucketTagging
+          - s3:PutBucketTagging
+          - s3:ListObjectVersions
+          - s3:DeleteObject
+          - s3:ListBucketVersions
+          Effect: Allow
+          Resource: '*'
+        Version: '2012-10-17'
+      PolicyName: delete-bucket-contents-build-project-policy
+      Roles:
+      - Ref: DeleteBucketContentsBuildProjectRole
+  CloudFrontWebAclAssociationBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - iam:GetRole
+          - iam:CreateRole
+          - iam:DeleteRole
+          - wafv2:ListTagsForResource
+          - wafv2:GetWebACL
+          - wafv2:CreateWebACL
+          - wafv2:DeleteWebACL
+          - cloudfront:ListCloudFrontOriginAccessIdentities
+          - cloudfront:TagResource
+          - cloudfront:CreateDistribution
+          - cloudfront:GetDistribution
+          - cloudfront:CreateCloudFrontOriginAccessIdentity
+          - cloudfront:ListDistributions
+          - cloudfront:GetCloudFrontOriginAccessIdentity
+          - cloudfront:DeleteDistribution
+          - cloudfront:UpdateDistribution
+          - cloudfront:DeleteCloudFrontOriginAccessIdentity
+          - s3:PutObject
+          - s3:GetObject
+          - s3:PutBucketWebsite
+          - s3:GetEncryptionConfiguration
+          - s3:ListAllMyBuckets
+          - s3:PutBucketPolicy
+          - s3:GetBucketLocation
+          - s3:DeleteBucket
+          - s3:CreateBucket
+          - s3:ListBucket
+          - s3:GetBucketPolicy
+          - s3:PutBucketCORS
+          - s3:DeleteBucketPolicy
+          Effect: Allow
+          Resource: '*'
+        Version: '2012-10-17'
+      PolicyName: cloudfront-webacl-association-build-project-policy
+      Roles:
+      - Ref: CloudFrontWebAclAssociationBuildProjectRole
+  ResourceIamPasswordPolicyPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+          - iam:GetRole
+          - iam:CreateRole
+          - iam:DeleteRole
+          - s3:PutObject
+          - s3:GetObject
+          - s3:PutBucketWebsite
+          - s3:GetEncryptionConfiguration
+          - s3:ListAllMyBuckets
+          - s3:PutBucketPolicy
+          - s3:GetBucketLocation
+          - s3:DeleteBucket
+          - s3:CreateBucket
+          - s3:ListBucket
+          - s3:GetBucketPolicy
+          - s3:PutBucketCORS
+          - s3:DeleteBucketPolicy
+          Effect: Allow
+          Resource: '*'
+        Version: '2012-10-17'
+      PolicyName: cloudfront-webacl-association-build-project-policy
+      Roles:
+      - Ref: ResourceIamPasswordPolicyRole
+  BucketNotificationBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image:
+          Fn::Sub: ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: placeholder-for-path-to-resource
+      ServiceRole:
+        Fn::GetAtt:
+        - BucketNotificationBuildProjectRole
+        - Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec:
+          Fn::Sub: resources/${Env}-buildspec-python.yml
+  ResourceIamPasswordPolicyBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image:
+          Fn::Sub: ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: placeholder-for-path-to-resource
+      ServiceRole:
+        Fn::GetAtt:
+        - ResourceIamPasswordPolicyRole
+        - Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec:
+          Fn::Sub: resources/${Env}-buildspec-python.yml
+  CloudFrontWebAclAssociationBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image:
+          Fn::Sub: ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: placeholder-for-path-to-resource
+      ServiceRole:
+        Fn::GetAtt:
+        - CloudFrontWebAclAssociationBuildProjectRole
+        - Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec:
+          Fn::Sub: resources/${Env}-buildspec-python.yml
+  DeleteBucketContentsBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image:
+          Fn::Sub: ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: placeholder-for-path-to-resource
+      ServiceRole:
+        Fn::GetAtt:
+        - DeleteBucketContentsBuildProjectRole
+        - Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec:
+          Fn::Sub: resources/${Env}-buildspec-python.yml
+  S3BucketVersioningEnabledBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image:
+          Fn::Sub: ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: placeholder-for-path-to-hook
+      ServiceRole:
+        Fn::GetAtt:
+        - S3BucketVersioningEnabledBuildProjectRole
+        - Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec:
+          Fn::Sub: hooks/${Env}-buildspec-python.yml
+  CloudFrontLoggingEnabledBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image:
+          Fn::Sub: ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: placeholder-for-path-to-resource
+      ServiceRole:
+        Fn::GetAtt:
+        - CloudFrontLoggingEnabledBuildProjectRole
+        - Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec:
+          Fn::Sub: hooks/${Env}-buildspec-python.yml
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: The name is important here since it gets constructed by the webhook
+        handler and CodeBuild job to drop the build into the correct bucket. We only
+        use a one webhook for AwsCommunity and 3rd parties like Okta.
+    Properties:
+      BucketName:
+        Fn::Sub: cep-source-${AWS::AccountId}-${Env}-${PrefixLower}
+      VersioningConfiguration:
+        Status: Enabled
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Sub: cep-${Env}-pipeline-role
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: codepipeline.amazonaws.com
+        Version: '2012-10-17'
+  PipelinePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: extension-pipeline-policy
+      Roles:
+      - Ref: PipelineRole
+      PolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Resource:
+          - Fn::Sub: arn:aws:iam::${ProdAccountId}:role/community-*
+        - Action:
+          - s3:GetObject*
+          - s3:GetBucket*
+          - s3:List*
+          - s3:DeleteObject*
+          - s3:PutObject*
+          - s3:Abort*
+          Effect: Allow
+          Resource:
+          - Fn::GetAtt:
+            - ArtifactBucket
+            - Arn
+          - Fn::Join:
+            - ''
+            - - Fn::GetAtt:
+                - ArtifactBucket
+                - Arn
+              - /*
+          - Fn::GetAtt:
+            - SourceBucket
+            - Arn
+          - Fn::Join:
+            - ''
+            - - Fn::GetAtt:
+                - SourceBucket
+                - Arn
+              - /*
+        - Action:
+          - codebuild:StartBuild
+          - codebuild:BatchGetBuilds
+          Effect: Allow
+          Resource:
+          - Fn::GetAtt:
+            - BucketNotificationBuildProject
+            - Arn
+          - Fn::GetAtt:
+            - DeleteBucketContentsBuildProject
+            - Arn
+          - Fn::GetAtt:
+            - S3BucketVersioningEnabledBuildProject
+            - Arn
+          - Fn::GetAtt:
+            - CloudFrontLoggingEnabledBuildProject
+            - Arn
+          - Fn::GetAtt:
+            - CloudFrontWebAclAssociationBuildProject
+            - Arn
+        - Action:
+          - kms:*
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - sns:Publish
+          Effect: Allow
+          Resource:
+            Ref: PipelineTopic
+  PipelineKey:
+    Type: AWS::KMS::Key
+    Metadata:
+      Comment: Required for cross account deployment from beta CodePipeline to the
+        prod bucket
+    Condition: IsBeta
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      Description: This key is used by the CEP beta build process to deploy builds
+        to the prod bucket
+      KeyPolicy:
+        Statement:
+        - Action:
+          - kms:Create*
+          - kms:Describe*
+          - kms:Enable*
+          - kms:List*
+          - kms:Put*
+          - kms:Update*
+          - kms:Revoke*
+          - kms:Disable*
+          - kms:Get*
+          - kms:Delete*
+          - kms:ScheduleKeyDeletion
+          - kms:CancelKeyDeletion
+          - kms:GenerateDataKey
+          - kms:TagResource
+          - kms:UntagResource
+          Effect: Allow
+          Principal:
+            AWS:
+            - Fn::Sub: arn:aws:iam::${ProdAccountId}:root
+            - Fn::Sub: arn:aws:iam::${AWS::AccountId}:role/Admin
+          Resource: '*'
+        - Action:
+          - kms:Encrypt
+          - kms:Decrypt
+          - kms:ReEncrypt
+          - kms:GenerateDataKey*
+          - kms:DescribeKey
+          Effect: Allow
+          Principal:
+            AWS:
+            - Fn::GetAtt:
+              - PipelineRole
+              - Arn
+            - Fn::Sub: arn:aws:iam::${ProdAccountId}:root
+            - Fn::GetAtt:
+              - BucketNotificationBuildProjectRole
+              - Arn
+            - Fn::GetAtt:
+              - DeleteBucketContentsBuildProjectRole
+              - Arn
+            - Fn::GetAtt:
+              - S3BucketVersioningEnabledBuildProjectRole
+              - Arn
+            - Fn::GetAtt:
+              - CloudFrontLoggingEnabledBuildProjectRole
+              - Arn
+            - Fn::GetAtt:
+              - CloudFrontWebAclAssociationBuildProjectRole
+              - Arn
+          Resource: '*'
+      MultiRegion: true
+  PipelineKeyAlias:
+    Type: AWS::KMS::Alias
+    Condition: IsBeta
+    Properties:
+      AliasName: alias/cep-pipeline-publish-key
+      TargetKeyId:
+        Ref: PipelineKey
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Metadata:
+      Comment: This pipeline runs integ tests on all extensions, then drops the build
+        into the prod account for publishing
+    Properties:
+      RoleArn:
+        Fn::GetAtt:
+        - PipelineRole
+        - Arn
+      ArtifactStore:
+        Fn::If:
+        - IsBeta
+        - Type: S3
+          Location:
+            Ref: ArtifactBucket
+          EncryptionKey:
+            Id:
+              Ref: PipelineKey
+            Type: KMS
+        - Type: S3
+          Location:
+            Ref: ArtifactBucket
+          EncryptionKey:
+            Ref: AWS::NoValue
+      Stages:
+      - Name: Source
+        Actions:
+        - Name: S3Source
+          ActionTypeId:
+            Category: Source
+            Owner: AWS
+            Provider: S3
+            Version: 1
+          Configuration:
+            S3Bucket:
+              Ref: SourceBucket
+            S3ObjectKey: source.zip
+            PollForSourceChanges: true
+          OutputArtifacts:
+          - Name: extensions-source
+      - Name: Build
+        Actions:
+        - Name: DeleteBucketContents
+          InputArtifacts:
+          - Name: extensions-source
+          ActionTypeId:
+            Category: Build
+            Owner: AWS
+            Provider: CodeBuild
+            Version: 1
+          Configuration:
+            ProjectName:
+              Ref: DeleteBucketContentsBuildProject
+            EnvironmentVariables: "[\n  {\n    \"name\": \"RESOURCE_PATH\",\n    \"\
+              type\": \"PLAINTEXT\",\n    \"value\": \"resources/S3_DeleteBucketContents\"\
+              \n  }\n]"
+          RunOrder: 1
+      - Fn::If:
+        - IsBeta
+        - Name: CopyBuildToProd
+          Actions:
+          - Name: Copy
+            RoleArn:
+              Fn::Sub: arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role
+            InputArtifacts:
+            - Name: extensions-source
+            ActionTypeId:
+              Category: Deploy
+              Owner: AWS
+              Provider: S3
+              Version: 1
+            Configuration:
+              BucketName:
+                Fn::Sub: cep-source-${ProdAccountId}-prod-${PrefixLower}
+              Extract: false
+              ObjectKey: source.zip
+              KMSEncryptionKeyARN:
+                Fn::GetAtt:
+                - PipelineKey
+                - Arn
+        - Ref: AWS::NoValue
+  WebHookBuildProjectRole:
+    Type: AWS::IAM::Role
+    Condition: IsNotProd
+    Metadata:
+      Comment: Note that we give this project access to the source buckets for all
+        3rd parties, since we only have one instance of the webhook to start all pipelines
+        when there is a push to one of the repos.
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - s3:PutObject
+            Effect: Allow
+            Resource:
+            - Fn::Sub: arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-${PrefixLower}
+            - Fn::Sub: arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-${PrefixLower}/*
+            - Fn::Sub: arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-okta
+            - Fn::Sub: arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-okta/*
+          - Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+            - Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*
+          - Action:
+            - codebuild:CreateReportGroup
+            - codebuild:CreateReport
+            - codebuild:UpdateReport
+            - codebuild:BatchPutTestCases
+            - codebuild:BatchPutCodeCoverages
+            Effect: Allow
+            Resource:
+            - Fn::Sub: arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*
+          Version: '2012-10-17'
+        PolicyName: webhook-build-project-policy
+  WebHookBuildProject:
+    Type: AWS::CodeBuild::Project
+    Condition: IsNotProd
+    Metadata:
+      Comment: "This build project is invoked by a Lambda that is called from GitHub\n\
+        webhooks configured on the repos handled by this build process. The\nlambda\
+        \ maps repos to the extension prefix, which is what determines the\nbucket\
+        \ to drop the source into. A bucket notification starts the \nrelated pipeline.\
+        \  \n"
+    Properties:
+      Name:
+        Fn::Sub: cep-${Env}-webhook
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/standard:3.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: false
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: GIT_URL
+          Type: PLAINTEXT
+          Value: Placeholder - lambda will provide when it invokes
+        - Name: GIT_BRANCH
+          Type: PLAINTEXT
+          Value:
+            Ref: GitBranch
+        - Name: SOURCE_BUCKET_PREFIX
+          Type: PLAINTEXT
+          Value:
+            Fn::Sub: cep-source-${AWS::AccountId}-${Env}-
+        - Name: SOURCE_KEY
+          Type: PLAINTEXT
+          Value: source.zip
+        - Name: COMMIT_MESSAGE
+          Type: PLAINTEXT
+          Value: Placeholder - lambda will provide when it invokes
+        - Name: REPO
+          Type: PLAINTEXT
+          Value: Placeholder - lambda will provide when it invokes
+        - Name: EXTENSION_PREFIX
+          Type: PLAINTEXT
+          Value: Placeholder - lambda will provide when it invokes
+      ServiceRole:
+        Fn::GetAtt:
+        - WebHookBuildProjectRole
+        - Arn
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: "version: 0.2\nphases:\n  build:\n    commands:\n      - echo $GIT_URL\n\
+          \      - echo $GIT_BRANCH\n      - echo $SOURCE_BUCKET\n      - git clone\
+          \ --depth=1 --branch=$GIT_BRANCH $GIT_URL /tmp/source\n      - cd /tmp/source\n\
+          \      - zip -r source.zip *  \n      - echo \"COMMIT_MESSAGE is $COMMIT_MESSAGE\"\
+          \n      - METADATA=\"{\\\"codepipeline-artifact-revision-summary\\\":\\\"\
+          \"\n      - METADATA=\"${METADATA}${COMMIT_MESSAGE}\"\n      - METADATA=\"\
+          ${METADATA}\\\"}\"\n      - echo \"METADATA is $METADATA\"\n      - aws\
+          \ s3 cp source.zip s3://${SOURCE_BUCKET_PREFIX}${EXTENSION_PREFIX}/ --metadata\
+          \ \"${METADATA}\"\n"
+  WebHookHandlerRole:
+    Type: AWS::IAM::Role
+    Condition: IsNotProd
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+      Policies:
+      - PolicyName: lambdaexec
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Effect: Allow
+            Resource: '*'
+          - Action:
+            - codebuild:StartBuild
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+              - WebHookBuildProject
+              - Arn
+          - Action:
+            - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              Ref: GitHubSecretArn
+  WebHookHandler:
+    Type: AWS::Lambda::Function
+    Condition: IsNotProd
+    Properties:
+      Code:
+        S3Bucket: ezbeard-cep-alpha-packages
+        S3Key: 840a6afc04a4d4d9a5b3dcbf2f32fb36
+      Role:
+        Fn::GetAtt:
+        - WebHookHandlerRole
+        - Arn
+      Handler: webhook.handler
+      Runtime: python3.7
+      MemorySize: 1024
+      Environment:
+        Variables:
+          SOURCE_BUCKET:
+            Ref: SourceBucket
+          SOURCE_KEY: source.zip
+          GIT_URL:
+            Ref: GitUrl
+          GIT_BRANCH:
+            Ref: GitBranch
+          BUILD_PROJECT:
+            Ref: WebHookBuildProject
+          SECRET_ARN:
+            Ref: GitHubSecretArn
+  WebHookRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Condition: IsNotProd
+    Properties:
+      Name:
+        Fn::Sub: cep-${Env}-github-webhook
+  WebHookCloudWatchRole:
+    Type: AWS::IAM::Role
+    Condition: IsNotProd
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+      Path: /
+      Policies:
+      - PolicyName: cwlogsapigateway
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:DescribeLogGroups
+            - logs:DescribeLogStreams
+            - logs:PutLogEvents
+            - logs:GetLogEvents
+            - logs:FilterLogEvents
+            Effect: Allow
+            Resource: '*'
+  WebHookAccount:
+    Type: AWS::ApiGateway::Account
+    Condition: IsNotProd
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+        - WebHookCloudWatchRole
+        - Arn
+    DependsOn: WebHookRestApi
+  WebHookDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Condition: IsNotProd
+    Properties:
+      RestApiId:
+        Ref: WebHookRestApi
+    DependsOn:
+    - WebHookANYProxy
+    - WebHookANYRoot
+  WebHookStage:
+    Type: AWS::ApiGateway::Stage
+    Condition: IsNotProd
+    Properties:
+      RestApiId:
+        Ref: WebHookRestApi
+      DeploymentId:
+        Ref: WebHookDeployment
+      StageName: prod
+  WebHookProxy:
+    Type: AWS::ApiGateway::Resource
+    Condition: IsNotProd
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+        - WebHookRestApi
+        - RootResourceId
+      PathPart: '{proxy+}'
+      RestApiId:
+        Ref: WebHookRestApi
+  WebHookRestApiPermission:
+    Type: AWS::Lambda::Permission
+    Condition: IsNotProd
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - WebHookHandler
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${WebHookRestApi}/*/*/*
+  WebHookRestApiRootPermission:
+    Type: AWS::Lambda::Permission
+    Condition: IsNotProd
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - WebHookHandler
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${WebHookRestApi}/*/*/
+  WebHookANYRoot:
+    Type: AWS::ApiGateway::Method
+    Condition: IsNotProd
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Fn::GetAtt:
+        - WebHookRestApi
+        - RootResourceId
+      RestApiId:
+        Ref: WebHookRestApi
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebHookHandler.Arn}/invocations
+  WebHookANYProxy:
+    Type: AWS::ApiGateway::Method
+    Condition: IsNotProd
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Ref: WebHookProxy
+      RestApiId:
+        Ref: WebHookRestApi
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebHookHandler.Arn}/invocations
+  PublishBuildBucketRole:
+    Type: AWS::IAM::Role
+    Condition: IsBeta
+    Metadata:
+      Comment: Allows the beta account to put builds into the prod bucket
+    Properties:
+      RoleName: cep-publish-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - s3.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: put-builds
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: s3:PutObject
+            Resource:
+            - Fn::Sub: arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}
+            - Fn::Sub: arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*
+  PipelineTopic:
+    Type: AWS::SNS::Topic
+    Metadata:
+      Comment: Topic for pipeline notifications
+    Properties:
+      TopicName:
+        Fn::Sub: ${Env}-pipeline-topic
+      Subscription:
+      - Endpoint:
+          Ref: NotificationEmail
+        Protocol: email
+  PipelineTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyTopicPolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: topic-policy
+          Effect: Allow
+          Principal:
+            Service: codestar-notifications.amazonaws.com
+          Action: sns:Publish
+          Resource:
+            Ref: PipelineTopic
+      Topics:
+      - Ref: PipelineTopic
+  PipelineNotification:
+    Type: AWS::CodeStarNotifications::NotificationRule
+    Metadata:
+      Comment: Notify when the pipeline succeeds or fails
+    Properties:
+      DetailType: FULL
+      EventTypeIds:
+      - codepipeline-pipeline-pipeline-execution-failed
+      - codepipeline-pipeline-pipeline-execution-succeeded
+      Name:
+        Fn::Sub: ${Env}-pipeline-notifications
+      Resource:
+        Fn::Sub: arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}
+      Targets:
+      - TargetAddress:
+          Ref: PipelineTopic
+        TargetType: SNS
+  PublishBuildBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsProd
+    Metadata:
+      Comment: Allows the beta account to drop builds into the prod account.
+    Properties:
+      Bucket:
+        Ref: SourceBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Sid: BetaAccountPut
+          Effect: Allow
+          Principal:
+            AWS:
+            - Fn::Sub: arn:aws:iam::${BetaAccountId}:role/cep-publish-role
+            - Fn::GetAtt:
+              - PublishCrossAccountRole
+              - Arn
+          Action: s3:PutObject
+          Resource:
+          - Fn::Sub: arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}
+          - Fn::Sub: arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*
+  HandlerBucket:
+    Type: AWS::S3::Bucket
+    Condition: IsProd
+    Metadata:
+      Comment: This bucket holds the handler package and logs for extension publishing
+    Properties:
+      BucketName:
+        Fn::Sub: cep-handler-${AWS::AccountId}
+  StackSetAdministrationRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Properties:
+      RoleName: AWSCloudFormationStackSetAdministrationRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: AssumeRole-AWSCloudFormationStackSetExecutionRole
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - sts:AssumeRole
+            Resource:
+            - Fn::Sub: arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole
+  StackSetExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Metadata:
+      Comment: We can limit this role to this account, since we are using stack sets
+        to deploy across all regions, but not to multiple accounts
+    Properties:
+      RoleName: AWSCloudFormationStackSetExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS:
+              Fn::Sub: ${AWS::AccountId}
+          Action:
+          - sts:AssumeRole
+      Path: /
+  StackSetExecutionPolicy:
+    Type: AWS::IAM::Policy
+    Condition: IsProd
+    Properties:
+      Roles:
+      - Ref: StackSetExecutionRole
+      PolicyName: cep-stack-set-execution
+      PolicyDocument:
+        Statement:
+        - Action:
+          - iam:CreateRole
+          - iam:DeleteRole
+          - iam:GetRole
+          - iam:PutRolePolicy
+          - iam:DeleteRolePolicy
+          - iam:GetRolePolicy
+          - iam:PassRole
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - codebuild:*
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - codepipeline:*
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - s3:*
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - events:*
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - cloudformation:*
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - sns:*
+          Effect: Allow
+          Resource: '*'
+        - Action:
+          - codestar-notifications:*
+          Effect: Allow
+          Resource: '*'
+  PublishCrossAccountRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Metadata:
+      Comment: Assumed by codepipeline in the beta account to access the prod source
+        bucket
+    Properties:
+      RoleName: community-registry-extensions-publish-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS:
+            - Fn::Sub: arn:aws:iam::${BetaAccountId}:root
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: cross-account-pipeline-deploy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Action:
+            - s3:Get*
+            - s3:List*
+            - s3:Put*
+            Effect: Allow
+            Resource:
+            - Fn::Sub: arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}
+            - Fn::Sub: arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*
+            - Fn::Sub: arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket
+            - Fn::Sub: arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket/*
+          - Action:
+            - kms:Encrypt
+            - kms:Decrypt
+            - kms:ReEncrypt
+            - kms:GenerateDataKey*
+            - kms:DescribeKey
+            Effect: Allow
+            Resource:
+            - Fn::Sub: arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*

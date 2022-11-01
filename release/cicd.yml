@@ -5,8 +5,8 @@ Parameters:
 
   Env:
     Type: String
-    Description: The environment, cicd or beta
-    AllowedValues: ["cicd", "beta"]
+    Description: The environment, alpha, beta, or prod. In a sandbox these are all in one account, but the actual deployment is to three different accounts.
+    AllowedValues: ["alpha", "beta", "prod"]
 
   GitUrl:
     Type: String
@@ -28,34 +28,47 @@ Parameters:
     Type: String
     Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
 
-  PublishBuildBucketName:
+  BetaAccountId:
     Type: String
-    Description: The name of the bucket to drop builds from the beta account when all integ tests succeed. In prod it should be community-registry-extensions-publish-build
+    Description: AccountId for the beta account, which pushes builds to the prod source bucket 
 
   ProdAccountId:
     Type: String
-    Description: Account ID for prod, required to share the KMS key so beta can deploy builds to the publish bucket
+    Description: Account ID for prod, required to share the KMS key so beta can deploy builds to the prod source bucket
 
   NotificationEmail:
     Type: String
     Description: Email address for pipeline notifications
 
 Conditions:
+
   IsBeta: !Equals
     - !Ref Env
     - beta
+
+  IsProd: !Equals
+    - !Ref Env
+    - prod
+
+  IsNotProd: !Not
+    - !Equals
+      - !Ref Env
+      - prod
 
 Resources:
 
   ArtifactBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: CodePipeline artifacts
     Properties:
-      BucketName: !Sub "cep-${Env}-${AWS::AccountId}-artifact-bucket"
+      BucketName: !Sub "cep-${Env}-${AWS::AccountId}-artifacts"
 
   ArtifactBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsBeta
     Metadata:
       Comment: Allows the beta account to use an assumed role in the prod account to drop builds into the prod account
-    Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref ArtifactBucket
       PolicyDocument:
@@ -526,7 +539,6 @@ Resources:
       VersioningConfiguration: 
         Status: Enabled
 
-
   PipelineRole:
     Type: AWS::IAM::Role
     Properties:
@@ -550,8 +562,6 @@ Resources:
           - Action: "sts:AssumeRole"
             Effect: Allow
             Resource:
-              #- !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
-              # Circular reference between this and cicd-prod.yml for sandbox deployment
               - !Sub "arn:aws:iam::${ProdAccountId}:role/community-*"
           - Action:
               - s3:GetObject*
@@ -572,8 +582,6 @@ Resources:
                 - ''
                 - - !GetAtt SourceBucket.Arn
                   - /*
-              - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
-              - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
           - Action:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
@@ -592,111 +600,6 @@ Resources:
               - sns:Publish
             Effect: Allow
             Resource: !Ref PipelineTopic
-  
-  SourceEventRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          -
-            Effect: Allow
-            Principal:
-              Service:
-                - events.amazonaws.com
-            Action: sts:AssumeRole
-      Path: /
-      Policies:
-        -
-          PolicyName: cwe-pipeline-execution
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              -
-                Effect: Allow
-                Action: codepipeline:StartPipelineExecution
-                Resource: !Join [ '', [ 'arn:aws:codepipeline:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', !Ref Pipeline ] ]
-
-  SourceEventRule:
-    Type: AWS::Events::Rule
-    Metadata:
-      Comments: Starts the pipeline when we see source.zip from the webhook build job
-    Properties:
-      EventPattern:
-        source:
-          - aws.s3
-        detail-type:
-          - 'AWS API Call via CloudTrail'
-        detail:
-          eventSource:
-            - s3.amazonaws.com
-          eventName:
-            - CopyObject
-            - PutObject
-            - CompleteMultipartUpload
-          requestParameters:
-            bucketName:
-              - !Ref SourceBucket
-            key:
-              - "source.zip" 
-      Targets:
-        -
-          Arn:
-            !Join [ '', [ 'arn:aws:codepipeline:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', !Ref Pipeline ] ]
-          RoleArn: !GetAtt SourceEventRole.Arn
-          Id: codepipeline-Pipeline
-
-  AWSCloudTrailBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref AWSCloudTrailBucket
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          -
-            Sid: AWSCloudTrailAclCheck
-            Effect: Allow
-            Principal:
-              Service:
-                - cloudtrail.amazonaws.com
-            Action: s3:GetBucketAcl
-            Resource: !GetAtt AWSCloudTrailBucket.Arn
-          -
-            Sid: AWSCloudTrailWrite
-            Effect: Allow
-            Principal:
-              Service:
-                - cloudtrail.amazonaws.com
-            Action: s3:PutObject
-            Resource: !Join [ '', [ !GetAtt AWSCloudTrailBucket.Arn, '/AWSLogs/', !Ref 'AWS::AccountId', '/*' ] ]
-            Condition: 
-              StringEquals:
-                s3:x-amz-acl: bucket-owner-full-control
-  
-  AWSCloudTrailBucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-  
-  AwsCloudTrail:
-    DependsOn:
-      - AWSCloudTrailBucketPolicy
-    Type: AWS::CloudTrail::Trail
-    Properties:
-      S3BucketName: !Ref AWSCloudTrailBucket
-      EventSelectors:
-        -
-          DataResources:
-            -
-              Type: AWS::S3::Object
-              Values:
-                - !Join [ '', [ !GetAtt SourceBucket.Arn, '/', "source.zip" ] ]
-                - !Sub "arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-okta/source.zip"
-          ReadWriteType: WriteOnly
-          IncludeManagementEvents: false
-      IncludeGlobalServiceEvents: true
-      IsLogging: true
-      IsMultiRegionTrail: true
 
   PipelineKey:
     Type: AWS::KMS::Key
@@ -742,8 +645,6 @@ Resources:
               AWS: 
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-                #- !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
-                # Circular reference in sandbox deployments with cicd-prod.yml
                 - !GetAtt BucketNotificationBuildProjectRole.Arn
                 - !GetAtt DeleteBucketContentsBuildProjectRole.Arn
                 - !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
@@ -787,30 +688,30 @@ Resources:
               Configuration: 
                 S3Bucket: !Ref SourceBucket
                 S3ObjectKey: "source.zip" 
-                PollForSourceChanges: false
+                PollForSourceChanges: true
               OutputArtifacts:
                 - Name: extensions-source 
         - Name: Build
           Actions:
-            - Name: BucketNotification
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref BucketNotificationBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "RESOURCE_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "resources/S3_BucketNotification"
-                    }
-                  ]
-              RunOrder: 2
+            #- Name: BucketNotification
+            #  InputArtifacts:
+            #    - Name: extensions-source
+            #  ActionTypeId:
+            #    Category: Build
+            #    Owner: AWS
+            #    Provider: CodeBuild
+            #    Version: 1
+            #  Configuration:
+            #    ProjectName: !Ref BucketNotificationBuildProject
+            #    EnvironmentVariables: |-
+            #      [
+            #        {
+            #          "name": "RESOURCE_PATH",
+            #          "type": "PLAINTEXT",
+            #          "value": "resources/S3_BucketNotification"
+            #        }
+            #      ]
+            #  RunOrder: 2
                 #            - Name: CloudFrontWebAclAssociation
                 #              InputArtifacts:
                 #                - Name: extensions-source
@@ -901,14 +802,14 @@ Resources:
                   Provider: S3
                   Version: 1
                 Configuration:
-                  BucketName: !Ref PublishBuildBucketName
+                  BucketName: !Sub "cep-source-${ProdAccountId}-prod-${PrefixLower}"
                   Extract: false
-                  ObjectKey: build.zip
+                  ObjectKey: source.zip
                   KMSEncryptionKeyARN: !GetAtt PipelineKey.Arn
           - !Ref AWS::NoValue
 
   # The webhook is invoked by GitHub when there is a push to a repo.
-  # There is a webhook in the cicd account and in the beta account.
+  # There is a webhook in the alpha account and in the beta account.
   # There is only one webhook for all namespaces in each env.
   # We don't replicate this in the templates for each 3rd party like Okta, etc.
   # The webhook handler and the CodeBuild it invokes clone the correct repo 
@@ -917,6 +818,7 @@ Resources:
 
   WebHookBuildProjectRole:
     Type: AWS::IAM::Role
+    Condition: IsNotProd
     Metadata: 
       Comment: Note that we give this project access to the source buckets for all 3rd parties, since we only have one instance of the webhook to start all pipelines when there is a push to one of the repos.
     Properties:
@@ -960,6 +862,7 @@ Resources:
 
   WebHookBuildProject:
     Type: AWS::CodeBuild::Project
+    Condition: IsNotProd
     Metadata:
       Comment: |
         This build project is invoked by a Lambda that is called from GitHub
@@ -1023,6 +926,7 @@ Resources:
 
   WebHookHandlerRole:
     Type: AWS::IAM::Role
+    Condition: IsNotProd
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -1053,6 +957,7 @@ Resources:
 
   WebHookHandler:
     Type: AWS::Lambda::Function
+    Condition: IsNotProd
     Properties:
       Code: webhook.py
       Role: !GetAtt WebHookHandlerRole.Arn
@@ -1070,11 +975,13 @@ Resources:
 
   WebHookRestApi:
     Type: AWS::ApiGateway::RestApi
+    Condition: IsNotProd
     Properties:
       Name: !Sub "cep-${Env}-github-webhook"
 
   WebHookCloudWatchRole:
     Type: AWS::IAM::Role
+    Condition: IsNotProd
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -1102,12 +1009,14 @@ Resources:
 
   WebHookAccount:
     Type: AWS::ApiGateway::Account
+    Condition: IsNotProd
     Properties:
       CloudWatchRoleArn: !GetAtt WebHookCloudWatchRole.Arn
     DependsOn: WebHookRestApi
 
   WebHookDeployment:
     Type: AWS::ApiGateway::Deployment
+    Condition: IsNotProd
     Properties:
       RestApiId: !Ref WebHookRestApi
     DependsOn:
@@ -1116,6 +1025,7 @@ Resources:
 
   WebHookStage:
     Type: AWS::ApiGateway::Stage
+    Condition: IsNotProd
     Properties:
       RestApiId: !Ref WebHookRestApi
       DeploymentId: !Ref WebHookDeployment
@@ -1123,6 +1033,7 @@ Resources:
 
   WebHookProxy:
     Type: AWS::ApiGateway::Resource
+    Condition: IsNotProd
     Properties:
       ParentId: !GetAtt WebHookRestApi.RootResourceId
       PathPart: "{proxy+}"
@@ -1130,6 +1041,7 @@ Resources:
 
   WebHookRestApiPermission:
     Type: AWS::Lambda::Permission
+    Condition: IsNotProd
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt WebHookHandler.Arn
@@ -1138,6 +1050,7 @@ Resources:
 
   WebHookRestApiRootPermission:
     Type: AWS::Lambda::Permission
+    Condition: IsNotProd
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt WebHookHandler.Arn
@@ -1146,6 +1059,7 @@ Resources:
 
   WebHookANYRoot:
     Type: AWS::ApiGateway::Method
+    Condition: IsNotProd
     Properties:
       HttpMethod: ANY
       ResourceId: !GetAtt WebHookRestApi.RootResourceId
@@ -1158,6 +1072,7 @@ Resources:
 
   WebHookANYProxy:
     Type: AWS::ApiGateway::Method
+    Condition: IsNotProd
     Properties:
       HttpMethod: ANY
       ResourceId: !Ref WebHookProxy
@@ -1195,8 +1110,8 @@ Resources:
                 Effect: Allow
                 Action: s3:PutObject
                 Resource: 
-                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
-                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
 
   PipelineTopic:
     Type: AWS::SNS::Topic
@@ -1239,3 +1154,167 @@ Resources:
         - TargetAddress: !Ref PipelineTopic
           TargetType: SNS
 
+# Prod account resources
+
+  PublishBuildBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsProd
+    Metadata:
+      Comment: Allows the beta account to drop builds into the prod account.
+    Properties:
+      Bucket: !Ref SourceBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: BetaAccountPut
+            Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub "arn:aws:iam::${BetaAccountId}:role/cep-publish-role" 
+                - !GetAtt PublishCrossAccountRole.Arn
+            Action: s3:PutObject
+            Resource: 
+              - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
+              - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
+
+  HandlerBucket:
+    Type: AWS::S3::Bucket
+    Condition: IsProd
+    Metadata:
+      Comment: This bucket holds the handler package and logs for extension publishing
+    Properties:
+      BucketName: !Sub "cep-handler-${AWS::AccountId}"
+
+  StackSetAdministrationRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Properties:
+      RoleName: AWSCloudFormationStackSetAdministrationRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: AssumeRole-AWSCloudFormationStackSetExecutionRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole"
+
+  StackSetExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Metadata:
+      Comment: We can limit this role to this account, since we are using stack sets to deploy across all regions, but not to multiple accounts
+    Properties:
+      RoleName: AWSCloudFormationStackSetExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "${AWS::AccountId}"
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  StackSetExecutionPolicy:
+    Type: AWS::IAM::Policy
+    Condition: IsProd
+    Properties:
+      Roles:
+        - !Ref StackSetExecutionRole
+      PolicyName: cep-stack-set-execution
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:GetRolePolicy
+              - iam:PassRole
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codebuild:*
+            Effect: Allow
+            Resource: "*" 
+          - Action:
+              - codepipeline:*
+            Effect: Allow
+            Resource: "*"
+          - Action: 
+              - s3:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - events:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - cloudformation:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sns:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codestar-notifications:*
+            Effect: Allow
+            Resource: "*"
+
+  PublishCrossAccountRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Metadata:
+      Comment: Assumed by codepipeline in the beta account to access the prod source bucket
+    Properties:
+      RoleName: community-registry-extensions-publish-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub "arn:aws:iam::${BetaAccountId}:root"
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        -
+          PolicyName: cross-account-pipeline-deploy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - s3:Get*
+                  - s3:List*
+                  - s3:Put*
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
+                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket"
+                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket/*"
+              - Action: 
+                  - kms:Encrypt
+                  - kms:Decrypt
+                  - kms:ReEncrypt
+                  - kms:GenerateDataKey*
+                  - kms:DescribeKey
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
+              

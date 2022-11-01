@@ -1,3 +1,5 @@
+# No longer in use! Keeping the file around for reference.
+
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Common infrastructure for the community registry extensions CICD in the prod account for publishing across all regions
 

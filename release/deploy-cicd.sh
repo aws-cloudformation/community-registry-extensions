@@ -1,14 +1,16 @@
 #!/bin/sh
+#
+# See scripts/deploy-cicd.sh for an example of how to call this
 
 set -eou pipefail
 
-STACK_NAME=cep-cicd
+STACK_NAME="cep-${CEP_ENV}"
 TEMPLATE_DIR="."
 
 if [ ! -z "${1:-}" ]
 then
     TEMPLATE_DIR=$1
-    STACK_NAME="cep-cicd-${TEMPLATE_DIR}"
+    STACK_NAME="cep-${CEP_ENV}-${TEMPLATE_DIR}"
 fi
 TEMPLATE_FILE="${TEMPLATE_DIR}/cicd.yml"
 
@@ -29,7 +31,7 @@ fi
 
 cfn-lint $TEMPLATE_FILE -i W3002,W2001
 
-aws --profile $PROFILE cloudformation package --template-file $TEMPLATE_FILE --s3-bucket $PACKAGE_BUCKET > cicd-package.yml
+aws --profile $PROFILE cloudformation package --template-file $TEMPLATE_FILE --s3-bucket $PACKAGE_BUCKET > ${CEP_ENV}-package.yml
 
-rain --profile $PROFILE deploy --params Env=$CEP_ENV,Prefix=$PREFIX,PrefixLower=$PREFIX_LOWER,GitUrl=$GIT_URL,GitBranch=$GIT_BRANCH,GitHubSecretArn=$GITHUB_SECRET_ARN,PublishBuildBucketName=$PUBLISH_BUILD_BUCKET_NAME,ProdAccountId=$PROD_ACCOUNT_ID,NotificationEmail=$NOTIFICATION_EMAIL cicd-package.yml $STACK_NAME
+rain --profile $PROFILE deploy --params Env=$CEP_ENV,Prefix=$PREFIX,PrefixLower=$PREFIX_LOWER,GitUrl=$GIT_URL,GitBranch=$GIT_BRANCH,GitHubSecretArn=$GITHUB_SECRET_ARN,ProdAccountId=$PROD_ACCOUNT_ID,NotificationEmail=$NOTIFICATION_EMAIL,BetaAccountId=$BETA_ACCOUNT_ID ${CEP_ENV}-package.yml $STACK_NAME
 
