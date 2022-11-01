@@ -5,6 +5,7 @@ build-backend = "maturin"
 [project]
 name = "cfn_guard_rs"
 requires-python = ">=3.7"
+dependencies = ["pyyaml~=5.4.1"]
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
