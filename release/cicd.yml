@@ -1307,8 +1307,8 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
                   - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
-                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket"
-                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket/*"
+                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifacts"
+                  - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifacts/*"
               - Action: 
                   - kms:Encrypt
                   - kms:Decrypt
