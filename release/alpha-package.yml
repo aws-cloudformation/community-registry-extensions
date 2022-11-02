@@ -709,6 +709,8 @@ Resources:
       Comment: This pipeline runs integ tests on all extensions, then drops the build
         into the prod account for publishing
     Properties:
+      Name:
+        Fn::Sub: cep-${Env}-${PrefixLower}
       RoleArn:
         Fn::GetAtt:
         - PipelineRole
@@ -927,7 +929,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: ezbeard-cep-alpha-packages
-        S3Key: 840a6afc04a4d4d9a5b3dcbf2f32fb36
+        S3Key: f38d41bd41f82fb0829860dc9af027e1
       Role:
         Fn::GetAtt:
         - WebHookHandlerRole
@@ -1137,7 +1139,7 @@ Resources:
       - codepipeline-pipeline-pipeline-execution-failed
       - codepipeline-pipeline-pipeline-execution-succeeded
       Name:
-        Fn::Sub: ${Env}-pipeline-notifications
+        Fn::Sub: ${Env}-pipeline
       Resource:
         Fn::Sub: arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}
       Targets:

@@ -665,6 +665,7 @@ Resources:
     Metadata:
       Comment: This pipeline runs integ tests on all extensions, then drops the build into the prod account for publishing
     Properties:
+      Name: !Sub "cep-${Env}-${PrefixLower}"
       RoleArn: !GetAtt PipelineRole.Arn
       ArtifactStore: !If
         - IsBeta
@@ -1148,7 +1149,7 @@ Resources:
       EventTypeIds:
         - codepipeline-pipeline-pipeline-execution-failed
         - codepipeline-pipeline-pipeline-execution-succeeded
-      Name: !Sub "${Env}-pipeline-notifications"
+      Name: !Sub "${Env}-pipeline"
       Resource: !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}"
       Targets:
         - TargetAddress: !Ref PipelineTopic
