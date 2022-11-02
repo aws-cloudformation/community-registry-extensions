@@ -129,3 +129,5 @@ sam-tests/
 rpdk.log*
 awscommunity-s3-deletebucketcontents.zip
 .DS_Store
+publish.yml
+
