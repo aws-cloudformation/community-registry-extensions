@@ -84,8 +84,8 @@ Resources:
               - s3:Get*
               - s3:List*
             Resource: 
-              - !Sub "arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifact-bucket"
-              - !Sub "arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifact-bucket/*" 
+              - !Sub "arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifacts"
+              - !Sub "arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifacts/*" 
 
   S3BucketVersioningEnabledBuildProjectRole:
     Type: AWS::IAM::Role
@@ -1171,7 +1171,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS: 
-                - !Sub "arn:aws:iam::${BetaAccountId}:role/cep-publish-role" 
+                - !Sub "arn:aws:iam::${BetaAccountId}:root"
                 - !GetAtt PublishCrossAccountRole.Arn
             Action: s3:PutObject
             Resource: 

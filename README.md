@@ -50,6 +50,39 @@ See the contributer guide: [./CONTRIBUTING.md](CONTRIBUTING.md)
 
 Also check out how our release process works here: [./RELEASE.md](RELEASE.md)
 
+## Related Repositories
+
+### CloudFormation CLI and language plugins
+
+The CloudFormation CLI (`cfn`), not to be confused with the `aws
+cloudformation` commands, is used to initialize, build, test, and publish
+registry extensions.
+
+https://github.com/aws-cloudformation/cloudformation-cli
+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin
+https://github.com/aws-cloudformation/cloudformation-cli-typescript-plugin
+https://github.com/aws-cloudformation/cloudformation-cli-go-plugin
+https://github.com/aws-cloudformation/cloudformation-cli-java-plugin
+
+### cfn-lint
+
+The CloudFormation linter is an indespensible tool for developing templates. It
+does static analysis on your template to make sure it's valid before submitting
+it, which saves a lot of wasted time waiting for the service to tell you the
+same thing.
+
+https://github.com/aws-cloudformation/cfn-lint
+
+### rain
+
+Rain is what happens when you have cloud formations... Rain is a CLI helper for
+CloudFormation that makes it a lot easier to author and deploy stacks. Instead
+of needing to string together `aws cloudformation` commands to check the status
+of a stack before either creating or updating, rain does all of this with a
+simple `deploy` command.
+
+https://github.com/aws-cloudformation/rain
+
 ## Maintainers
 
 [![](https://github.com/ericzbeard.png?size=50)](https://github.com/ericzbeard)
