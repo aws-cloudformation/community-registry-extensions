@@ -17,6 +17,7 @@ from cloudformation_cli_python_lib import (
     HandlerErrorCode,
 )
 import cfn_guard_rs
+from cfn_guard_rs.errors import (GuardError, ParseError, MissingValueError)
 
 LOG = logging.getLogger(__name__)
 
@@ -130,12 +131,24 @@ class GuardHook(Hook):
             else:
                 progress.status = OperationStatus.FAILED
                 progress.errorCode = HandlerErrorCode.NonCompliant
-                progress.message = "No reosurce properties were supplied"
-        # pylint: disable=broad-except
-        except Exception as err:
+                progress.message = "No resource properties were supplied"
+        except (ParseError, MissingValueError) as err:
+            # Parse error when parsing the rules
             LOG.error(err)
             progress.status = OperationStatus.FAILED
-            progress.errorCode = HandlerErrorCode.NonCompliant
+            progress.errorCode = HandlerErrorCode.InvalidRequest
+            progress.message = str(err)
+        except GuardError as err:
+            # general guard error
+            LOG.error(err)
+            progress.status = OperationStatus.FAILED
+            progress.errorCode = HandlerErrorCode.InternalFailure
+            progress.message = str(err)
+        except Exception as err:  #pylint: disable=broad-except
+            # Catch all other types of errors
+            LOG.error(err)
+            progress.status = OperationStatus.FAILED
+            progress.errorCode = HandlerErrorCode.GeneralServiceException
             progress.message = str(err)
 
         return progress
