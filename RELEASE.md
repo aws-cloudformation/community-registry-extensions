@@ -21,7 +21,8 @@ See the tracking issue [here](https://github.com/aws-cloudformation/community-re
 This is the account that belongs to a resource developer, where extensions are
 submitted to the private registry for integration testing. Extensions should be
 clearly documented so that a new developer can quickly deploy and test an
-extension in their account.
+extension in their account. Developers can also deploy the CICD pipelines to a
+single sandbox account in order to test changes to the release process.
 
 ### Alpha account
 
@@ -67,9 +68,8 @@ successfully updated by the new default version. The resource developer creates
 should create all needed resources, and does not rely on the `test/setup.yml`
 template.
 
-In the integ template, no hard-coded names should
-be used, to avoid issues with multiple stacks being deployed from the same
-template in the same account.
+In the integ template, no hard-coded names should be used, to avoid issues with
+multiple stacks being deployed from the same template in the same account.
 
 The beta account uses the same CloudFormation template, `release/cicd.yml`, as 
 the alpha account, since the pipeline and permissions are very similar. The pipeline 
@@ -83,8 +83,10 @@ prod account to start the publishing process, if all beta tests succeed.
 
 An account controlled by AWS that is the publisher for the registry extensions.
 If all integ tests succeed in the beta account, the prod pipeline is invoked by
-copying the build to an S3 bucket that starts the pipeline. A stack set is used 
-to publish the extension to all regions.
+copying the build to an S3 bucket that starts the pipeline. A stack set is used
+to publish the extension to all regions. The prod account uses the same
+`cicd.yml` template as the alpha and beta accounts, with different parameter
+values and different build specs.
 
 ### Development
 
