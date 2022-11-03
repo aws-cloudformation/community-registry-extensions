@@ -562,7 +562,7 @@ Resources:
           - Action: "sts:AssumeRole"
             Effect: Allow
             Resource:
-              - !Sub "arn:aws:iam::${ProdAccountId}:role/community-*"
+              - !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
           - Action:
               - s3:GetObject*
               - s3:GetBucket*
@@ -751,6 +751,25 @@ Resources:
                     }
                   ]
               RunOrder: 1
+        - !If
+          - IsBeta
+          - Name: CopyBuildToProd
+            Actions:
+              - Name: Copy
+                RoleArn: !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
+                InputArtifacts: 
+                  - Name: extensions-source
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Provider: S3
+                  Version: 1
+                Configuration:
+                  BucketName: !Sub "cep-source-${ProdAccountId}-prod-${PrefixLower}"
+                  Extract: false
+                  ObjectKey: source.zip
+                  KMSEncryptionKeyARN: !GetAtt PipelineKey.Arn
+          - !Ref AWS::NoValue
                 #            - Name: S3BucketVersioningEnabled
                 #              InputArtifacts:
                 #                - Name: extensions-source
@@ -789,25 +808,6 @@ Resources:
                 #                    }
                 #                  ]
                 #              RunOrder: 2
-        - !If
-          - IsBeta
-          - Name: CopyBuildToProd
-            Actions:
-              - Name: Copy
-                RoleArn: !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
-                InputArtifacts: 
-                  - Name: extensions-source
-                ActionTypeId:
-                  Category: Deploy
-                  Owner: AWS
-                  Provider: S3
-                  Version: 1
-                Configuration:
-                  BucketName: !Sub "cep-source-${ProdAccountId}-prod-${PrefixLower}"
-                  Extract: false
-                  ObjectKey: source.zip
-                  KMSEncryptionKeyARN: !GetAtt PipelineKey.Arn
-          - !Ref AWS::NoValue
 
   # The webhook is invoked by GitHub when there is a push to a repo.
   # There is a webhook in the alpha account and in the beta account.
@@ -1118,6 +1118,7 @@ Resources:
     Type: AWS::SNS::Topic
     Metadata:
       Comment: Topic for pipeline notifications
+    DependsOn: Pipeline
     Properties:
       TopicName: !Sub "${Env}-pipeline-topic"
       Subscription:
@@ -1144,6 +1145,7 @@ Resources:
     Type: AWS::CodeStarNotifications::NotificationRule
     Metadata:
       Comment: Notify when the pipeline succeeds or fails
+    DependsOn: Pipeline
     Properties:
       DetailType: FULL
       EventTypeIds:

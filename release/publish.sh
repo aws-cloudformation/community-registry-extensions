@@ -2,8 +2,15 @@
 #
 # Publish a resource type to all regions
 # Run this from the resource directory, for example S3_DeleteBucketContents/
+#
+# See scripts/publish.sh for an example of how to call it
 # 
 # Environment:
+#
+#   AWS_PROFILE (If a default profile is not set)
+#   PARAMETERS  Params for the stack set template
+#       For example
+#       [{"ParameterKey":"SchemaPackageURL","ParameterValue":"cep-handler-755952356119"}]
 #
 # Args: List of regions separated by spaces
 
@@ -91,14 +98,23 @@ do
     do
         echo "Checking $region"
 
-        DETAILED_STATUS=$(aws cloudformation describe-stack-instance \
+        # Returns an error code if it hasn't been created yet
+        if aws cloudformation describe-stack-instance \
             --stack-set-name $STACK_SET_NAME \
-            --stack-instance-account "$ACCOUNT" \
-            --stack-instance-region "$region" | jq .StackInstance | jq .StackInstanceStatus | jq -r .DetailedStatus)
-        echo $DETAILED_STATUS
-        if [ $DETAILED_STATUS == "PENDING" ] || [ $DETAILED_STATUS == "RUNNING" ]
+            --stack-instance-account "$ACCOUNT_ID" \
+            --stack-instance-region "$region"
         then
-            IS_ANY_PENDING=1
+
+            # Parse the detailed status if it was already created
+            DETAILED_STATUS=$(aws cloudformation describe-stack-instance \
+                --stack-set-name $STACK_SET_NAME \
+                --stack-instance-account "$ACCOUNT_ID" \
+                --stack-instance-region "$region" | jq .StackInstance | jq .StackInstanceStatus | jq -r .DetailedStatus)
+            echo $DETAILED_STATUS
+            if [ $DETAILED_STATUS == "PENDING" ] || [ $DETAILED_STATUS == "RUNNING" ]
+            then
+                IS_ANY_PENDING=1
+            fi
         fi
     done
 done
@@ -108,6 +124,6 @@ echo "About to create or update stack instances"
 
 aws cloudformation create-stack-instances \
     --stack-set-name $STACK_SET_NAME \
-    --accounts "$ACCOUNT" \
+    --accounts "$ACCOUNT_ID" \
     --regions "$@" 
 

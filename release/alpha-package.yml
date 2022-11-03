@@ -81,8 +81,8 @@ Resources:
           - s3:Get*
           - s3:List*
           Resource:
-          - Fn::Sub: arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifact-bucket
-          - Fn::Sub: arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifact-bucket/*
+          - Fn::Sub: arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifacts
+          - Fn::Sub: arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifacts/*
   S3BucketVersioningEnabledBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -928,8 +928,8 @@ Resources:
     Condition: IsNotProd
     Properties:
       Code:
-        S3Bucket: ezbeard-cep-alpha-packages
-        S3Key: f38d41bd41f82fb0829860dc9af027e1
+        S3Bucket: community-registry-extensions-alpha-packages
+        S3Key: 9f97a29966f0db77d45a574c6aaa53a1
       Role:
         Fn::GetAtt:
         - WebHookHandlerRole
@@ -1133,6 +1133,7 @@ Resources:
     Type: AWS::CodeStarNotifications::NotificationRule
     Metadata:
       Comment: Notify when the pipeline succeeds or fails
+    DependsOn: Pipeline
     Properties:
       DetailType: FULL
       EventTypeIds:
@@ -1161,7 +1162,7 @@ Resources:
           Effect: Allow
           Principal:
             AWS:
-            - Fn::Sub: arn:aws:iam::${BetaAccountId}:role/cep-publish-role
+            - Fn::Sub: arn:aws:iam::${BetaAccountId}:root
             - Fn::GetAtt:
               - PublishCrossAccountRole
               - Arn
@@ -1296,8 +1297,8 @@ Resources:
             Resource:
             - Fn::Sub: arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}
             - Fn::Sub: arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*
-            - Fn::Sub: arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket
-            - Fn::Sub: arn:aws:s3:::cep-beta-${BetaAccountId}-artifact-bucket/*
+            - Fn::Sub: arn:aws:s3:::cep-beta-${BetaAccountId}-artifacts
+            - Fn::Sub: arn:aws:s3:::cep-beta-${BetaAccountId}-artifacts/*
           - Action:
             - kms:Encrypt
             - kms:Decrypt

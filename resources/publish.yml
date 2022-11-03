@@ -1,28 +1,36 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Registers and sets a new default resource version, registers the account as a publisher, and publishes the resource to the public registry.
 Parameters:
+
   SchemaPackageURL:
     Description: URL to S3::Bucket that contains the resource project package 
     Type: String
+
 Resources:
+
   PrivateResourceVersion: 
     Type: AWS::CloudFormation::ResourceVersion
+    DeletionPolicy: Retain
     Properties:
       SchemaHandlerPackage: !Ref SchemaPackageURL 
       TypeName: MyOrg::MyService::MyType 
+
   ResourceDefaultVersion:    
     Type: AWS::CloudFormation::ResourceDefaultVersion
     DependsOn: PrivateResourceVersion
     Properties:
       TypeVersionArn: !Ref PrivateResourceVersion
+
   Publisher:
     Type: AWS::CloudFormation::Publisher
     DependsOn: ResourceDefaultVersion
     Properties:
       AcceptTermsAndConditions: true
+
   PublishedResource:     
     Type: AWS::CloudFormation::PublicTypeVersion
     DependsOn: Publisher
     Properties:
       Type: RESOURCE
       TypeName: MyOrg::MyService::MyType
+
