@@ -50,6 +50,7 @@ See the contributer guide: [./CONTRIBUTING.md](CONTRIBUTING.md)
 
 Also check out how our release process works here: [./RELEASE.md](RELEASE.md)
 
+<<<<<<< HEAD
 ## Related Repositories
 
 ### CloudFormation CLI and language plugins
@@ -82,6 +83,13 @@ of a stack before either creating or updating, rain does all of this with a
 simple `deploy` command.
 
 https://github.com/aws-cloudformation/rain
+
+## Publishing packages
+
+We publish our python packages in `packages/` to pypi. When we publish a release a workflow is triggered to do the publishing. See the `CD.yml` workflows [here](./github/workflows)
+
+For `cfn-guard-rs` we tag the release with `cfn-guard-rs-vX.X.X`
+For `cfn-guard-rs-hook` we tag the release with `cfn-guard-rs-hook-vX.X.X`
 
 ## Maintainers
 
