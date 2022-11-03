@@ -41,10 +41,10 @@ aws s3 cp $ZIPFILE s3://$HANDLER_BUCKET/$ZIPFILE
 # Create the stack set to register and publish the resource
 STACK_SET_NAME="publish-${TYPE_NAME_LOWER}"
 
-if ! aws --profile $PROFILE --no-cli-pager cloudformation describe-stack-set --stack-set-name $STACK_SET_NAME 2>&1 > /dev/null ; then
+if ! aws --no-cli-pager cloudformation describe-stack-set --stack-set-name $STACK_SET_NAME 2>&1 > /dev/null ; then
     echo "Creating $STACK_SET_NAME"
 
-    aws --profile $PROFILE cloudformation create-stack-set --stack-set-name $STACK_SET_NAME \
+    aws cloudformation create-stack-set --stack-set-name $STACK_SET_NAME \
         --template-body file://publish.yml \
         --parameters $PARAMETERS --capabilities CAPABILITY_NAMED_IAM
 
@@ -52,20 +52,20 @@ else
     
     echo "Updating $STACK_SET_NAME"
 
-    aws --profile $PROFILE cloudformation update-stack-set --stack-set-name $STACK_SET_NAME \
+    aws cloudformation update-stack-set --stack-set-name $STACK_SET_NAME \
         --template-body file://publish.yml \
         --parameters $PARAMETERS --capabilities CAPABILITY_NAMED_IAM 
 
 fi
 
-aws --profile $PROFILE --no-cli-pager \
+aws --no-cli-pager \
         cloudformation describe-stack-set --stack-set-name $STACK_SET_NAME 
 
 echo "About to poll for status"
 
 STATUS="IN_PROGRESS"
 check_status() {
-    if ! STATUS=$(aws --profile $PROFILE --no-cli-pager \
+    if ! STATUS=$(aws --no-cli-pager \
         cloudformation describe-stack-set --stack-set-name $STACK_SET_NAME | jq .StackSet | jq -r .Status) ; then
         STATUS="IN_PROGRESS"
     fi
@@ -91,7 +91,7 @@ do
     do
         echo "Checking $region"
 
-        DETAILED_STATUS=$(aws --profile $PROFILE cloudformation describe-stack-instance \
+        DETAILED_STATUS=$(aws cloudformation describe-stack-instance \
             --stack-set-name $STACK_SET_NAME \
             --stack-instance-account "$ACCOUNT" \
             --stack-instance-region "$region" | jq .StackInstance | jq .StackInstanceStatus | jq -r .DetailedStatus)
@@ -106,7 +106,7 @@ done
 
 echo "About to create or update stack instances"
 
-aws --profile $PROFILE cloudformation create-stack-instances \
+aws cloudformation create-stack-instances \
     --stack-set-name $STACK_SET_NAME \
     --accounts "$ACCOUNT" \
     --regions "$@" 
