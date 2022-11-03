@@ -50,7 +50,6 @@ See the contributer guide: [./CONTRIBUTING.md](CONTRIBUTING.md)
 
 Also check out how our release process works here: [./RELEASE.md](RELEASE.md)
 
-<<<<<<< HEAD
 ## Related Repositories
 
 ### CloudFormation CLI and language plugins
