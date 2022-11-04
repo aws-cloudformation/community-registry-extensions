@@ -45,6 +45,13 @@ HANDLER_BUCKET="cep-handler-${ACCOUNT_ID}"
 echo "Copying schema package handler to $HANDLER_BUCKET"
 aws s3 cp $ZIPFILE s3://$HANDLER_BUCKET/$ZIPFILE
 
+# Stack set params
+PARAMETERS='[{"ParameterKey":"SchemaPackageURL","ParameterValue":"'
+PARAMETERS+="s3://${HANDLER_BUCKET}/${ZIPFILE}"
+PARAMETERS+='"}]'
+
+echo "PARAMETERS: ${PARAMETERS}"
+
 # Create the stack set to register and publish the resource
 STACK_SET_NAME="publish-${TYPE_NAME_LOWER}"
 
