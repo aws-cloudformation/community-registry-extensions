@@ -1,11 +1,12 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Infrastructure for the Okta community registry extensions CICD pipeline
+Description: Infrastructure for the okta registry extensions CICD pipeline
 
 Parameters:
+
   Env:
     Type: String
-    Description: The environment, cicd or beta
-    AllowedValues: ["cicd", "beta"]
+    Description: The environment, alpha, beta, or prod. In a sandbox these are all in one account, but the actual deployment is to three different accounts.
+    AllowedValues: ["alpha", "beta", "prod"]
 
   GitUrl:
     Type: String
@@ -27,30 +28,42 @@ Parameters:
     Type: String
     Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
 
-  PublishBuildBucketName:
+  BetaAccountId:
     Type: String
-    Description: The name of the bucket to drop builds from the beta account when all integ tests succeed. In prod it should be community-registry-extensions-publish-build
+    Description: AccountId for the beta account, which pushes builds to the prod source bucket 
 
   ProdAccountId:
     Type: String
-    Description: Account ID for prod, required to share the KMS key so beta can deploy builds to the publish bucket
+    Description: Account ID for prod, required to share the KMS key so beta can deploy builds to the prod source bucket
+
+  NotificationEmail:
+    Type: String
+    Description: Email address for pipeline notifications
 
 Conditions:
+
   IsBeta: !Equals
     - !Ref Env
     - beta
+
+  IsProd: !Equals
+    - !Ref Env
+    - prod
 
 Resources:
 
   ArtifactBucket:
     Type: AWS::S3::Bucket
+    Metadata:
+      Comment: CodePipeline artifacts
     Properties:
-      BucketName: !Sub "cep-okta-${Env}-${AWS::AccountId}-artifact-bucket"
+      BucketName: !Sub "cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
 
   ArtifactBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsBeta
     Metadata:
       Comment: Allows the beta account to use an assumed role in the prod account to drop builds into the prod account
-    Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref ArtifactBucket
       PolicyDocument:
@@ -66,16 +79,22 @@ Resources:
               - s3:Get*
               - s3:List*
             Resource: 
-              - !Sub "arn:aws:s3:::cep-okta-${Env}-${AWS::AccountId}-artifact-bucket"
-              - !Sub "arn:aws:s3:::cep-okta-${Env}-${AWS::AccountId}-artifact-bucket/*" 
+              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
+              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*" 
 
-  # TODO - This is the same for each namespace, can we deploy it to be shared by all?
-  # Question is how to associate it to each project role.
-  # And we also embed the prefix in a few places. It would need more stars.
+  OktaGroupBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
   CommonBuildProjectPolicy:
     Type: AWS::IAM::Policy
-    Metadata:
-      Comment: All build projects share this policy. Permissions are wide in some cases due to the way the cfn cli works.
     Properties:
       PolicyDocument:
         Statement:
@@ -192,7 +211,42 @@ Resources:
         Version: '2012-10-17'
       PolicyName: common-build-project-policy
       Roles:
-        - !Ref OktaGroupMembershipBuildProjectRole 
+        - !Ref OktaGroupBuildProjectRole
+
+  OktaGroupBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: 
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:okta-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: okta-group-build-project-policy
+      Roles:
+        - !Ref OktaGroupBuildProjectRole
+
+  OktaGroupBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt OktaGroupBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec.yml"
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -206,7 +260,7 @@ Resources:
   PipelineRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "cep-okta-${Env}-pipeline-role"
+      RoleName: !Sub "cep-${PrefixLower}-${Env}-pipeline-role"
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -214,52 +268,47 @@ Resources:
             Principal:
               Service: codepipeline.amazonaws.com
         Version: '2012-10-17'
-
-  PipelinePolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: extension-pipeline-policy
-      Roles: 
-        - !Ref PipelineRole
-      PolicyDocument:
-        Statement:
-          - Action: "sts:AssumeRole"
-            Effect: Allow
-            Resource:
-              #- !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
-              # Circular reference between this and cicd-prod.yml for sandbox deployment
-              - !Sub "arn:aws:iam::${ProdAccountId}:role/community-*"
-          - Action:
-              - s3:GetObject*
-              - s3:GetBucket*
-              - s3:List*
-              - s3:DeleteObject*
-              - s3:PutObject*
-              - s3:Abort*
-            Effect: Allow
-            Resource:
-              - !GetAtt ArtifactBucket.Arn
-              - !Join
-                - ''
-                - - !GetAtt ArtifactBucket.Arn
-                  - /*
-              - !GetAtt SourceBucket.Arn
-              - !Join
-                - ''
-                - - !GetAtt SourceBucket.Arn
-                  - /*
-              - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
-              - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
-          - Action:
-              - codebuild:StartBuild
-              - codebuild:BatchGetBuilds
-            Effect: Allow
-            Resource: 
-              - !GetAtt OktaGroupMembershipBuildProject.Arn 
-          - Action:
-              - kms:*
-            Effect: Allow
-            Resource: "*"
+      Policies:
+        - PolicyName: "inline-pipeline-policy" 
+          PolicyDocument:
+            Statement:
+              - Action: "sts:AssumeRole"
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:iam::${ProdAccountId}:role/${PrefixLower}-registry-extensions-publish-role"
+              - Action:
+                  - s3:GetObject*
+                  - s3:GetBucket*
+                  - s3:List*
+                  - s3:DeleteObject*
+                  - s3:PutObject*
+                  - s3:Abort*
+                Effect: Allow
+                Resource:
+                  - !GetAtt ArtifactBucket.Arn
+                  - !Join
+                    - ''
+                    - - !GetAtt ArtifactBucket.Arn
+                      - /*
+                  - !GetAtt SourceBucket.Arn
+                  - !Join
+                    - ''
+                    - - !GetAtt SourceBucket.Arn
+                      - /*
+              - Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                Effect: Allow
+                Resource: 
+                  - !GetAtt OktaGroupBuildProject.Arn
+              - Action:
+                  - kms:*
+                Effect: Allow
+                Resource: "*"
+              - Action:
+                  - sns:Publish
+                Effect: Allow
+                Resource: !Sub "arn:aws:sns:us-east-1:755952356119:${PrefixLower}-${Env}-pipeline-topic"
 
   PipelineKey:
     Type: AWS::KMS::Key
@@ -305,7 +354,7 @@ Resources:
               AWS: 
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-                - !GetAtt OktaGroupMembershipBuildProjectRole.Arn
+                - !GetAtt OktaGroupBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -313,14 +362,23 @@ Resources:
     Type: AWS::KMS::Alias
     Condition: IsBeta
     Properties:
-      AliasName: alias/cep-okta-pipeline-publish-key
+      AliasName: !Sub "alias/cep-${PrefixLower}-pipeline-publish-key"
       TargetKeyId: !Ref PipelineKey
+
+  WaitForPipelineRole:
+    Type: Custom::Delay
+    DependsOn: PipelineRole
+    Properties:
+      ServiceToken: !GetAtt DelayFunction.Arn
+      SecondsToSleep: 10
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
+    DependsOn: WaitForPipelineRole
     Metadata:
-      Comment: In cicd this pipeline runs cfn test on all extensions. In beta this pipeline runs integ tests on all extensions, then drops the build into the prod account for publishing
+      Comment: This pipeline runs integ tests on all extensions, then drops the build into the prod account for publishing
     Properties:
+      Name: !Sub "cep-${Env}-${PrefixLower}"
       RoleArn: !GetAtt PipelineRole.Arn
       ArtifactStore: !If
         - IsBeta
@@ -344,12 +402,12 @@ Resources:
               Configuration: 
                 S3Bucket: !Ref SourceBucket
                 S3ObjectKey: "source.zip" 
-                PollForSourceChanges: false
+                PollForSourceChanges: true
               OutputArtifacts:
                 - Name: extensions-source 
         - Name: Build
           Actions:
-            - Name: OktaGroupMembership
+            - Name: OktaGroup
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -358,13 +416,13 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaGroupMembershipBuildProject
+                ProjectName: !Ref OktaGroupBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Group-Membership"
+                      "value": "OktaGroup"
                     }
                   ]
               RunOrder: 1
@@ -373,7 +431,7 @@ Resources:
           - Name: CopyBuildToProd
             Actions:
               - Name: Copy
-                RoleArn: !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
+                RoleArn: !Sub "arn:aws:iam::${ProdAccountId}:role/${PrefixLower}-registry-extensions-publish-role"
                 InputArtifacts: 
                   - Name: extensions-source
                 ActionTypeId:
@@ -382,9 +440,9 @@ Resources:
                   Provider: S3
                   Version: 1
                 Configuration:
-                  BucketName: !Ref PublishBuildBucketName
+                  BucketName: !Sub "cep-source-${ProdAccountId}-prod-${PrefixLower}"
                   Extract: false
-                  ObjectKey: build.zip
+                  ObjectKey: source.zip
                   KMSEncryptionKeyARN: !GetAtt PipelineKey.Arn
           - !Ref AWS::NoValue
 
@@ -394,7 +452,7 @@ Resources:
     Metadata:
       Comment: Allows the beta account to put builds into the prod bucket
     Properties:
-      RoleName: cep-okta-publish-role
+      RoleName: !Sub "cep-${PrefixLower}-publish-role"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -415,59 +473,59 @@ Resources:
                 Effect: Allow
                 Action: s3:PutObject
                 Resource: 
-                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}"
-                  - !Sub "arn:aws:s3:::${PublishBuildBucketName}/*"
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
 
-
-  OktaGroupMembershipBuildProjectRole:
-    Type: AWS::IAM::Role
+  PipelineTopic:
+    Type: AWS::SNS::Topic
+    Metadata:
+      Comment: Topic for pipeline notifications
+    DependsOn: Pipeline
     Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-        Version: '2012-10-17'
+      TopicName: !Sub "${PrefixLower}-${Env}-pipeline-topic"
+      Subscription:
+        - Endpoint: !Ref NotificationEmail 
+          Protocol: email
 
-  OktaGroupMembershipBuildProject:
-    Type: AWS::CodeBuild::Project
+  WaitForPipeline:
+    Type: Custom::Delay
+    DependsOn: 
+      - Pipeline
     Properties:
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        ComputeType: BUILD_GENERAL1_LARGE
-        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: SERVICE_ROLE
-        PrivilegedMode: true
-        Type: LINUX_CONTAINER
-        EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec.yml"
+      ServiceToken: !GetAtt DelayFunction.Arn
+      SecondsToSleep: 10
 
-  OktaGroupMembershipBuildProjectPolicy:
-    Type: AWS::IAM::Policy
+  WaitForTopic:
+    Type: Custom::Delay
+    DependsOn: 
+      - PipelineTopic
+      - PipelineTopicPolicy
+    Properties:
+      ServiceToken: !GetAtt DelayFunction.Arn
+      SecondsToSleep: 10
+
+  PipelineTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
     Properties:
       PolicyDocument:
-        Statement:
-          - Action:
-              - secretsmanager:GetSecretValue
-            Effect: Allow
-            Resource: 
-              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:okta-group-membership-type-configuration*"
+        Id: MyTopicPolicy
         Version: '2012-10-17'
-      PolicyName: okta-group-membership-build-project-policy
-      Roles:
-        - !Ref OktaGroupMembershipBuildProjectRole
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - events.amazonaws.com
+          Action: sns:Publish
+          Resource: !Ref PipelineTopic
+      Topics:
+      - !Ref PipelineTopic
 
-  SourceEventRole:
+  PipelineEventRole:
     Type: AWS::IAM::Role
+    Metadata:
+      Comment: Allows the event rule to push to the topic
     Properties:
+      RoleName: !Sub "cep-${Env}-${PrefixLower}-pipeline-event-role"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -480,41 +538,243 @@ Resources:
       Path: /
       Policies:
         -
-          PolicyName: cwe-pipeline-execution
+          PolicyName: put-events
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               -
                 Effect: Allow
-                Action: codepipeline:StartPipelineExecution
-                Resource: !Join [ '', [ 'arn:aws:codepipeline:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', !Ref Pipeline ] ]
+                Action: sns:Publish
+                Resource: !Ref PipelineTopic
 
-  SourceEventRule:
+  PipelineEventRule:
     Type: AWS::Events::Rule
-    Metadata:
-      Comments: Starts the pipeline when we see source.zip from the webhook build job
+    DependsOn: WaitForTopic
     Properties:
-      EventPattern:
+      Description: Watch for pipeline success and failure
+      EventPattern: 
         source:
-          - aws.s3
+          - aws.codepipeline
         detail-type:
-          - 'AWS API Call via CloudTrail'
+          - CodePipeline Pipeline Execution State Change
         detail:
-          eventSource:
-            - s3.amazonaws.com
-          eventName:
-            - CopyObject
-            - PutObject
-            - CompleteMultipartUpload
-          requestParameters:
-            bucketName:
-              - !Sub "cep-source-${AWS::AccountId}-${Env}-okta"
-            key:
-              - "source.zip" 
+          pipeline: 
+            - !Ref Pipeline
+          state:
+            - SUCCEEDED
+            - FAILED
+      Name: !Sub "cep-${PrefixLower}-${Env}-pipelines"
       Targets:
+        - Arn: !Sub "arn:aws:sns:us-east-1:755952356119:${PrefixLower}-${Env}-pipeline-topic"
+          Id: pipeline-topic-target
+          InputTransformer:
+            InputTemplate: '"The pipeline <pipeline> from account <account> has <state> at <at>."'
+            InputPathsMap:
+              pipeline: "$.detail.pipeline"
+              state: "$.detail.state"
+              at: "$.time"
+              account: "$.account"
+
+# Prod account resources
+
+  PublishBuildBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsProd
+    Metadata:
+      Comment: Allows the beta account to drop builds into the prod account.
+    Properties:
+      Bucket: !Ref SourceBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: BetaAccountPut
+            Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub "arn:aws:iam::${BetaAccountId}:root"
+                - !GetAtt PublishCrossAccountRole.Arn
+            Action: s3:PutObject
+            Resource: 
+              - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
+              - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
+
+  HandlerBucket:
+    Type: AWS::S3::Bucket
+    Condition: IsProd
+    Metadata:
+      Comment: This bucket holds the handler package and logs for extension publishing
+    Properties:
+      BucketName: !Sub "cep-${PrefixLower}-handler-${AWS::AccountId}"
+
+  StackSetAdministrationRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Properties:
+      RoleName: AWSCloudFormationStackSetAdministrationRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: AssumeRole-AWSCloudFormationStackSetExecutionRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole"
+
+  StackSetExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Metadata:
+      Comment: We can limit this role to this account, since we are using stack sets to deploy across all regions, but not to multiple accounts
+    Properties:
+      RoleName: AWSCloudFormationStackSetExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "${AWS::AccountId}"
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  StackSetExecutionPolicy:
+    Type: AWS::IAM::Policy
+    Condition: IsProd
+    Properties:
+      Roles:
+        - !Ref StackSetExecutionRole
+      PolicyName: cep-stack-set-execution
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:GetRolePolicy
+              - iam:PassRole
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codebuild:*
+            Effect: Allow
+            Resource: "*" 
+          - Action:
+              - codepipeline:*
+            Effect: Allow
+            Resource: "*"
+          - Action: 
+              - s3:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - events:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - cloudformation:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sns:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codestar-notifications:*
+            Effect: Allow
+            Resource: "*"
+
+  PublishCrossAccountRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Metadata:
+      Comment: Assumed by codepipeline in the beta account to access the prod source bucket
+    Properties:
+      RoleName: community-registry-extensions-publish-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub "arn:aws:iam::${BetaAccountId}:root"
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
         -
-          Arn:
-            !Join [ '', [ 'arn:aws:codepipeline:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', !Ref Pipeline ] ]
-          RoleArn: !GetAtt SourceEventRole.Arn
-          Id: codepipeline-Pipeline
+          PolicyName: cross-account-pipeline-deploy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - s3:Get*
+                  - s3:List*
+                  - s3:Put*
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
+                  - !Sub "arn:aws:s3:::cep-${PrefixLower}-beta-${BetaAccountId}-artifacts"
+                  - !Sub "arn:aws:s3:::cep-${PrefixLower}-beta-${BetaAccountId}-artifacts/*"
+              - Action: 
+                  - kms:Encrypt
+                  - kms:Decrypt
+                  - kms:ReEncrypt
+                  - kms:GenerateDataKey*
+                  - kms:DescribeKey
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
+              
+# Delay Function to solve race conditions where the resource is not actually ready
+
+  DelayFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "lambda-logs"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - "arn:aws:logs:*:*:*"
+
+  DelayFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: delay.handler
+      Timeout: 120
+      Role: !GetAtt DelayFunctionRole.Arn
+      Runtime: python3.7
+      Code: delay.py 
+      MemorySize: 1024
 

@@ -1120,10 +1120,27 @@ Resources:
       Comment: Topic for pipeline notifications
     DependsOn: Pipeline
     Properties:
-      TopicName: !Sub "${Env}-pipeline-topic"
+      TopicName: !Sub "${PrefixLower}-${Env}-pipeline-topic"
       Subscription:
         - Endpoint: !Ref NotificationEmail 
           Protocol: email
+
+  WaitForPipeline:
+    Type: Custom::Delay
+    DependsOn: 
+      - Pipeline
+    Properties:
+      ServiceToken: !GetAtt DelayFunction.Arn
+      SecondsToSleep: 10
+
+  WaitForTopic:
+    Type: Custom::Delay
+    DependsOn: 
+      - PipelineTopic
+      - PipelineTopicPolicy
+    Properties:
+      ServiceToken: !GetAtt DelayFunction.Arn
+      SecondsToSleep: 10
 
   PipelineTopicPolicy:
     Type: AWS::SNS::TopicPolicy
@@ -1132,30 +1149,69 @@ Resources:
         Id: MyTopicPolicy
         Version: '2012-10-17'
         Statement:
-        - Sid: topic-policy
-          Effect: Allow
+        - Effect: Allow
           Principal:
-            Service: codestar-notifications.amazonaws.com
+            Service:
+              - events.amazonaws.com
           Action: sns:Publish
           Resource: !Ref PipelineTopic
       Topics:
       - !Ref PipelineTopic
 
-  PipelineNotification:
-    Type: AWS::CodeStarNotifications::NotificationRule
+  PipelineEventRole:
+    Type: AWS::IAM::Role
     Metadata:
-      Comment: Notify when the pipeline succeeds or fails
-    DependsOn: Pipeline
+      Comment: Allows the event rule to push to the topic
     Properties:
-      DetailType: FULL
-      EventTypeIds:
-        - codepipeline-pipeline-pipeline-execution-failed
-        - codepipeline-pipeline-pipeline-execution-succeeded
-      Name: !Sub "${Env}-pipeline"
-      Resource: !Sub "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}"
+      RoleName: !Sub "cep-${Env}-${PrefixLower}-pipeline-event-role"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        -
+          PolicyName: put-events
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action: sns:Publish
+                Resource: !Ref PipelineTopic
+
+  PipelineEventRule:
+    Type: AWS::Events::Rule
+    DependsOn: WaitForTopic
+    Properties:
+      Description: Watch for pipeline success and failure
+      EventPattern: 
+        source:
+          - aws.codepipeline
+        detail-type:
+          - CodePipeline Pipeline Execution State Change
+        detail:
+          pipeline: 
+            - !Ref Pipeline
+          state:
+            - SUCCEEDED
+            - FAILED
+      Name: !Sub "cep-${PrefixLower}-${Env}-pipelines"
       Targets:
-        - TargetAddress: !Ref PipelineTopic
-          TargetType: SNS
+        - Arn: !Sub "arn:aws:sns:us-east-1:755952356119:${PrefixLower}-${Env}-pipeline-topic"
+          Id: pipeline-topic-target
+          InputTransformer:
+            InputTemplate: '"The pipeline <pipeline> from account <account> has <state> at <at>."'
+            InputPathsMap:
+              pipeline: "$.detail.pipeline"
+              state: "$.detail.state"
+              at: "$.time"
+              account: "$.account"
 
 # Prod account resources
 
@@ -1321,3 +1377,42 @@ Resources:
                 Resource: 
                   - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
               
+# Delay Function to solve race conditions where the resource is not actually ready
+
+  DelayFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "lambda-logs"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - "arn:aws:logs:*:*:*"
+
+  DelayFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: delay.handler
+      Timeout: 120
+      Role: !GetAtt DelayFunctionRole.Arn
+      Runtime: python3.7
+      Code: delay.py 
+      MemorySize: 1024
+

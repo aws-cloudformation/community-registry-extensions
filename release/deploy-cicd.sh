@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# See scripts/deploy-cicd.sh for an example of how to call this
+# See scripts/deploy-*.sh for an example of how to call this
 
 set -eou pipefail
 

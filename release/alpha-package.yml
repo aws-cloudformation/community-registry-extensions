@@ -574,7 +574,7 @@ Resources:
         - Action: sts:AssumeRole
           Effect: Allow
           Resource:
-          - Fn::Sub: arn:aws:iam::${ProdAccountId}:role/community-*
+          - Fn::Sub: arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role
         - Action:
           - s3:GetObject*
           - s3:GetBucket*
@@ -928,8 +928,8 @@ Resources:
     Condition: IsNotProd
     Properties:
       Code:
-        S3Bucket: community-registry-extensions-alpha-packages
-        S3Key: 9f97a29966f0db77d45a574c6aaa53a1
+        S3Bucket: ezbeard-cep-alpha-packages
+        S3Key: d4388141e8b866c23317669e3b0dbc9f
       Role:
         Fn::GetAtt:
         - WebHookHandlerRole
@@ -1106,13 +1106,35 @@ Resources:
     Type: AWS::SNS::Topic
     Metadata:
       Comment: Topic for pipeline notifications
+    DependsOn: Pipeline
     Properties:
       TopicName:
-        Fn::Sub: ${Env}-pipeline-topic
+        Fn::Sub: ${PrefixLower}-${Env}-pipeline-topic
       Subscription:
       - Endpoint:
           Ref: NotificationEmail
         Protocol: email
+  WaitForPipeline:
+    Type: Custom::Delay
+    DependsOn:
+    - Pipeline
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+        - DelayFunction
+        - Arn
+      SecondsToSleep: 10
+  WaitForTopic:
+    Type: Custom::Delay
+    DependsOn:
+    - PipelineTopic
+    - PipelineTopicPolicy
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+        - DelayFunction
+        - Arn
+      SecondsToSleep: 10
   PipelineTopicPolicy:
     Type: AWS::SNS::TopicPolicy
     Properties:
@@ -1120,33 +1142,70 @@ Resources:
         Id: MyTopicPolicy
         Version: '2012-10-17'
         Statement:
-        - Sid: topic-policy
-          Effect: Allow
+        - Effect: Allow
           Principal:
-            Service: codestar-notifications.amazonaws.com
+            Service:
+            - events.amazonaws.com
           Action: sns:Publish
           Resource:
             Ref: PipelineTopic
       Topics:
       - Ref: PipelineTopic
-  PipelineNotification:
-    Type: AWS::CodeStarNotifications::NotificationRule
+  PipelineEventRole:
+    Type: AWS::IAM::Role
     Metadata:
-      Comment: Notify when the pipeline succeeds or fails
-    DependsOn: Pipeline
+      Comment: Allows the event rule to push to the topic
     Properties:
-      DetailType: FULL
-      EventTypeIds:
-      - codepipeline-pipeline-pipeline-execution-failed
-      - codepipeline-pipeline-pipeline-execution-succeeded
+      RoleName:
+        Fn::Sub: cep-${Env}-${PrefixLower}-pipeline-event-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - events.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: put-events
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: sns:Publish
+            Resource:
+              Ref: PipelineTopic
+  PipelineEventRule:
+    Type: AWS::Events::Rule
+    DependsOn: WaitForTopic
+    Properties:
+      Description: Watch for pipeline success and failure
+      EventPattern:
+        source:
+        - aws.codepipeline
+        detail-type:
+        - CodePipeline Pipeline Execution State Change
+        detail:
+          pipeline:
+          - Ref: Pipeline
+          state:
+          - SUCCEEDED
+          - FAILED
       Name:
-        Fn::Sub: ${Env}-pipeline
-      Resource:
-        Fn::Sub: arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${Pipeline}
+        Fn::Sub: cep-${PrefixLower}-${Env}-pipelines
       Targets:
-      - TargetAddress:
-          Ref: PipelineTopic
-        TargetType: SNS
+      - Arn:
+          Fn::Sub: arn:aws:sns:us-east-1:755952356119:${PrefixLower}-${Env}-pipeline-topic
+        Id: pipeline-topic-target
+        InputTransformer:
+          InputTemplate: '"The pipeline <pipeline> from account <account> has <state>
+            at <at>."'
+          InputPathsMap:
+            pipeline: $.detail.pipeline
+            state: $.detail.state
+            at: $.time
+            account: $.account
   PublishBuildBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Condition: IsProd
@@ -1308,3 +1367,42 @@ Resources:
             Effect: Allow
             Resource:
             - Fn::Sub: arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*
+  DelayFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: lambda-logs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource:
+            - arn:aws:logs:*:*:*
+  DelayFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: delay.handler
+      Timeout: 120
+      Role:
+        Fn::GetAtt:
+        - DelayFunctionRole
+        - Arn
+      Runtime: python3.7
+      Code:
+        S3Bucket: ezbeard-cep-alpha-packages
+        S3Key: d4afaa9708fea178519f0aebc109772c
+      MemorySize: 1024
