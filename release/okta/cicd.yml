@@ -131,6 +131,7 @@ Resources:
               - iam:DeleteRolePolicy
               - iam:GetRolePolicy
               - iam:PassRole
+              - iam:UpdateAssumeRolePolicyDocument
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
@@ -178,9 +179,12 @@ Resources:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
               - cloudformation:UpdateStack
+              - cloudformation:CreateStackSet
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stackset/cep-*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stackset/publish-*'
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/CloudFormationManagedUploadInfrastructure/*'
           - Action:
               - cloudformation:RegisterType
@@ -231,6 +235,7 @@ Resources:
   OktaGroupBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub "${PrefixLower}-${Env}-okta-group"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -246,7 +251,7 @@ Resources:
       ServiceRole: !GetAtt OktaGroupBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "resources/${Env}-buildspec.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -422,7 +427,7 @@ Resources:
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "OktaGroup"
+                      "value": "Okta-Group"
                     }
                   ]
               RunOrder: 1
@@ -610,7 +615,7 @@ Resources:
     Type: AWS::IAM::Role
     Condition: IsProd
     Properties:
-      RoleName: AWSCloudFormationStackSetAdministrationRole
+      RoleName: !Sub "${PrefixLower}-stackset-admin"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -637,7 +642,7 @@ Resources:
     Metadata:
       Comment: We can limit this role to this account, since we are using stack sets to deploy across all regions, but not to multiple accounts
     Properties:
-      RoleName: AWSCloudFormationStackSetExecutionRole
+      RoleName: !Sub "${PrefixLower}-stackset-exec"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -702,7 +707,7 @@ Resources:
     Metadata:
       Comment: Assumed by codepipeline in the beta account to access the prod source bucket
     Properties:
-      RoleName: community-registry-extensions-publish-role
+      RoleName: !Sub "${PrefixLower}-registry-extensions-publish-role"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:

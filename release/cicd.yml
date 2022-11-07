@@ -109,7 +109,7 @@ Resources:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
 
-  BucketNotificationBuildProjectRole:
+  S3BucketNotificationBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -120,7 +120,7 @@ Resources:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
 
-  DeleteBucketContentsBuildProjectRole:
+  S3DeleteBucketContentsBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -191,6 +191,7 @@ Resources:
               - iam:DeleteRolePolicy
               - iam:GetRolePolicy
               - iam:PassRole
+              - iam:UpdateAssumeRolePolicyDocument
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
@@ -238,9 +239,12 @@ Resources:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
               - cloudformation:UpdateStack
+              - cloudformation:CreateStackSet
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stackset/cep-*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stackset/publish-*'
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/CloudFormationManagedUploadInfrastructure/*'
           - Action:
               - cloudformation:RegisterType
@@ -271,13 +275,13 @@ Resources:
         Version: '2012-10-17'
       PolicyName: common-build-project-policy
       Roles:
-        - !Ref BucketNotificationBuildProjectRole
-        - !Ref DeleteBucketContentsBuildProjectRole
+        - !Ref S3BucketNotificationBuildProjectRole
+        - !Ref S3DeleteBucketContentsBuildProjectRole
         - !Ref S3BucketVersioningEnabledBuildProjectRole
         - !Ref CloudFrontLoggingEnabledBuildProjectRole
         - !Ref CloudFrontWebAclAssociationBuildProjectRole
 
-  BucketNotificationBuildProjectPolicy:
+  S3BucketNotificationBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -310,9 +314,9 @@ Resources:
         Version: '2012-10-17'
       PolicyName: bucket-notification-build-project-policy
       Roles:
-        - !Ref BucketNotificationBuildProjectRole
+        - !Ref S3BucketNotificationBuildProjectRole
 
-  DeleteBucketContentsBuildProjectPolicy:
+  S3DeleteBucketContentsBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -336,7 +340,7 @@ Resources:
         Version: '2012-10-17'
       PolicyName: delete-bucket-contents-build-project-policy
       Roles:
-        - !Ref DeleteBucketContentsBuildProjectRole
+        - !Ref S3DeleteBucketContentsBuildProjectRole
 
   CloudFrontWebAclAssociationBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -410,9 +414,10 @@ Resources:
       Roles:
         - !Ref ResourceIamPasswordPolicyRole
 
-  BucketNotificationBuildProject:
+  S3BucketNotificationBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub "${PrefixLower}-${Env}-s3-bucketnotification"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -425,14 +430,15 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt BucketNotificationBuildProjectRole.Arn
+      ServiceRole: !GetAtt S3BucketNotificationBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
 
-  ResourceIamPasswordPolicyBuildProject:
+  IamPasswordPolicyBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub "${PrefixLower}-${Env}-iam-passwordpolicy"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -453,6 +459,7 @@ Resources:
   CloudFrontWebAclAssociationBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub "${PrefixLower}-${Env}-cloudfront-webaclassociation"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -470,9 +477,10 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
 
-  DeleteBucketContentsBuildProject:
+  S3DeleteBucketContentsBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub "${PrefixLower}-${Env}-s3-deletebucketcontents"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -485,7 +493,7 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt DeleteBucketContentsBuildProjectRole.Arn
+      ServiceRole: !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
@@ -493,6 +501,7 @@ Resources:
   S3BucketVersioningEnabledBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub "${PrefixLower}-${Env}-s3-bucketversioningenabled"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -513,6 +522,7 @@ Resources:
   CloudFrontLoggingEnabledBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      Name: !Sub "${PrefixLower}-${Env}-cloudfront-loggingenabled"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -587,8 +597,8 @@ Resources:
               - codebuild:BatchGetBuilds
             Effect: Allow
             Resource: 
-              - !GetAtt BucketNotificationBuildProject.Arn
-              - !GetAtt DeleteBucketContentsBuildProject.Arn
+              - !GetAtt S3BucketNotificationBuildProject.Arn
+              - !GetAtt S3DeleteBucketContentsBuildProject.Arn
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
@@ -645,8 +655,8 @@ Resources:
               AWS: 
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-                - !GetAtt BucketNotificationBuildProjectRole.Arn
-                - !GetAtt DeleteBucketContentsBuildProjectRole.Arn
+                - !GetAtt S3BucketNotificationBuildProjectRole.Arn
+                - !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
                 - !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
                 - !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
@@ -703,7 +713,7 @@ Resources:
             #    Provider: CodeBuild
             #    Version: 1
             #  Configuration:
-            #    ProjectName: !Ref BucketNotificationBuildProject
+            #    ProjectName: !Ref S3BucketNotificationBuildProject
             #    EnvironmentVariables: |-
             #      [
             #        {
@@ -732,7 +742,7 @@ Resources:
                 #                    }
                 #                  ]
                 #              RunOrder: 2
-            - Name: DeleteBucketContents
+            - Name: S3DeleteBucketContents
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -741,7 +751,7 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref DeleteBucketContentsBuildProject
+                ProjectName: !Ref S3DeleteBucketContentsBuildProject
                 EnvironmentVariables: |-
                   [
                     {
