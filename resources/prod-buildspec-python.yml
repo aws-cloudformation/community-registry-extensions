@@ -6,6 +6,7 @@ phases:
       python: 3.7
     commands:
       - echo Entered the install phase...
+      - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
       - echo About to build $RESOURCE_PATH
       - export PATH="/usr/local/bin:$PATH"
       - /usr/local/bin/dockerd-entrypoint.sh
@@ -17,6 +18,7 @@ phases:
       - cd $RESOURCE_PATH
       - pwd
       - ls
+      - aws --version
 
   build:
     commands:

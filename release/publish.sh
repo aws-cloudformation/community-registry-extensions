@@ -8,9 +8,6 @@
 # Environment:
 #
 #   AWS_PROFILE (If a default profile is not set)
-#   PARAMETERS  Params for the stack set template
-#       For example
-#       [{"ParameterKey":"SchemaPackageURL","ParameterValue":"cep-handler-755952356119"}]
 #
 # Args: List of regions separated by spaces
 
