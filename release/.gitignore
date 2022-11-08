@@ -1,5 +1,7 @@
 dockerlogin-cicd.sh
 dockerlogin-beta.sh
 cicd-package.yml
+alpha-package.yml
 beta-package.yml
+prod-package.yml
 
