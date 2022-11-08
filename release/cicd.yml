@@ -240,6 +240,10 @@ Resources:
               - cloudformation:DeleteStack
               - cloudformation:UpdateStack
               - cloudformation:CreateStackSet
+              - cloudformation:DescribeStackSet
+              - cloudformation:UpdateStackSet
+              - cloudformation:DescribeStackInstance
+              - cloudformation:CreateStackInstances
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}*'
@@ -609,7 +613,7 @@ Resources:
           - Action:
               - sns:Publish
             Effect: Allow
-            Resource: !Ref PipelineTopic
+            Resource: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${PrefixLower}-${Env}-pipeline-topic"
 
   PipelineKey:
     Type: AWS::KMS::Key
@@ -674,6 +678,7 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Metadata:
       Comment: This pipeline runs integ tests on all extensions, then drops the build into the prod account for publishing
+    DependsOn: WaitForPipelinePolicy
     Properties:
       Name: !Sub "cep-${Env}-${PrefixLower}"
       RoleArn: !GetAtt PipelineRole.Arn
@@ -1135,6 +1140,14 @@ Resources:
         - Endpoint: !Ref NotificationEmail 
           Protocol: email
 
+  WaitForPipelinePolicy:
+    Type: Custom::Delay
+    DependsOn: 
+      - PipelinePolicy
+    Properties:
+      ServiceToken: !GetAtt DelayFunction.Arn
+      SecondsToSleep: 20
+
   WaitForPipeline:
     Type: Custom::Delay
     DependsOn: 
@@ -1213,7 +1226,7 @@ Resources:
             - FAILED
       Name: !Sub "cep-${PrefixLower}-${Env}-pipelines"
       Targets:
-        - Arn: !Sub "arn:aws:sns:us-east-1:755952356119:${PrefixLower}-${Env}-pipeline-topic"
+        - Arn: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${PrefixLower}-${Env}-pipeline-topic"
           Id: pipeline-topic-target
           InputTransformer:
             InputTemplate: '"The pipeline <pipeline> from account <account> has <state> at <at>."'

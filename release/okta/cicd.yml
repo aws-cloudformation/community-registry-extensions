@@ -180,6 +180,10 @@ Resources:
               - cloudformation:DeleteStack
               - cloudformation:UpdateStack
               - cloudformation:CreateStackSet
+              - cloudformation:DescribeStackSet
+              - cloudformation:UpdateStackSet
+              - cloudformation:DescribeStackInstance
+              - cloudformation:CreateStackInstances
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${PrefixLower}*'
