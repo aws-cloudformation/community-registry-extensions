@@ -317,7 +317,7 @@ Resources:
               - Action:
                   - sns:Publish
                 Effect: Allow
-                Resource: !Sub "arn:aws:sns:us-east-1:755952356119:${PrefixLower}-${Env}-pipeline-topic"
+                Resource: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${PrefixLower}-${Env}-pipeline-topic"
 
   PipelineKey:
     Type: AWS::KMS::Key
@@ -574,7 +574,7 @@ Resources:
             - FAILED
       Name: !Sub "cep-${PrefixLower}-${Env}-pipelines"
       Targets:
-        - Arn: !Sub "arn:aws:sns:us-east-1:755952356119:${PrefixLower}-${Env}-pipeline-topic"
+        - Arn: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${PrefixLower}-${Env}-pipeline-topic"
           Id: pipeline-topic-target
           InputTransformer:
             InputTemplate: '"The pipeline <pipeline> from account <account> has <state> at <at>."'
