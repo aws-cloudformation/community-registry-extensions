@@ -53,13 +53,13 @@ def run_checks(data: dict, rules: str) -> DataOutput:
         )
         raise err
     except CfnGuardMissingValue as err:
-        raise errors.MissingValue() from err
+        raise errors.MissingValueError(str(err))
     except CfnGuardParseError as err:
-        raise errors.ParseError() from err
+        raise errors.ParseError(str(err))
     except Exception as err:
         LOG.debug(
             "Received unknown exception [%s] while running checks, got error: %s",
             type(err),
             err,
         )
-        raise errors.UnknownError() from err
+        raise errors.UnknownError(str(err))

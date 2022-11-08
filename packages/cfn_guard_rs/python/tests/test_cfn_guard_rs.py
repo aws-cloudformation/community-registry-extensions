@@ -98,36 +98,45 @@ def test_run_checks(template, rules, expected):
 
 
 @pytest.mark.parametrize(
-    "template,rules,error,parent_error",
+    "template,rules,error,parent_error,message",
     [
         (
             "python/tests/fixtures/templates/s3_bucket_public_access_valid.yaml",
             "python/tests/fixtures/rules/invalid_missing_value.guard",
-            cfn_guard_rs.errors.MissingValue,
+            cfn_guard_rs.errors.MissingValueError,
             NameError,
+            (
+                "Could not resolve variable by name "
+                "ecs_task_definition_execution_role_arn across scopes"
+            ),
         ),
         (
             "python/tests/fixtures/templates/s3_bucket_public_access_valid.yaml",
             "python/tests/fixtures/rules/invalid_format.guard",
             cfn_guard_rs.errors.ParseError,
             ValueError,
+            (
+                "Parser Error when parsing Parsing Error Error parsing file  "
+                "at line 1 at column 17, when handling , fragment "
+                "{\n    Properties\n        BucketName is_string\n    }\n}\n"
+            ),
         ),
     ],
 )
-def test_run_checks_errors(template, rules, error, parent_error):
+def test_run_checks_errors(template, rules, error, parent_error, message):
     """Test transactions against run_checks"""
     with open(template, encoding="utf8") as file:
         template_str = yaml.safe_load(file)
     with open(rules, encoding="utf8") as file:
         rules = file.read()
 
-    with pytest.raises(error):
+    with pytest.raises(error, match=message):
         run_checks(template_str, rules)
 
-    with pytest.raises(parent_error):
+    with pytest.raises(parent_error, match=message):
         run_checks(template_str, rules)
 
-    with pytest.raises(cfn_guard_rs.errors.GuardError):
+    with pytest.raises(cfn_guard_rs.errors.GuardError, match=message):
         run_checks(template_str, rules)
 
 

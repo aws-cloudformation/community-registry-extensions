@@ -127,5 +127,5 @@ dmypy.json
 sam-tests/
 
 rpdk.log*
-awscommunity-s3-deletebucketcontents.zip
+awscommunity-cloudfront-webaclassociation.zip
 .DS_Store

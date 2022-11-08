@@ -3,7 +3,7 @@
 """
 
 
-class GuardError(BaseException):
+class GuardError(Exception):
     """General exception to cover all Guard exceptions"""
 
 
@@ -15,5 +15,5 @@ class ParseError(GuardError, ValueError):
     """Raised when having an issue parsing rules"""
 
 
-class MissingValue(ParseError, NameError):
+class MissingValueError(ParseError, NameError):
     """There was no variable or value object to resolve"""

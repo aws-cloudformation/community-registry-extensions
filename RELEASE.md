@@ -21,9 +21,10 @@ See the tracking issue [here](https://github.com/aws-cloudformation/community-re
 This is the account that belongs to a resource developer, where extensions are
 submitted to the private registry for integration testing. Extensions should be
 clearly documented so that a new developer can quickly deploy and test an
-extension in their account.
+extension in their account. Developers can also deploy the CICD pipelines to a
+single sandbox account in order to test changes to the release process.
 
-### CI/CD account
+### Alpha account
 
 An account controlled by AWS to perform integration testing on resources.
 Connected to the GitHub account. Runs contract tests.
@@ -46,7 +47,7 @@ started via a GitHub webhook. The webhook is handled by a Lambda function that
 invokes a CodeBuild job. The CodeBuild job clones the repo and places a zip
 file into a bucket, which is detected by CodePipeline. The pipeline starts
 parallel CodeBuild jobs for each resource. The jobs for resource types run
-`resources/buildspec-{language}.yml`.
+`resources/{env}-buildspec-{language}.yml`.
 
 There are some changes that need to be made to the `release/cicd.yml` template
 when adding a new resource. Each resource gets is own build action, and any 
@@ -54,7 +55,7 @@ permissions that are needed to run the setup template and make SDK calls
 during contract testing need to be added to the project policy.
 
 Each extension type and each language has its own build spec within each environment. 
-For example, `resources/cicd-buildspec-python.yml` is used in the CICD account
+For example, `resources/alpha-buildspec-python.yml` is used in the alpha account
 when building Python resources.
 
 ### Beta account
@@ -67,18 +68,11 @@ successfully updated by the new default version. The resource developer creates
 should create all needed resources, and does not rely on the `test/setup.yml`
 template.
 
-The `test/integ.yml` template is created and deleted, and a second copy is
-created once and never deleted (TODO), to make sure that updates to the
-resource don't cause issues.  In the integ template, no hard-coded names should
-be used, to avoid issues with multiple stacks being deployed from the same
-template in the same account.
-
-TODO: What about Alpha resources? It's Ok for them to break backwards
-compatibility, so we shouldn't fail the release process, but how do we tell the
-difference between this kind of failure and something we want to catch?
+In the integ template, no hard-coded names should be used, to avoid issues with
+multiple stacks being deployed from the same template in the same account.
 
 The beta account uses the same CloudFormation template, `release/cicd.yml`, as 
-the CICD account, since the pipeline and permissions are very similar. The pipeline 
+the alpha account, since the pipeline and permissions are very similar. The pipeline 
 is started by a commit being made on the `release` branch.
 
 The beta pipeline has one extra stage which copies the source zip to a bucket in the 
@@ -88,12 +82,17 @@ prod account to start the publishing process, if all beta tests succeed.
 ### Prod account
 
 An account controlled by AWS that is the publisher for the registry extensions.
-If all integ tests succeed in the beta account, the prod pipeline is invoked by copying the build to an S3 bucket that starts the pipeline in each configured region. A stack set is used to deploy `cicd-prod-regional.yml` across regions. The pipeline invokes a CodeBuild job that runs `release/publish.sh`.
+If all integ tests succeed in the beta account, the prod pipeline is invoked by
+copying the build to an S3 bucket that starts the pipeline. A stack set is used
+to publish the extension to all regions. The prod account uses the same
+`cicd.yml` template as the alpha and beta accounts, with different parameter
+values and different build specs.
 
 ### Development
 
-*Note that you do not have to follow these steps to create a new extension, or to fix a bug that is not related to the release process. 
-See the [CONTRIBUTOR](./CONTRIBUTOR.md) guide for instructions instead.*
+*Note that you do not have to follow these steps to create a new extension, or
+to fix a bug that is not related to the release process.  See the
+[CONTRIBUTOR](./CONTRIBUTOR.md) guide for instructions instead.*
 
 If you need to make changes to the release process, deploy the CICD stacks to
 your own sandbox account for development and testing. 
@@ -130,8 +129,6 @@ will require making copies of the template files and template deployment
 scripts. Example for a third party called "Oktank".
 
 - `cicd.yml` -> `oktank/cicd.yml`
-- `cicd-prod.yml` -> `oktank/cicd-prod.yml`
-- `cicd-prod-regional.yml` -> `oktank/cicd-prod-regional.yml`
 
 Copy-pasting templates is not ideal, but they are full of extension-specific stuff
 that is not easily abstracted without use of something like CDK, which we are not using
