@@ -63,7 +63,7 @@ def handler(event, context): #pylint:disable=W0613
         print("raw_commit_message:", raw_commit_message)
 
         # Take just the first line of a multi-line commit message
-        commit_message = raw_commit_message.split("\n").tokens[0]
+        commit_message = raw_commit_message.split("\n")[0]
         print("commit_message:", commit_message)
 
         codebuild.start_build(
