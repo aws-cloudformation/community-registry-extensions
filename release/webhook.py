@@ -57,7 +57,13 @@ def handler(event, context): #pylint:disable=W0613
     if branch == os.environ["GIT_BRANCH"]:
         print("Starting build for branch:", branch)
         codebuild = session.client("codebuild")
-        commit_message = payload["head_commit"]["message"]
+
+        # Get the commit message for S3 source metadata 
+        raw_commit_message = payload["head_commit"]["message"]
+        print("raw_commit_message:", raw_commit_message)
+
+        # Take just the first line of a multi-line commit message
+        commit_message = raw_commit_message.split("\n").tokens[0]
         print("commit_message:", commit_message)
 
         codebuild.start_build(
