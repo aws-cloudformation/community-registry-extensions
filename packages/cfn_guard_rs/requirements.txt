@@ -1,2 +1,3 @@
 maturin==0.13.2
 tomli==2.0.1
+PyYAML==5.4.1

@@ -12,23 +12,31 @@ fn run_checks_rs(data: &str, rules: &str, verbose: bool) -> Result<String, error
 /// A Python module implemented in Rust.
 #[pymodule]
 fn cfn_guard_rs(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add("JsonError", _py.get_type::<errors::JsonError>())?;
-    m.add("YamlError", _py.get_type::<errors::YamlError>())?;
-    m.add("FormatError", _py.get_type::<errors::FormatError>())?;
-    m.add("IoError", _py.get_type::<errors::IoError>())?;
-    m.add("RegexError", _py.get_type::<errors::RegexError>())?;
-    m.add("ParseError", _py.get_type::<errors::ParseError>())?;
-    m.add("MissingProperty", _py.get_type::<errors::MissingProperty>())?;
-    m.add("MissingVariable", _py.get_type::<errors::MissingVariable>())?;
-    m.add("MultipleValues", _py.get_type::<errors::MultipleValues>())?;
-    m.add("IncompatibleRetrievalError", _py.get_type::<errors::IncompatibleRetrievalError>())?;
-    m.add("IncompatibleError", _py.get_type::<errors::IncompatibleError>())?;
-    m.add("NotComparable", _py.get_type::<errors::NotComparable>())?;
-    m.add("ConversionError", _py.get_type::<errors::ConversionError>())?;
-    m.add("Errors", _py.get_type::<errors::Errors>())?;
-    m.add("RetrievalError", _py.get_type::<errors::RetrievalError>())?;
-    m.add("MissingValue", _py.get_type::<errors::MissingValue>())?;
-    m.add("FileNotFoundError", _py.get_type::<errors::FileNotFoundError>())?;
+    // cfn-guard-rs currently doesn't allow for parsing files
+    m.add("_CfnGuardJsonError", _py.get_type::<errors::CfnGuardJsonError>())?;
+    m.add("_CfnGuardYamlError", _py.get_type::<errors::CfnGuardYamlError>())?;
+    m.add("_CfnGuardIoError", _py.get_type::<errors::CfnGuardIoError>())?;
+    m.add("_CfnGuardFileNotFoundError", _py.get_type::<errors::CfnGuardFileNotFoundError>())?;
+
+    // unused errors
+    m.add("_CfnGuardFormatError", _py.get_type::<errors::CfnGuardFormatError>())?;
+    m.add("_CfnGuardRegexError", _py.get_type::<errors::CfnGuardRegexError>())?;
+    m.add("_CfnGuardMissingProperty", _py.get_type::<errors::CfnGuardMissingProperty>())?;
+    m.add("_CfnGuardConversionError", _py.get_type::<errors::CfnGuardConversionError>())?;
+    m.add("_CfnGuardErrors", _py.get_type::<errors::CfnGuardErrors>())?;
+    
+    // masked and captured by rule processing
+    m.add("_CfnGuardMultipleValues", _py.get_type::<errors::CfnGuardMultipleValues>())?;
+    m.add("_CfnGuardIncompatibleRetrievalError", _py.get_type::<errors::CfnGuardIncompatibleRetrievalError>())?;
+    m.add("_CfnGuardIncompatibleError", _py.get_type::<errors::CfnGuardIncompatibleError>())?;
+    m.add("_CfnGuardNotComparable", _py.get_type::<errors::CfnGuardNotComparable>())?;
+    m.add("_CfnGuardRetrievalError", _py.get_type::<errors::CfnGuardRetrievalError>())?;
+    m.add("_CfnGuardMissingVariable", _py.get_type::<errors::CfnGuardMissingVariable>())?;
+
+    // Exceptions that may get passed back
+    m.add("CfnGuardParseError", _py.get_type::<errors::CfnGuardParseError>())?;
+    m.add("CfnGuardMissingValue", _py.get_type::<errors::CfnGuardMissingValue>())?;
+    
     m.add_function(wrap_pyfunction!(run_checks_rs, m)?)?;
     Ok(())
 }

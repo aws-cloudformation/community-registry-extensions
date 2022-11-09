@@ -5,7 +5,6 @@ import hmac
 import os
 import boto3
 
-
 def handler(event, context): #pylint:disable=W0613
     "Lambda handler"
     print(json.dumps(event, default=str))
@@ -25,16 +24,48 @@ def handler(event, context): #pylint:disable=W0613
     ):
         print("Digest comparison failed")
         raise Exception()
+    # TODO - assemble the expected value and compare against the untrusted value 
+    # instead of parsing an untrusted value prior to comparing
     print("Secret Ok")
     payload = json.loads(event["body"])
     print("payload", json.dumps(payload, default=str))
     # "ref": "refs/heads/release",
     branch = payload["ref"].split("/")[2]
+
+    # Figure out which repo this is and pass it in as an 
+    # env variable to the build project, so it knows which 
+    # repo to clone and which pipeline to start, to accomodate
+    # 3rd party extentions like Okta that have their own pipeline.
+
+    repo = payload["repository"]["full_name"]
+    print("repo is:", repo)
+
+    # We have to hard code associations between repos and extension prefixes here
+    # so we can re-use this webhook across all namespaces.
+    extension_prefix = None
+    repo1 = repo.split("/")[1]
+    if repo1 == "community-registry-extensions":
+        extension_prefix = "awscommunity"
+    elif repo1 == "cloudformation-okta-resource-providers":
+        extension_prefix = "okta"
+    else:
+        raise Exception("Unexpected repo: " + repo)
+
+    giturl = f"https://github.com/{repo}.git"
+    print("giturl is:", giturl)
+
     if branch == os.environ["GIT_BRANCH"]:
         print("Starting build for branch:", branch)
         codebuild = session.client("codebuild")
-        commit_message = payload["head_commit"]["message"]
+
+        # Get the commit message for S3 source metadata 
+        raw_commit_message = payload["head_commit"]["message"]
+        print("raw_commit_message:", raw_commit_message)
+
+        # Take just the first line of a multi-line commit message
+        commit_message = raw_commit_message.split("\n")[0]
         print("commit_message:", commit_message)
+
         codebuild.start_build(
             projectName=os.environ["BUILD_PROJECT"],
             environmentVariablesOverride=[
@@ -42,6 +73,21 @@ def handler(event, context): #pylint:disable=W0613
                     "name": "COMMIT_MESSAGE",
                     "value": commit_message,
                     "type": "PLAINTEXT",
+                },
+                {
+                    "name": "REPO",
+                    "value": repo,
+                    "type": "PLAINTEXT"
+                },
+                {
+                    "name": "GIT_URL", 
+                    "value": giturl, 
+                    "type": "PLAINTEXT"
+                },
+                {
+                    "name": "EXTENSION_PREFIX",
+                    "value": extension_prefix,
+                    "type": "PLAINTEXT"
                 }
             ],
         )

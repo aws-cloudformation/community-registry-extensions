@@ -1,4 +1,3 @@
 pytest
-PyYAML
 pylint
 mypy

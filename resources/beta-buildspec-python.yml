@@ -22,6 +22,8 @@ phases:
   build:
     commands:
       - echo Entered the build phase...
+      - cfn validate
+      - cfn generate
       - cfn submit --set-default
       - INTEG_STACK_NAME="integ-$(echo $ENTRY_PATH | sed s/_/-/g)"
       - aws cloudformation create-stack --stack-name $INTEG_STACK_NAME --template-body file://test/integ.yml
