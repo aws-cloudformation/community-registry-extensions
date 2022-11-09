@@ -1,0 +1,33 @@
+name: packages-cfn_guard_rs_hook-CD
+
+on:
+  push:
+    tags:        
+      - cfn-guard-rs-hook-v*
+jobs:
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.8]
+        poetry-version: [1.1.13]
+        os: [ubuntu-latest]
+        directory: [./packages/cfn_guard_rs_hook]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.directory }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install poetry
+        run:
+          pip install poetry==${{ matrix.poetry-version }}
+      - name: Publish
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build

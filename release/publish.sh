@@ -125,10 +125,8 @@ done
 
 
 echo "About to create or update stack instances"
-
 aws cloudformation create-stack-instances \
     --stack-set-name $STACK_SET_NAME \
     --accounts "$ACCOUNT_ID" \
     --regions "$@" 
-
 

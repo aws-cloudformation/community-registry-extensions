@@ -1,13 +1,14 @@
 [tool.poetry]
 name = "cfn_guard_rs_hook"
-version = "0.1.1"
+version = "0.2.0"
 description = "Works with cloudformation-cli-python-lib to remove duplicate code when creating a CloudFormation registry hook that leverages the library cfn_guard_rs"
 authors = ["Kevin DeJong <kddejong@amazon.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
 cloudformation-cli-python-lib = "^2.1.12"
-cfn-guard-rs = "^0.1.0"
+cfn-guard-rs = "^0.2.1"
+pyyaml = "~5.4.1"
 Jinja2 = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
