@@ -22,4 +22,6 @@ phases:
   build:
     commands:
       - echo Entered the build phase...
+      - ls -l ../../release
       - ../../release/publish.sh us-east-1 us-west-2
+
