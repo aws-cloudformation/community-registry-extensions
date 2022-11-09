@@ -16,7 +16,10 @@ RELEASE_NUMBER=$1
 FILE_NAME=release-${RELEASE_NUMBER}.zip
 ACCOUNT_ID=$(aws sts get-caller-identity|jq -r .Account)
 
-curl -LO https://github.com/aws-cloudformation/community-registry-extensions/archive/refs/tags/$FILE_NAME
-
-aws s3 cp $FILE_NAME s3://cep-source-${ACCOUNT_ID}-beta-awscommunity/source.zip
+curl --output-dir /tmp -LO https://github.com/aws-cloudformation/community-registry-extensions/archive/refs/tags/$FILE_NAME
+cd /tmp
+unzip $FILE_NAME
+cd community-registry-extensions-release-$RELEASE_NUMBER
+zip source.zip -r *
+aws s3 cp source.zip s3://cep-source-${ACCOUNT_ID}-beta-awscommunity/source.zip
 

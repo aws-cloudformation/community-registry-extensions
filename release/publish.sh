@@ -9,14 +9,38 @@
 #
 #   AWS_PROFILE (If a default profile is not set)
 #
-# Args: List of regions separated by spaces
+# Args: 
+#
+#   $1 The region to publish to
 
 set -eou pipefail
 
+export AWS_REGION=$1
+
+cfn validate
+cfn generate
+
 TYPE_NAME=$(cat .rpdk-config | jq -r .typeName)
 
-# Create a template specific to this resource for the stack set
-cat ../publish.yml | sed "s/MyOrg::MyService::MyType/${TYPE_NAME}/g" > publish.yml
+# Create or update the setup stack
+SETUP_STACK_NAME="setup-prod-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
+if ! aws cloudformation --region $AWS_REGION describe-stacks --stack-name $SETUP_STACK_NAME 2>&1 ; then
+    echo "Creating $SETUP_STACK_NAME"
+    aws cloudformation --region $AWS_REGION create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
+    aws cloudformation --region $AWS_REGION wait stack-create-complete --stack-name $SETUP_STACK_NAME
+else
+    echo "Updating $SETUP_STACK_NAME"
+    update_output=$(aws cloudformation --region $AWS_REGION update-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
+    echo $update_output
+    if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
+        echo "No updates to setup stack"
+    else
+        echo "Waiting for stack update to complete"
+        aws cloudformation --region $AWS_REGION wait stack-update-complete --stack-name $SETUP_STACK_NAME
+        # This just blocks forever if the previous command failed for another reason, 
+        # since it never sees update stack complete
+    fi
+fi
 
 # Overwrite the role stack to fix the broken Condition.
 # test-type does not use the role we register, it re-deploys the stack
@@ -42,90 +66,102 @@ HANDLER_BUCKET="cep-handler-${ACCOUNT_ID}"
 echo "Copying schema package handler to $HANDLER_BUCKET"
 aws s3 cp $ZIPFILE s3://$HANDLER_BUCKET/$ZIPFILE
 
-# Stack set params
-PARAMETERS='[{"ParameterKey":"SchemaPackageURL","ParameterValue":"'
-PARAMETERS+="s3://${HANDLER_BUCKET}/${ZIPFILE}"
-PARAMETERS+='"}]'
+ROLE_STACK_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')-prod-role-stack"
+echo "ROLE_STACK_NAME is $ROLE_STACK_NAME"
+echo ""
 
-echo "PARAMETERS: ${PARAMETERS}"
-
-# Create the stack set to register and publish the resource
-STACK_SET_NAME="publish-${TYPE_NAME_LOWER}"
-
-if ! aws --no-cli-pager cloudformation describe-stack-set --stack-set-name $STACK_SET_NAME 2>&1 > /dev/null ; then
-    echo "Creating $STACK_SET_NAME"
-
-    aws cloudformation create-stack-set --stack-set-name $STACK_SET_NAME \
-        --template-body file://publish.yml \
-        --parameters $PARAMETERS --capabilities CAPABILITY_NAMED_IAM
-
+# Create or update the role stack
+if ! aws cloudformation --region $AWS_REGION describe-stacks --stack-name $ROLE_STACK_NAME 2>&1 ; then
+    echo "Creating role stack"
+    aws cloudformation --region $AWS_REGION create-stack --stack-name $ROLE_STACK_NAME --template-body file://resource-role-prod.yaml --capabilities CAPABILITY_IAM
+    echo ""
+    aws cloudformation --region $AWS_REGION wait stack-create-complete --stack-name $ROLE_STACK_NAME
 else
-    
-    echo "Updating $STACK_SET_NAME"
-
-    aws cloudformation update-stack-set --stack-set-name $STACK_SET_NAME \
-        --template-body file://publish.yml \
-        --parameters $PARAMETERS --capabilities CAPABILITY_NAMED_IAM 
-
+    echo "Updating role stack"
+    update_output=$(aws cloudformation --region $AWS_REGION update-stack --stack-name $ROLE_STACK_NAME --template-body file://resource-role-prod.yaml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
+    echo $update_output
+    if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
+        echo "No updates to role stack"
+    else
+        aws cloudformation --region $AWS_REGION wait stack-update-complete --stack-name $ROLE_STACK_NAME
+    fi
 fi
 
-aws --no-cli-pager \
-        cloudformation describe-stack-set --stack-set-name $STACK_SET_NAME 
+echo "About to describe stack to get the role arn"
+ROLE_ARN=$(aws cloudformation --region $AWS_REGION describe-stacks --stack-name $ROLE_STACK_NAME | jq ".Stacks|.[0]|.Outputs|.[0]|.OutputValue" | sed s/\"//g)
+echo ""
+echo "ROLE_ARN is $ROLE_ARN"
+echo ""
 
-echo "About to poll for status"
+# Register the type
+echo "About to run register-type"
+echo ""
+TOKEN=$(aws cloudformation --region $AWS_REGION register-type --type RESOURCE --type-name $TYPE_NAME --schema-handler-package s3://$HANDLER_BUCKET/$ZIPFILE --execution-role-arn $ROLE_ARN | jq -r .RegistrationToken)
+
+echo "Registration token is $TOKEN"
 
 STATUS="IN_PROGRESS"
+
 check_status() {
-    if ! STATUS=$(aws --no-cli-pager \
-        cloudformation describe-stack-set --stack-set-name $STACK_SET_NAME | jq .StackSet | jq -r .Status) ; then
-        STATUS="IN_PROGRESS"
-    fi
-    echo $STATUS
+    STATUS=$(aws cloudformation --region $AWS_REGION describe-type-registration --registration-token $TOKEN | jq -r .ProgressStatus)
 }
 
-while [ "$STATUS" != "ACTIVE" ]
+echo "About to poll status for $TOKEN"
+# Check status
+while [ "$STATUS" == "IN_PROGRESS" ]
 do
     sleep 5
     check_status
 done
 echo $STATUS
 
-echo "About to check detailed status of all instances"
+echo "describe-type-registration"
+aws cloudformation --region $AWS_REGION describe-type-registration --registration-token $TOKEN
 
-IS_ANY_PENDING=1
-while [ $IS_ANY_PENDING -eq 1 ]
+echo "describe-type"
+aws cloudformation --region $AWS_REGION describe-type --type RESOURCE --type-name $TYPE_NAME
+
+sleep 5
+
+# Set this version to be the default
+echo "About to get latest version id"
+VERSION_ID=$(aws cloudformation --region $AWS_REGION describe-type-registration --registration-token $TOKEN | jq -r .TypeVersionArn | awk -F/ '{print $NF}')
+echo ""
+echo "VERSION_ID is $VERSION_ID"
+echo ""
+
+echo "About to set-type-default-version"
+aws cloudformation --region $AWS_REGION set-type-default-version --type RESOURCE --type-name $TYPE_NAME --version-id $VERSION_ID
+echo ""
+
+# TODO: Eventually we will hit the 50 version limit, how do we work around it?
+
+# Test the resource type
+echo "About to run test-type"
+echo ""
+TYPE_VERSION_ARN=$(aws cloudformation --region $AWS_REGION test-type --type RESOURCE --type-name $TYPE_NAME --log-delivery-bucket $HANDLER_BUCKET | jq .TypeVersionArn | sed s/\"//g)
+echo "TYPE_VERSION_ARN is $TYPE_VERSION_ARN"
+echo ""
+
+TEST_STATUS="IN_PROGRESS"
+
+echo "About to poll test status for $TYPE_VERSION_ARN"
+check_test_status() {
+    TEST_STATUS=$(aws cloudformation --region $AWS_REGION describe-type --arn $TYPE_VERSION_ARN | jq -r .TypeTestsStatus)
+}
+
+# Check status
+while [ "$TEST_STATUS" == "IN_PROGRESS" ]
 do
     sleep 5
-    IS_ANY_PENDING=0
-
-    for region in "$@" 
-    do
-        echo "Checking $region"
-
-        # Returns an error code if it hasn't been created yet
-        if aws cloudformation describe-stack-instance \
-            --stack-set-name $STACK_SET_NAME \
-            --stack-instance-account "$ACCOUNT_ID" \
-            --stack-instance-region "$region"
-        then
-
-            # Parse the detailed status if it was already created
-            DETAILED_STATUS=$(aws cloudformation describe-stack-instance \
-                --stack-set-name $STACK_SET_NAME \
-                --stack-instance-account "$ACCOUNT_ID" \
-                --stack-instance-region "$region" | jq .StackInstance | jq .StackInstanceStatus | jq -r .DetailedStatus)
-            echo $DETAILED_STATUS
-            if [ $DETAILED_STATUS == "PENDING" ] || [ $DETAILED_STATUS == "RUNNING" ]
-            then
-                IS_ANY_PENDING=1
-            fi
-        fi
-    done
+    check_test_status
 done
 
-echo "About to create or update stack instances"
-aws cloudformation create-stack-instances \
-    --stack-set-name $STACK_SET_NAME \
-    --accounts "$ACCOUNT_ID" \
-    --regions "$@" 
+echo $TEST_STATUS
+
+# Publish the type
+aws cloudformation --region $AWS_REGION publish-type --type RESOURCE --type-name $TYPE_NAME
+
+echo "Done"
+
 
