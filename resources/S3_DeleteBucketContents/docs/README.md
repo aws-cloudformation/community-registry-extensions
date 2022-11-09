@@ -1,6 +1,6 @@
 # AwsCommunity::S3::DeleteBucketContents
 
-Deletes all contents of the referenced bucket.
+An experimental extension that deletes all contents of the referenced bucket when the stack is deleted. Use with caution!
 
 ## Syntax
 
