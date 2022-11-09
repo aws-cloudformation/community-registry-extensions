@@ -1,6 +1,6 @@
 {
     "typeName": "AwsCommunity::S3::DeleteBucketContents",
-    "description": "Deletes all contents of the referenced bucket.",
+    "description": "An experimental extension that deletes all contents of the referenced bucket when the stack is deleted. Use with caution!",
     "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions.git",
     "definitions": { },
     "properties": {

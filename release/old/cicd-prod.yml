@@ -1,3 +1,5 @@
+# No longer in use! Keeping the file around for reference.
+
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Common infrastructure for the community registry extensions CICD in the prod account for publishing across all regions
 
@@ -19,7 +21,7 @@ Resources:
 
   PublishBuildBucketPolicy:
     Metadata:
-      Comment: Allows the beta account to drop builds into the prod account
+      Comment: Allows the beta account to drop builds into the prod account.
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref PublishBuildBucket
@@ -213,6 +215,10 @@ Resources:
             Resource: "*"
           - Action:
               - sns:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codestar-notifications:*
             Effect: Allow
             Resource: "*"
 

@@ -4,12 +4,20 @@
   Supports running the non-verbose version of
   run_checks from CloudFormation Guard
 """
-
+import logging
 import json
 from .interface import DataOutput
 
 # pylint: disable=no-name-in-module
-from .cfn_guard_rs import run_checks_rs
+from .cfn_guard_rs import (
+    CfnGuardParseError,
+    CfnGuardMissingValue,
+    run_checks_rs,
+)
+
+from . import errors
+
+LOG = logging.getLogger(__name__)
 
 
 def run_checks(data: dict, rules: str) -> DataOutput:
@@ -30,14 +38,28 @@ def run_checks(data: dict, rules: str) -> DataOutput:
     DataOuptut
         DataOutput representation of the result of running guard
     """
-    # hard code the verbose value.  This will change the output to be a list
-    guard_output = run_checks_rs(json.dumps(data), rules, False)
     try:
         output = json.loads(run_checks_rs(json.dumps(data), rules, False))
-    except json.JSONDecodeError:
-        output = guard_output
 
-    # remove the lib set items and replace with our defaults
-    result = DataOutput(**output)
+        # remove the lib set items and replace with our defaults
+        result = DataOutput(**output)
 
-    return result
+        return result
+    except json.JSONDecodeError as err:
+        LOG.debug(
+            "JSON decoding error when processing return value [%s] got error: %s",
+            output,
+            err,
+        )
+        raise err
+    except CfnGuardMissingValue as err:
+        raise errors.MissingValueError(str(err))
+    except CfnGuardParseError as err:
+        raise errors.ParseError(str(err))
+    except Exception as err:
+        LOG.debug(
+            "Received unknown exception [%s] while running checks, got error: %s",
+            type(err),
+            err,
+        )
+        raise errors.UnknownError(str(err))
