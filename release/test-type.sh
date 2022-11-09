@@ -3,6 +3,16 @@
 # Run test-type on a resource.
 #
 # Environment variables expected: HANDLER_BUCKET
+#
+# The execution role bug where it doesn't use the latest one you specify
+# can only be solved by deregistering all current versions.
+# 
+# Example of how to deregister:
+#
+# aws --profile ezbeard-cep cloudformation list-type-versions --type RESOURCE --type-name AwsCommunity::S3::DeleteBucketContents | jq '.TypeVersionSummaries[] | .Arn' | xargs -n1 aws --profile ezbeard-cep cloudformation deregister-type --arn
+# aws --profile ezbeard-cep cloudformation deregister-type --type RESOURCE --type-name AwsCommunity::S3::DeleteBucketContents
+#
+# We can't do this in prod because what if customers are using specific versions?
 
 set -euo pipefail
 
