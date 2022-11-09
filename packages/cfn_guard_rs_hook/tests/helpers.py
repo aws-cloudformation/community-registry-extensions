@@ -51,6 +51,7 @@ class TypeConfigurationModel(BaseModel):
     """
     Mimic the cloudformation_cli_python_lib
     """
+
     @classmethod
     def _deserialize(
         cls: Type["_TypeConfigurationModel"],
