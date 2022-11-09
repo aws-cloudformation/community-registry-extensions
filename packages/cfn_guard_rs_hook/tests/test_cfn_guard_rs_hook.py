@@ -13,7 +13,11 @@ from cfn_guard_rs_hook import __version__, GuardHook
 
 
 from .helpers import create_request
-from .fixtures import rules_s3_bucket_public_access, rules_s3_bucket_default_lock_enabled
+from .fixtures import (
+    rules_s3_bucket_public_access,
+    rules_s3_bucket_default_lock_enabled,
+    rules_invalid_syntax,
+)
 
 
 def test_version():
@@ -22,13 +26,16 @@ def test_version():
     """
     assert __version__ == "0.1.0"
 
+
 @dataclass
-class TypeConfigurationObjectLockEnabled():
+class TypeConfigurationObjectLockEnabled:
     """
-        Test Configuration Item
+    Test Configuration Item
     """
-    #pylint: disable=invalid-name
+
+    # pylint: disable=invalid-name
     ObjectLockEnabled: str
+
 
 @pytest.mark.parametrize(
     "type_name,model,invocation_point,rules,type_configuration,expected",
@@ -105,8 +112,8 @@ class TypeConfigurationObjectLockEnabled():
                 errorCode=HandlerErrorCode.NonCompliant,
                 message="Rule [S3_BUCKET_DEFAULT_LOCK_ENABLED] failed on "
                 "property [/Resources/Bucket/Properties/ObjectLockEnabled"
-                "] and got error [\n    Violation: S3 Bucket ObjectLockEnabled "\
-                "must be set to true.\n    Fix: Set the S3 property "\
+                "] and got error [\n    Violation: S3 Bucket ObjectLockEnabled "
+                "must be set to true.\n    Fix: Set the S3 property "
                 "ObjectLockEnabled parameter to true.\n  ].",
                 result=None,
                 callbackContext=None,
@@ -138,10 +145,45 @@ class TypeConfigurationObjectLockEnabled():
                 nextToken=None,
             ),
         ),
+        (
+            "Community::S3Bucket::Encryption",
+            {
+                "resourceProperties": {
+                    "PublicAccessBlockConfiguration": {
+                        "BlockPublicAcls": "true",
+                        "BlockPublicPolicy": "true",
+                        "IgnorePublicAcls": "true",
+                        "RestrictPublicBuckets": "true",
+                    }
+                }
+            },
+            HookInvocationPoint.CREATE_PRE_PROVISION,
+            rules_invalid_syntax,
+            None,
+            ProgressEvent(
+                status=OperationStatus.FAILED,
+                errorCode=HandlerErrorCode.InvalidRequest,
+                message=("Parser Error when parsing Parsing Error Error parsing file  "
+                "at line 4 at column 1, when handling , fragment rule "
+                "S3_BUCKET_DEFAULT_LOCK_ENABLED when %s3_buckets_default_lock_enabled !empty {\n  "
+                "%s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled exists\n"
+                "  %s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled == \"\"\n  "
+                "<<\n    Violation: S3 Bucket ObjectLockEnabled must be set to true.\n    "
+                "Fix: Set the S3 property ObjectLockEnabled parameter to true.\n  >>\n}\n"),
+                result=None,
+                callbackContext=None,
+                callbackDelaySeconds=0,
+                resourceModel=None,
+                resourceModels=None,
+                nextToken=None,
+            ),
+        ),
     ],
 )
-#pylint: disable=too-many-arguments
-def test_transactions(type_name, model, invocation_point, rules, type_configuration, expected):
+# pylint: disable=too-many-arguments
+def test_transactions(
+    type_name, model, invocation_point, rules, type_configuration, expected
+):
     """
     Test a hook call
     """
