@@ -4,4 +4,6 @@ cicd-package.yml
 alpha-package.yml
 beta-package.yml
 prod-package.yml
+release-*.zip
+
 
