@@ -78,6 +78,8 @@ is started by a commit being made on the `release` branch.
 The beta pipeline has one extra stage which copies the source zip to a bucket in the 
 prod account to start the publishing process, if all beta tests succeed. 
 
+The beta pipeline can be triggered by a push to the release branch, or a release zip 
+can be copied to the beta bucket using `release/release.sh`, which is preferred.
 
 ### Prod account
 
@@ -136,6 +138,21 @@ here on purpose, in order to dogfood CloudFormation tools as much as possible.
 
 These templates are deployed to the same accounts as `AwsCommunity`. This is required 
 since we need these all to be published by us from a single account.
+
+## Publishing a release (this is done by AWS staff)
+
+For now, when we do a release, all resources are published. In the future we will look at 
+publishing only those resources that have changed.
+
+Go to the GitHub repo, `Code` -> `Releases` -> `Draft a new release`.
+
+Choose a new release number, incrementing from the last one. For example `release-0.1.2`.
+
+Add release notes that cover any changes made since the last release.
+
+`Publish release`
+
+Run the `release/release.sh` script to copy the zip from GitHub to the beta pipeline bucket.
 
 
 
