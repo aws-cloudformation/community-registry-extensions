@@ -228,9 +228,10 @@ Resources:
               - cloudformation:CreateStack
               - cloudformation:DeleteStack
               - cloudformation:DescribeStacks
+              - cloudformation:UpdateStack
             Effect: Allow
             Resource:
-              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-${PrefixLower}*'
+              - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/setup-*'
               - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/integ-*'
           - Action:
               - cloudformation:ListExports
@@ -267,6 +268,8 @@ Resources:
               - cloudformation:DescribeType
               - cloudformation:ListTypes
               - cloudformation:ListExports
+              - cloudformation:TestType
+              - cloudformation:PublishType
             Effect: Allow
             Resource: "*"
           - Action:
