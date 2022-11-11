@@ -119,7 +119,7 @@ echo "describe-type-registration"
 aws cloudformation --region $AWS_REGION describe-type-registration --registration-token $TOKEN
 
 echo "describe-type"
-aws cloudformation --region $AWS_REGION describe-type --type RESOURCE --type-name $TYPE_NAME
+aws --no-cli-pager cloudformation --region $AWS_REGION describe-type --type RESOURCE --type-name $TYPE_NAME
 
 sleep 5
 
