@@ -29,7 +29,7 @@ of our release process)
 
 Log in to your AWS account and go to the CloudFormation console. Under Registry
 in the menu, select Public extensions. Search under Third Party publishers for
-the AwsCommunity:: namespace. These extensions can be used from any template
+the `AwsCommunity::` namespace. These extensions can be used from any template
 you author in a region where they are available and activated. Unlike public
 extensions under the `AWS::` namespace, each of these community extensions must
 first be activated using the instructions
@@ -59,9 +59,13 @@ cloudformation` commands, is used to initialize, build, test, and publish
 registry extensions.
 
 https://github.com/aws-cloudformation/cloudformation-cli
+
 https://github.com/aws-cloudformation/cloudformation-cli-python-plugin
+
 https://github.com/aws-cloudformation/cloudformation-cli-typescript-plugin
+
 https://github.com/aws-cloudformation/cloudformation-cli-go-plugin
+
 https://github.com/aws-cloudformation/cloudformation-cli-java-plugin
 
 ### cfn-lint
@@ -83,7 +87,34 @@ simple `deploy` command.
 
 https://github.com/aws-cloudformation/rain
 
+### 3p resources
+
+We are working on a set of third party resources that will piggy-back on our release process and be published from our publisher account.
+
+https://github.com/aws-ia/cloudformation-okta-resource-providers
+
+https://github.com/aws-ia/cloudformation-github-resource-providers
+
+https://github.com/aws-ia/cloudformation-rollbar-resource-providers
+
+https://github.com/aws-ia/cloudformation-fastly-resource-providers
+
+https://github.com/aws-ia/cloudformation-cloudflare-resource-providers
+
+https://github.com/aws-ia/cloudformation-snowflake-resource-providers
+
+https://github.com/aws-ia/cloudformation-pagerduty-resource-providers
+
+https://github.com/aws-ia/cloudformation-gitlab-resource-providers
+
+https://github.com/aws-ia/cloudformation-dynatrace-resource-providers
+
+https://github.com/aws-ia/cloudformation-bigid-resource-providers
+
+
 ## Publishing packages
+
+(Note that we decided to move these out to a separate repo, so they won't be here much longer)
 
 We publish our python packages in `packages/` to pypi. When we publish a release a workflow is triggered to do the publishing. See the `CD.yml` workflows [here](./github/workflows)
 
