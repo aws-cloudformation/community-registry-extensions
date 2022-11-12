@@ -4,15 +4,6 @@
 #
 # Environment variables expected: HANDLER_BUCKET
 #
-# The execution role bug where it doesn't use the latest one you specify
-# can only be solved by deregistering all current versions.
-# 
-# Example of how to deregister:
-#
-# aws --profile ezbeard-cep cloudformation list-type-versions --type RESOURCE --type-name AwsCommunity::S3::DeleteBucketContents | jq '.TypeVersionSummaries[] | .Arn' | xargs -n1 aws --profile ezbeard-cep cloudformation deregister-type --arn
-# aws --profile ezbeard-cep cloudformation deregister-type --type RESOURCE --type-name AwsCommunity::S3::DeleteBucketContents
-#
-# We can't do this in prod because what if customers are using specific versions?
 
 set -euo pipefail
 
@@ -111,7 +102,7 @@ echo $STATUS
 
 # Set this version to be the default
 echo "About to get latest version id"
-VERSION_ID=$(aws cloudformation describe-type --type RESOURCE --type-name $TYPE_NAME | jq -r .Arn | awk -F/ '{print $NF}')
+VERSION_ID=$(aws cloudformation describe-type-registration --registration-token $TOKEN | jq -r .TypeVersionArn | awk -F/ '{print $NF}')
 echo ""
 echo "VERSION_ID is $VERSION_ID"
 echo ""
