@@ -3,8 +3,8 @@
 # Run this from the release folder to deploy to the prod account
 
 export PROFILE=cep-prod
-export CEP_ENV=prod
 export PACKAGE_BUCKET=community-registry-extensions-prod-packages
+export CEP_ENV=prod
 export PREFIX=AwsCommunity
 export PREFIX_LOWER=awscommunity
 export GIT_BRANCH=release

@@ -127,10 +127,40 @@ it.
 
 If we want to publish namespaces other than `AwsCommunity`, we can still use
 this release process and publish the extensions via AWS accounts. This
-will require making copies of the template files and template deployment
-scripts. Example for a third party called "Oktank".
+will require making copies of the template files. Run this script to generate 
+the CICD template for a 3rd party:
 
-- `cicd.yml` -> `oktank/cicd.yml`
+```
+cd scripts
+python get_3p_template.py Oktank MyResource
+```
+
+It can be deployed to the accounts like this:
+
+```sh
+cd release
+../scripts/deploy-3p.sh alpha oktank
+../scripts/deploy-3p.sh prod oktank
+../scripts/deploy-3p.sh beta oktank
+```
+
+In the 3rd party repo, what's needed here is somewhat dependent on the layout of the 
+project, and if there is more than one resource in the namespace. These are the files 
+that will typically need to be added, beyond what the cfn cli generates for you.
+
+```
+publish.sh
+alpha-buildspec.yml
+beta-buildspec.yml
+prod-buildspec.yml
+deregister-all.sh
+otkank-resource/setup.sh
+oktank-resource/cleanup.sh
+oktank-resource/get_type_configuration.py
+oktank-resouce/resource-role-prod.yml
+oktank-resource/test/integ.yml
+oktank-resource/inputs/*
+```
 
 Copy-pasting templates is not ideal, but they are full of extension-specific stuff
 that is not easily abstracted without use of something like CDK, which we are not using

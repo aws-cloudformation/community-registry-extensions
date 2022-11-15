@@ -23,23 +23,28 @@ cfn generate
 TYPE_NAME=$(cat .rpdk-config | jq -r .typeName)
 
 # Create or update the setup stack
-SETUP_STACK_NAME="setup-prod-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
-if ! aws cloudformation --region $AWS_REGION describe-stacks --stack-name $SETUP_STACK_NAME 2>&1 ; then
-    echo "Creating $SETUP_STACK_NAME"
-    aws cloudformation --region $AWS_REGION create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
-    aws cloudformation --region $AWS_REGION wait stack-create-complete --stack-name $SETUP_STACK_NAME
-else
-    echo "Updating $SETUP_STACK_NAME"
-    update_output=$(aws cloudformation --region $AWS_REGION update-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
-    echo $update_output
-    if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
-        echo "No updates to setup stack"
+if [ -f "test/setup.yml" ]
+then
+    SETUP_STACK_NAME="setup-prod-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
+    if ! aws cloudformation --region $AWS_REGION describe-stacks --stack-name $SETUP_STACK_NAME 2>&1 ; then
+        echo "Creating $SETUP_STACK_NAME"
+        aws cloudformation --region $AWS_REGION create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
+        aws cloudformation --region $AWS_REGION wait stack-create-complete --stack-name $SETUP_STACK_NAME
     else
-        echo "Waiting for stack update to complete"
-        aws cloudformation --region $AWS_REGION wait stack-update-complete --stack-name $SETUP_STACK_NAME
-        # This just blocks forever if the previous command failed for another reason, 
-        # since it never sees update stack complete
+        echo "Updating $SETUP_STACK_NAME"
+        update_output=$(aws cloudformation --region $AWS_REGION update-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml --capabilities CAPABILITY_IAM 2>&1 || [ $? -ne 0 ])
+        echo $update_output
+        if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
+            echo "No updates to setup stack"
+        else
+            echo "Waiting for stack update to complete"
+            aws cloudformation --region $AWS_REGION wait stack-update-complete --stack-name $SETUP_STACK_NAME
+            # This just blocks forever if the previous command failed for another reason, 
+            # since it never sees update stack complete
+        fi
     fi
+else
+    echo "Did not find test/setup.yml, skipping setup stack"
 fi
 
 # Overwrite the role stack to fix the broken Condition.
@@ -134,7 +139,16 @@ echo "About to set-type-default-version"
 aws cloudformation --region $AWS_REGION set-type-default-version --type RESOURCE --type-name $TYPE_NAME --version-id $VERSION_ID
 echo ""
 
-# TODO: Eventually we will hit the 50 version limit, how do we work around it?
+# Set the type configuration
+if [ -f "get_type_configuration.py" ]
+then
+    echo "About to set type configuration"
+    TYPE_CONFIG_PATH=$(python get_type_configuration.py)
+    echo "TYPE_CONFIG_PATH is $TYPE_CONFIG_PATH"
+    aws cloudformation set-type-configuration --type RESOURCE --type-name $TYPE_NAME --configuration-alias default --configuration $(cat ${TYPE_CONFIG_PATH} | jq -c "")
+else
+    echo "Did not find get_type_configuration.py, skipping type configuration"
+fi
 
 # Test the resource type
 echo "About to run test-type"

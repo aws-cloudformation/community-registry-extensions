@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Infrastructure for the okta registry extensions CICD pipeline
+Description: Infrastructure for the registry extensions CICD pipeline
 
 Parameters:
 
@@ -26,7 +26,7 @@ Parameters:
 
   PrefixLower:
     Type: String
-    Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
+    Description: The extension prefix lowercase, for example, awscommunity.
 
   BetaAccountId:
     Type: String
@@ -82,7 +82,7 @@ Resources:
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*" 
 
-  OktaGroupBuildProjectRole:
+  GitHubRepositoryBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -178,9 +178,9 @@ Resources:
         Version: '2012-10-17'
       PolicyName: common-build-project-policy
       Roles:
-        - !Ref OktaGroupBuildProjectRole
+        - !Ref GitHubRepositoryBuildProjectRole
 
-  OktaGroupBuildProjectPolicy:
+  GitHubRepositoryBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -193,9 +193,9 @@ Resources:
         Version: '2012-10-17'
       PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
       Roles:
-        - !Ref OktaGroupBuildProjectRole
+        - !Ref GitHubRepositoryBuildProjectRole
 
-  OktaGroupBuildProject:
+  GitHubRepositoryBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
       Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group"
@@ -211,7 +211,7 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt OktaGroupBuildProjectRole.Arn
+      ServiceRole: !GetAtt GitHubRepositoryBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
@@ -219,7 +219,7 @@ Resources:
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
-      Comment: The name is important here since it gets constructed by the webhook handler and CodeBuild job to drop the build into the correct bucket. We only use a one webhook for AwsCommunity and 3rd parties like Okta.
+      Comment: The name is important here since it gets constructed by the webhook handler and CodeBuild job to drop the build into the correct bucket. We only use a one webhook for AwsCommunity and 3rd parties.
     Properties:
       BucketName: !Sub "cep-source-${AWS::AccountId}-${Env}-${PrefixLower}"
       VersioningConfiguration: 
@@ -268,7 +268,7 @@ Resources:
                   - codebuild:BatchGetBuilds
                 Effect: Allow
                 Resource: 
-                  - !GetAtt OktaGroupBuildProject.Arn
+                  - !GetAtt GitHubRepositoryBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -322,7 +322,7 @@ Resources:
               AWS: 
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-                - !GetAtt OktaGroupBuildProjectRole.Arn
+                - !GetAtt GitHubRepositoryBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -375,7 +375,7 @@ Resources:
                 - Name: extensions-source 
         - Name: Build
           Actions:
-            - Name: OktaGroup
+            - Name: GitHubRepository
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -384,13 +384,13 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaGroupBuildProject
+                ProjectName: !Ref GitHubRepositoryBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Group"
+                      "value": "GitHub-Repository"
                     }
                   ]
               RunOrder: 1

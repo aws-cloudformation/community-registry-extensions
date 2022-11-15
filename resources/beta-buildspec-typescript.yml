@@ -1,0 +1,46 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - echo Entered the install phase...
+      - echo About to build $RESOURCE_PATH
+      - export PATH="/usr/local/bin:$PATH"
+      - /usr/local/bin/dockerd-entrypoint.sh
+      - cat /var/log/docker.log
+      - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
+      - export NVM_DIR="$HOME/.nvm"
+      - echo "Loading nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && nvm install 14 && nvm install-latest-npm
+      - npm --version
+      - node --version
+      - pwd
+      - ls
+
+  build:
+    commands:
+      - echo Entered the build phase...
+      - npm install && npm run build
+      - cd $RESOURCE_PATH
+      - TYPE_NAME=$(cat .rpdk-config | jq -r .typeName)
+      - ./setup.sh
+      - cfn validate
+      - cfn generate
+      - npm install && npm run build
+      - cfn submit --set-default
+      - python get_type_configuration.py
+      - aws cloudformation set-type-configuration --type RESOURCE --type-name $TYPE_NAME --configuration-alias default --configuration $(cat /root/.cfn-cli/typeConfiguration.json| jq -c "")
+      - INTEG_STACK_NAME="integ-$(echo $RESOURCE_PATH | tr '[:upper:]' '[:lower:]')"
+      - aws cloudformation create-stack --stack-name $INTEG_STACK_NAME --template-body file://test/integ.yml
+      - aws cloudformation wait stack-create-complete --stack-name $INTEG_STACK_NAME
+    finally:
+      - cat rpdk.log
+      - aws cloudformation delete-stack --stack-name $INTEG_STACK_NAME
+      - ./cleanup.sh    
+artifacts:
+  files:
+    - $BUILD_FILE_NAME 
+  name: extensions-build
+
+

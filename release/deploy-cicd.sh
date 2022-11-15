@@ -1,6 +1,9 @@
 #!/bin/sh
 #
 # See scripts/deploy-*.sh for an example of how to call this
+#
+# You normally won't call this manually, since it requires a number of 
+# environment variables to set up.
 
 set -eou pipefail
 
@@ -27,6 +30,11 @@ fi
 if [ -z "${GITHUB_SECRET_ARN:-}" ]
 then
     GITHUB_SECRET_ARN="Not-needed-for-3p-templates"
+fi
+
+if [ -z "${PREFIX:-}" ]
+then
+    PREFIX="Not-needed-for-3p-templates"
 fi
 
 cfn-lint $TEMPLATE_FILE -i W3002,W2001
