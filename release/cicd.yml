@@ -192,6 +192,7 @@ Resources:
               - iam:GetRolePolicy
               - iam:PassRole
               - iam:UpdateAssumeRolePolicyDocument
+              - iam:UpdateAssumeRolePolicy
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'

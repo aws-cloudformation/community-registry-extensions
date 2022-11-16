@@ -193,6 +193,13 @@ else
     echo "PUBLISHING_ENABLED is $PUBLISHING_ENABLED, not publishing"
 fi
 
+# Delete the setup stack
+# This is mainly for sandbox accounts where it would conflict with alpha
+if [ -f "test/setup.yml" ]
+then
+    SETUP_STACK_NAME="setup-prod-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
+    aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME
+fi
 
 echo "Done"
 
