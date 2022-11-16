@@ -125,17 +125,21 @@ it.
 
 ### 3rd party resources
 
-If we want to publish namespaces other than `AwsCommunity`, we can still use
-this release process and publish the extensions via AWS accounts. This
-will require making copies of the template files. Run this script to generate 
-the CICD template for a 3rd party:
+We use this release process for third parties as well as `AwsCommunity`. The 
+base CICD template in each account handles some things centrally, such as the 
+GitHub webhook to start an alpha build. But most of the resources have to be 
+replicated into a distint pipeline for each namespace (GitHub, Okta, etc.)
+
+Run this script to generate the CICD template for a 3rd party:
 
 ```
 cd scripts
 python get_3p_template.py Oktank MyResource
 ```
 
-It can be deployed to the accounts like this:
+Additional resources beyond the first one will have to be added manually.
+
+The template can be deployed to the accounts like this, from the `release/` directory:
 
 ```sh
 cd release

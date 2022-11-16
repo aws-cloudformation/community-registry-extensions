@@ -48,6 +48,8 @@ def handler(event, context): #pylint:disable=W0613
         extension_prefix = "awscommunity"
     elif repo1 == "cloudformation-okta-resource-providers":
         extension_prefix = "okta"
+    elif repo1 == "cloudformation-github-resource-providers":
+        extension_prefix = "github"
     else:
         raise Exception("Unexpected repo: " + repo)
 

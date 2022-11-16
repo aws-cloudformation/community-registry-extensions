@@ -64,7 +64,18 @@ echo "TYPE_NAME_LOWER is $TYPE_NAME_LOWER"
 ZIPFILE="${TYPE_NAME_LOWER}.zip"
 echo "ZIPFILE is $ZIPFILE"
 
+# By default we won't actually publish, so that this script can be run in 
+# sandbox accounts that are not the actual publishing account
+PUBLISHING_ENABLED=0
+
 ACCOUNT_ID=$(aws sts get-caller-identity|jq -r .Account)
+echo "ACCOUNT_ID is $ACCOUNT_ID"
+
+if [ $"ACCOUNT_ID" == "387586997764" ]
+then
+    PUBLISHING_ENABLED=1
+fi
+
 HANDLER_BUCKET="cep-handler-${ACCOUNT_ID}"
 
 # Copy the package to S3
@@ -174,7 +185,14 @@ done
 echo $TEST_STATUS
 
 # Publish the type
-aws cloudformation --region $AWS_REGION publish-type --type RESOURCE --type-name $TYPE_NAME
+if [ "$PUBLISHING_ENABLED" -eq 1 ]
+then
+    echo "About to publish $TYPE_NAME in $AWS_REGION"
+    aws cloudformation --region $AWS_REGION publish-type --type RESOURCE --type-name $TYPE_NAME
+else
+    echo "PUBLISHING_ENABLED is $PUBLISHING_ENABLED, not publishing"
+fi
+
 
 echo "Done"
 
