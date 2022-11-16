@@ -812,10 +812,7 @@ Resources:
                   - s3:PutObject
                 Effect: Allow
                 Resource: 
-                  - !Sub "arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-${PrefixLower}"
-                  - !Sub "arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-${PrefixLower}/*"
-                  - !Sub "arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-okta"
-                  - !Sub "arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-okta/*"
+                  - !Sub "arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-*"
               - Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
