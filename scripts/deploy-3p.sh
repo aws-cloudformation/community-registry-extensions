@@ -11,15 +11,16 @@
 export PREFIX_LOWER=$1
 export CEP_ENV=$2
 export PROFILE=cep-${CEP_ENV}
-export PACKAGE_BUCKET=community-registry-extensions-alpha-packages
+export PACKAGE_BUCKET=community-registry-extensions-${CEP_ENV}-packages
+export GITHUB_SECRET_ARN=arn:aws:secretsmanager:us-east-1:531337079465:secret:github-webhook-kqkHT9
 if [ "$CEP_ENV" == "alpha" ]
 then
     export GIT_BRANCH=main
 else
+    export GITHUB_SECRET_ARN=arn:aws:secretsmanager:us-east-1:676545906896:secret:cep-github-webhook-secret-L1HEni
     export GIT_BRANCH=release
 fi
 export GIT_URL=https://github.com/aws-ia/cloudformation-${PREFIX_LOWER}-resource-providers
-export GITHUB_SECRET_ARN=arn:aws:secretsmanager:us-east-1:531337079465:secret:github-webhook-kqkHT9
 export PROD_ACCOUNT_ID=387586997764
 export BETA_ACCOUNT_ID=676545906896
 export NOTIFICATION_EMAIL="community-registry-extensions-alerts@amazon.com"
