@@ -125,12 +125,46 @@ it.
 
 ### 3rd party resources
 
-If we want to publish namespaces other than `AwsCommunity`, we can still use
-this release process and publish the extensions via AWS accounts. This
-will require making copies of the template files and template deployment
-scripts. Example for a third party called "Oktank".
+We use this release process for third parties as well as `AwsCommunity`. The 
+base CICD template in each account handles some things centrally, such as the 
+GitHub webhook to start an alpha build. But most of the resources have to be 
+replicated into a distint pipeline for each namespace (GitHub, Okta, etc.)
 
-- `cicd.yml` -> `oktank/cicd.yml`
+Run this script to generate the CICD template for a 3rd party:
+
+```
+cd scripts
+python get_3p_template.py Oktank MyResource
+```
+
+Additional resources beyond the first one will have to be added manually.
+
+The template can be deployed to the accounts like this, from the `release/` directory:
+
+```sh
+cd release
+../scripts/deploy-3p.sh alpha oktank
+../scripts/deploy-3p.sh prod oktank
+../scripts/deploy-3p.sh beta oktank
+```
+
+In the 3rd party repo, what's needed here is somewhat dependent on the layout of the 
+project, and if there is more than one resource in the namespace. These are the files 
+that will typically need to be added, beyond what the cfn cli generates for you.
+
+```
+publish.sh
+alpha-buildspec.yml
+beta-buildspec.yml
+prod-buildspec.yml
+deregister-all.sh
+otkank-resource/setup.sh
+oktank-resource/cleanup.sh
+oktank-resource/get_type_configuration.py
+oktank-resouce/resource-role-prod.yml
+oktank-resource/test/integ.yml
+oktank-resource/inputs/*
+```
 
 Copy-pasting templates is not ideal, but they are full of extension-specific stuff
 that is not easily abstracted without use of something like CDK, which we are not using
