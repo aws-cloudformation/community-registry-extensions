@@ -27,7 +27,7 @@ single sandbox account in order to test changes to the release process.
 ### Alpha account
 
 An account controlled by AWS to perform integration testing on resources.
-Connected to the GitHub account. Runs contract tests.
+Runs contract tests.
 
 In each extension project, there must be an `inputs` folder, renamed from the
 `example_inputs` folder created by `cfn init`. When contract tests are run, if
