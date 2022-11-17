@@ -93,6 +93,17 @@ Resources:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
 
+  GitHubTagsBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
   CommonBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -132,6 +143,7 @@ Resources:
               - iam:GetRolePolicy
               - iam:PassRole
               - iam:UpdateAssumeRolePolicyDocument
+              - iam:UpdateAssumeRolePolicy
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
@@ -175,25 +187,22 @@ Resources:
               - ecr:GetAuthorizationToken
             Effect: Allow
             Resource: "*"
-        Version: '2012-10-17'
-      PolicyName: common-build-project-policy
-      Roles:
-        - !Ref GitHubRepositoryBuildProjectRole
-
-  GitHubRepositoryBuildProjectPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
             Resource: 
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:cep-${PrefixLower}-type-configuration*"
+          - Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Effect: Allow
+            Resource: 
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cep-${PrefixLower}-*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      PolicyName: common-build-project-policy
       Roles:
         - !Ref GitHubRepositoryBuildProjectRole
+        - !Ref GitHubTagsBuildProjectRole
 
   GitHubRepositoryBuildProject:
     Type: AWS::CodeBuild::Project
@@ -212,17 +221,45 @@ Resources:
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
         - Name: GITHUB_ORG
-          Type: PLAINTEXT
-          Value: "ericzbeard-aws-cep-testing"
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
         - Name: GITHUB_REPO
-          Type: PLAINTEXT
-          Value: "test-cep-repo"
+          Type: PARAMETER_STORE
+          Value: "cep-github-repo"
       ServiceRole: !GetAtt GitHubRepositoryBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
 
-  # TODO - Replace hard-coded personal GITHUB_ORG above
+  GitHubTagsBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-tags"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+        - Name: GITHUB_REPO
+          Type: PARAMETER_STORE
+          Value: "cep-github-repo"
+        - Name: GITHUB_SHA
+          Type: PARAMETER_STORE
+          Value: "cep-github-tags-sha"
+      ServiceRole: !GetAtt GitHubTagsBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -277,6 +314,7 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - !GetAtt GitHubRepositoryBuildProject.Arn
+                  - !GetAtt GitHubTagsBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -331,6 +369,7 @@ Resources:
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !GetAtt GitHubRepositoryBuildProjectRole.Arn
+                - !GetAtt GitHubTagsBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -402,6 +441,25 @@ Resources:
                     }
                   ]
               RunOrder: 1
+            - Name: GitHubTags
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubTagsBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Git-Tag"
+                    }
+                  ]
+              RunOrder: 2
         - !If
           - IsBeta
           - Name: CopyBuildToProd
