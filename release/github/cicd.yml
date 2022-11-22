@@ -292,9 +292,9 @@ Resources:
         - Name: GITHUB_ORG
           Type: PARAMETER_STORE
           Value: "cep-github-org"
-        - Name: GITHUB_REPO
+        - Name: GITHUB_USERNAME
           Type: PARAMETER_STORE
-          Value: "cep-github-repo"
+          Value: "cep-github-username"
       ServiceRole: !GetAtt GitHubOrgMemberBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
