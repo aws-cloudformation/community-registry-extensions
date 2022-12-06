@@ -394,7 +394,7 @@ Resources:
                   - !GetAtt GitHubRepositoryBuildProject.Arn
                   - !GetAtt GitHubTagsBuildProject.Arn
                   - !GetAtt GitHubOrgMemberBuildProject.Arn
-                  - !GetAtt GitRepoWebhookMemberBuildProject.Arn
+                  - !GetAtt GitHubRepoWebhookBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
