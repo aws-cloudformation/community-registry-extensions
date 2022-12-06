@@ -115,6 +115,17 @@ Resources:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
 
+  GitHubRepoCollaboratorBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
   CommonBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -215,6 +226,7 @@ Resources:
         - !Ref GitHubRepositoryBuildProjectRole
         - !Ref GitHubTagsBuildProjectRole
         - !Ref GitHubOrgMemberBuildProjectRole
+        - !Ref GitHubRepoCollaboratorBuildProjectRole
 
   GitHubRepositoryBuildProject:
     Type: AWS::CodeBuild::Project
@@ -300,6 +312,36 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
 
+  GitHubRepoCollaboratorBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-repo-collaborator"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+        - Name: GITHUB_USERNAME
+          Type: PARAMETER_STORE
+          Value: "cep-github-collab-username"
+        - Name: GITHUB_REPO
+          Type: PARAMETER_STORE
+          Value: "cep-github-repo"
+      ServiceRole: !GetAtt GitHubRepoCollaboratorBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -355,6 +397,7 @@ Resources:
                   - !GetAtt GitHubRepositoryBuildProject.Arn
                   - !GetAtt GitHubTagsBuildProject.Arn
                   - !GetAtt GitHubOrgMemberBuildProject.Arn
+                  - !GetAtt GitHubRepoCollaboratorBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -411,6 +454,7 @@ Resources:
                 - !GetAtt GitHubRepositoryBuildProjectRole.Arn
                 - !GetAtt GitHubTagsBuildProjectRole.Arn
                 - !GetAtt GitHubOrgMemberBuildProjectRole.Arn
+                - !GetAtt GitHubRepoCollaboratorBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -517,6 +561,25 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "GitHub-Organizations-Membership"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: GitHubRepoCollaborator
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubRepoCollaboratorBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Repositories-Collaborator"
                     }
                   ]
               RunOrder: 2
