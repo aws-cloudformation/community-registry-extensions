@@ -21,10 +21,10 @@
 title: AWS CloudFormation Registry Extension Catalog
 email: ezbeard@amazon.com
 description: >- # this means to ignore newlines until "baseurl:"
-  AWS CloudFormation Registry Extension Catalog. A list of all public resources, hooks, and modules
+  A list of all public resources, hooks, and modules
   in the AWS CloudFormation Registry. These extensions can be activated for use in your CloudFormtion 
   templates in each region from the CloudFormation console.
-baseurl: "/docs" # the subpath of your site, e.g. /blog
+baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: ericzbeard
 github_username:  ericzbeard
