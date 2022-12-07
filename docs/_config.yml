@@ -24,7 +24,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   A list of all public resources, hooks, and modules
   in the AWS CloudFormation Registry. These extensions can be activated for use in your CloudFormtion 
   templates in each region from the CloudFormation console.
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "community-registry-extensions" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: ericzbeard
 github_username:  ericzbeard
