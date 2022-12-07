@@ -1,7 +1,7 @@
 
 ## Aqua::Enterprise::Enforcer
 
-## A resource provider for Aqua Enterprise Enforcer.
+A resource provider for Aqua Enterprise Enforcer.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aquasecurity&#x2F;aqua-helm.git) 
 - [Documentation]()

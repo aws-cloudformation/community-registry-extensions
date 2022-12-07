@@ -1,7 +1,7 @@
 
 ## MongoDB::Atlas::Project
 
-## Retrieves or creates projects in any given Atlas organization.
+Retrieves or creates projects in any given Atlas organization.
 
 - [Source]() 
 - [Documentation]()
@@ -162,9 +162,6 @@ Published by MongoDB
             "permissions": []
         },
         "delete": {
-            "permissions": []
-        },
-        "list": {
             "permissions": []
         }
     }

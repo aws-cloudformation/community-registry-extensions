@@ -1,7 +1,7 @@
 
 ## Okta::Application::Application
 
-## Manage an Application in Okta.
+Manage an Application in Okta.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-okta-resource-providers.git) 
 - [Documentation]()

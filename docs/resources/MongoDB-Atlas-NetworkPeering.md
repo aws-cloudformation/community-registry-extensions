@@ -1,7 +1,7 @@
 
 ## MongoDB::Atlas::NetworkPeering
 
-## This resource allows to create, read, update and delete a network peering
+This resource allows to create, read, update and delete a network peering
 
 - [Source]() 
 - [Documentation]()

@@ -5,11 +5,16 @@
 layout: home
 ---
 
-{% for item in site.data.resources %}
-## [{{ item.TypeName }}](./resources/{{item.TypeNameDashes}})
+This is a list of all Public Third Party registry resource types available in us-east-1, grouped by publisher.
 
-{{ item.Description }}
+{% for publisher in site.data.resources.publishers %}
+## ⭐ [{{publisher.PublisherName}}]({{publisher.PublisherProfile}}) 
 
-Publisher: {{ item.PublisherName }}
+{% for resource in publisher.Resources %}
+### [{{ resource.TypeName }}](./resources/{{resource.TypeNameDashes}})
+
+{{ resource.Description }}
+
+{% endfor %}
 {% endfor %}
 

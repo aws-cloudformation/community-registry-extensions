@@ -1,7 +1,7 @@
 
 ## TrendMicro::CloudOneContainer::Helm
 
-## Deploys Trend Micro Cloud One Container Security into EKS clusters using helm.
+Deploys Trend Micro Cloud One Container Security into EKS clusters using helm.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-quickstart&#x2F;quickstart-trend-micro-cloudone-helm-resource-provider.git) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## Rollbar::Teams::Team
 
-## Manage a team on Rollbar.
+Manage a team on Rollbar.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-rollbar-resource-providers.git) 
 - [Documentation]()

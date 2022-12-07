@@ -1,7 +1,7 @@
 
 ## MongoDB::Atlas::ProjectIpAccessList
 
-## An example resource schema demonstrating some basic constructs and validation rules.
+An example resource schema demonstrating some basic constructs and validation rules.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-cloudformation&#x2F;aws-cloudformation-rpdk.git) 
 - [Documentation]()

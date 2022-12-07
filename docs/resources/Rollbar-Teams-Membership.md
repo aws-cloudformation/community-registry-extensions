@@ -1,7 +1,7 @@
 
 ## Rollbar::Teams::Membership
 
-## Manage a team membership for a user or project on Rollbar.
+Manage a team membership for a user or project on Rollbar.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-rollbar-resource-providers.git) 
 - [Documentation]()

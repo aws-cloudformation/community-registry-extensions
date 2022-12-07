@@ -1,7 +1,7 @@
 
 ## AWSQS::Kubernetes::Helm
 
-## A resource provider for managing helm. Version: 1.2.1
+A resource provider for managing helm. Version: 1.2.1
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-quickstart&#x2F;quickstart-helm-resource-provider.git) 
 - [Documentation]()

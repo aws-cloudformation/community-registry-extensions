@@ -1,7 +1,7 @@
 
 ## GitHub::Repositories::Collaborator
 
-## The Collaborators resource allows you to add, invite, and remove collaborators from a repository.
+The Collaborators resource allows you to add, invite, and remove collaborators from a repository.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-github-resource-providers.git) 
 - [Documentation]()

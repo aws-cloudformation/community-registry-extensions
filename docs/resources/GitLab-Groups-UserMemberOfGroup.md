@@ -1,7 +1,7 @@
 
 ## GitLab::Groups::UserMemberOfGroup
 
-## Adds a user as a member of a GitLab group
+Adds a user as a member of a GitLab group
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-gitlab-resource-providers.git) 
 - [Documentation]()

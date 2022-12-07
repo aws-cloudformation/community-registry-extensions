@@ -1,7 +1,7 @@
 
 ## TF::Akamai::DnsRecord
 
-## Use the &#x60;akamai_dns_record&#x60; resource to configure a DNS record that can integrate with your existing DNS infrastructure.
+Use the &#x60;akamai_dns_record&#x60; resource to configure a DNS record that can integrate with your existing DNS infrastructure.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-tf-custom-types.git) 
 - [Documentation]()

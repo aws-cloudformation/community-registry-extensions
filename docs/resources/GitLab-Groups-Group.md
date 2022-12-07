@@ -1,7 +1,7 @@
 
 ## GitLab::Groups::Group
 
-## Creates a group in GitLab
+Creates a group in GitLab
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-gitlab-resource-providers.git) 
 - [Documentation]()

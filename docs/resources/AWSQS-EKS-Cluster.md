@@ -1,7 +1,7 @@
 
 ## AWSQS::EKS::Cluster
 
-## A resource that creates Amazon Elastic Kubernetes Service (Amazon EKS) clusters.
+A resource that creates Amazon Elastic Kubernetes Service (Amazon EKS) clusters.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-quickstart&#x2F;quickstart-amazon-eks-cluster-resource-provider.git) 
 - [Documentation]()

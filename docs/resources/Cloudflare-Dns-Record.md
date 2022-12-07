@@ -1,7 +1,7 @@
 
 ## Cloudflare::Dns::Record
 
-## A Cloudflare resource for managing a single DNS record
+A Cloudflare resource for managing a single DNS record
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-cloudflare-resource-providers.git) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## Snowflake::User::User
 
-## Allows for the creation and modification of a Snowflake User. https:&#x2F;&#x2F;docs.snowflake.com&#x2F;en&#x2F;user-guide&#x2F;admin-user-management.html
+Allows for the creation and modification of a Snowflake User. https:&#x2F;&#x2F;docs.snowflake.com&#x2F;en&#x2F;user-guide&#x2F;admin-user-management.html
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-snowflake-resource-providers.git) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## Generic::Database::Schema
 
-## Uses the Aurora Data API to execute SQL and enforce a schema within a database cluster. Currently only supports Aurora Postgres.
+Uses the Aurora Data API to execute SQL and enforce a schema within a database cluster. Currently only supports Aurora Postgres.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-types&#x2F;tree&#x2F;master&#x2F;generic-database-schema) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## newrelic::cloudformation::tagging
 
-## CRUD operations for New Relic Tags via the NerdGraph API
+CRUD operations for New Relic Tags via the NerdGraph API
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;newrelic-experimental&#x2F;newrelic-cloudformation-resource-providers-tagging.git) 
 - [Documentation]()

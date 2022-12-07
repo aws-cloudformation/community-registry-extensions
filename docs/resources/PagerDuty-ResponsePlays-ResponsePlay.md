@@ -1,7 +1,7 @@
 
 ## PagerDuty::ResponsePlays::ResponsePlay
 
-## Manage a response play in PagerDuty
+Manage a response play in PagerDuty
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-pagerduty-resource-providers.git) 
 - [Documentation]()

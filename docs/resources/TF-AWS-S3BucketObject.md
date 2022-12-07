@@ -1,7 +1,7 @@
 
 ## TF::AWS::S3BucketObject
 
-## Provides a S3 bucket object resource.
+Provides a S3 bucket object resource.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-tf-custom-types.git) 
 - [Documentation]()

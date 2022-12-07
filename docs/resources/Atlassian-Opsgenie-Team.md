@@ -1,7 +1,7 @@
 
 ## Atlassian::Opsgenie::Team
 
-## Opsgenie Team resource schema
+Opsgenie Team resource schema
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;opsgenie&#x2F;opsgenie-cloudformation-resources) 
 - [Documentation]()

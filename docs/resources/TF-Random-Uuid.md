@@ -1,7 +1,7 @@
 
 ## TF::Random::Uuid
 
-## CloudFormation equivalent of random_uuid
+CloudFormation equivalent of random_uuid
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-tf-custom-types.git) 
 - [Documentation]()

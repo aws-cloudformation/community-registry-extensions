@@ -1,7 +1,7 @@
 
 ## TF::Cloudflare::Record
 
-## Provides a Cloudflare record resource.
+Provides a Cloudflare record resource.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-tf-custom-types.git) 
 - [Documentation]()

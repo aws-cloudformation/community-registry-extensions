@@ -1,7 +1,7 @@
 
 ## TF::Random::String
 
-## CloudFormation equivalent of random_string
+CloudFormation equivalent of random_string
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-tf-custom-types.git) 
 - [Documentation]()

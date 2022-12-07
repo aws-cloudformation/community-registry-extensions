@@ -1,7 +1,7 @@
 
 ## BigID::DataSource::S3
 
-## Manage a BigID S3 data source
+Manage a BigID S3 data source
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-cloudformation&#x2F;aws-cloudformation-rpdk.git) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## Fastly::Services::Backend
 
-## Manage a Fastly service backend.
+Manage a Fastly service backend.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-fastly-resource-providers.git) 
 - [Documentation]()

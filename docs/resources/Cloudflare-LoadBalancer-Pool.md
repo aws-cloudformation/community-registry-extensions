@@ -1,7 +1,7 @@
 
 ## Cloudflare::LoadBalancer::Pool
 
-## A resource to manage a pool of origin servers
+A resource to manage a pool of origin servers
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-cloudflare-resource-providers.git) 
 - [Documentation]()

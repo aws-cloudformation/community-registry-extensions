@@ -1,7 +1,7 @@
 
 ## Gremlin::Agent::Helm
 
-## An example resource schema demonstrating some basic constructs and validation rules.
+An example resource schema demonstrating some basic constructs and validation rules.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;arunbhagyanath&#x2F;qs-sysdig.git) 
 - [Documentation]()

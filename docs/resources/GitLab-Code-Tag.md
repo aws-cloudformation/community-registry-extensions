@@ -1,7 +1,7 @@
 
 ## GitLab::Code::Tag
 
-## Creates a tag against a code ref in GitLab
+Creates a tag against a code ref in GitLab
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-gitlab-resource-providers.git) 
 - [Documentation]()

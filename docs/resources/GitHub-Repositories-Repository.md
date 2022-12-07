@@ -1,7 +1,7 @@
 
 ## GitHub::Repositories::Repository
 
-## Manage a repository in GitHub.
+Manage a repository in GitHub.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-github-resource-providers.git) 
 - [Documentation]()

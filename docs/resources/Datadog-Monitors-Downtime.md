@@ -1,7 +1,7 @@
 
 ## Datadog::Monitors::Downtime
 
-## Datadog Monitors Downtime 3.0.0
+Datadog Monitors Downtime 3.0.0
 
 - [Source]() 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## Rollbar::Notifications::Rule
 
-## Manage a notification rule for Rollbar.
+Manage a notification rule for Rollbar.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-rollbar-resource-providers.git) 
 - [Documentation]()

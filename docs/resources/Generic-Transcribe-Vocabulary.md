@@ -1,7 +1,7 @@
 
 ## Generic::Transcribe::Vocabulary
 
-## A custom vocabulary that you can use to change the way Amazon Transcribe handles transcription of an audio file.
+A custom vocabulary that you can use to change the way Amazon Transcribe handles transcription of an audio file.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-types&#x2F;tree&#x2F;master&#x2F;generic-transcribe-vocabulary) 
 - [Documentation]()

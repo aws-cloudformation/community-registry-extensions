@@ -1,7 +1,7 @@
 
 ## Aqua::Enterprise::KubeEnforcer
 
-## A resource provider for Aqua Enterprise KubeEnforcer.
+A resource provider for Aqua Enterprise KubeEnforcer.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aquasecurity&#x2F;aqua-helm.git) 
 - [Documentation]()

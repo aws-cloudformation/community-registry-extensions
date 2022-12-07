@@ -1,7 +1,7 @@
 
 ## Aqua::Enterprise::Scanner
 
-## A resource provider for Aqua Enterprise Scanner.
+A resource provider for Aqua Enterprise Scanner.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aquasecurity&#x2F;aqua-helm.git) 
 - [Documentation]()

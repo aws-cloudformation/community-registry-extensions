@@ -1,7 +1,7 @@
 
 ## Cloudflare::LoadBalancer::Monitor
 
-## A Monitor policy to configure monitoring of endpoint health
+A Monitor policy to configure monitoring of endpoint health
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-cloudflare-resource-providers.git) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## TF::AWS::KeyPair
 
-## Provides an [EC2 key pair](https:&#x2F;&#x2F;docs.aws.amazon.com&#x2F;AWSEC2&#x2F;latest&#x2F;UserGuide&#x2F;ec2-key-pairs.html) resource. A key pair is used to control login access to EC2 instances.
+Provides an [EC2 key pair](https:&#x2F;&#x2F;docs.aws.amazon.com&#x2F;AWSEC2&#x2F;latest&#x2F;UserGuide&#x2F;ec2-key-pairs.html) resource. A key pair is used to control login access to EC2 instances.
 
 Currently this resource requires an existing user-supplied key pair. This key pair&#39;s public key will be registered with AWS to allow logging-in to EC2 instances.
 

@@ -1,7 +1,7 @@
 
 ## TF::DigitalOcean::Droplet
 
-## Provides a DigitalOcean Droplet resource. This can be used to create,
+Provides a DigitalOcean Droplet resource. This can be used to create,
 modify, and delete Droplets. Droplets also support
 [provisioning](https:&#x2F;&#x2F;www.terraform.io&#x2F;docs&#x2F;language&#x2F;resources&#x2F;provisioners&#x2F;syntax.html).
 

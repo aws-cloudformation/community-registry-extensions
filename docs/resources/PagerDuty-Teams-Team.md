@@ -1,7 +1,7 @@
 
 ## PagerDuty::Teams::Team
 
-## Manage a team in PagerDuty.
+Manage a team in PagerDuty.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-pagerduty-resource-providers.git) 
 - [Documentation]()

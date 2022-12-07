@@ -1,7 +1,7 @@
 
 ## GitLab::Groups::GroupAccessToGroup
 
-## Adds a group as a member of another GitLab group
+Adds a group as a member of another GitLab group
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-gitlab-resource-providers.git) 
 - [Documentation]()

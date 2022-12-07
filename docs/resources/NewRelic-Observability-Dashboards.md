@@ -1,7 +1,7 @@
 
 ## NewRelic::Observability::Dashboards
 
-## CRUD operations for New Relic Dashboards via the NerdGraph API
+CRUD operations for New Relic Dashboards via the NerdGraph API
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;newrelic-experimental&#x2F;newrelic-cloudformation-resource-providers-dashboards) 
 - [Documentation]()

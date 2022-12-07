@@ -1,7 +1,7 @@
 
 ## MongoDb::Atlas::AwsIamDatabaseUser
 
-## CRUD for AWS IAM MongoDB users in a project for your clusters&#x2F;databases.
+CRUD for AWS IAM MongoDB users in a project for your clusters&#x2F;databases.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;compose-x&#x2F;aws-cfn-mongodb-atlas-awsiamdatabaseuser) 
 - [Documentation]()

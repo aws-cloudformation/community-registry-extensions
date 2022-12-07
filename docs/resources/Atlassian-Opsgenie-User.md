@@ -1,7 +1,7 @@
 
 ## Atlassian::Opsgenie::User
 
-## Opsgenie User
+Opsgenie User
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;opsgenie&#x2F;opsgenie-cloudformation-resources) 
 - [Documentation]()

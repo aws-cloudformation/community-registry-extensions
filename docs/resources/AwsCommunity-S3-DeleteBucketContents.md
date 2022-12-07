@@ -1,7 +1,7 @@
 
 ## AwsCommunity::S3::DeleteBucketContents
 
-## An experimental extension that deletes all contents of the referenced bucket when the stack is deleted. Use with caution!
+An experimental extension that deletes all contents of the referenced bucket when the stack is deleted. Use with caution!
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-cloudformation&#x2F;community-registry-extensions.git) 
 - [Documentation]()

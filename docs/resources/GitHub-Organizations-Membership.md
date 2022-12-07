@@ -1,7 +1,7 @@
 
 ## GitHub::Organizations::Membership
 
-## Add people to an organization. Will create an invite and user will only become a member once they accept this invite.
+Add people to an organization. Will create an invite and user will only become a member once they accept this invite.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-github-resource-providers.git) 
 - [Documentation]()

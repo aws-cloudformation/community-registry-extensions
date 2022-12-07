@@ -1,7 +1,7 @@
 
 ## GitHub::Teams::Team
 
-## Manage a team in Github
+Manage a team in Github
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-github-resource-providers.git) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## AWSQS::Kubernetes::Get
 
-## Fetches data from a kubernetes cluster using jsonpath expressions.
+Fetches data from a kubernetes cluster using jsonpath expressions.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-quickstart&#x2F;quickstart-amazon-eks.git) 
 - [Documentation]()

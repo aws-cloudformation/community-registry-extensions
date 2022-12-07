@@ -1,7 +1,7 @@
 
 ## newrelic::cloudformation::dashboards
 
-## CRUDL operations for New Relic Dashboards via the NerdGraph API
+CRUDL operations for New Relic Dashboards via the NerdGraph API
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-cloudformation&#x2F;aws-cloudformation-rpdk.git) 
 - [Documentation]()

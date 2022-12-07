@@ -1,7 +1,7 @@
 
 ## Fastly::Services::Healthcheck
 
-## Manage a Fastly service health check.
+Manage a Fastly service health check.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-fastly-resource-providers.git) 
 - [Documentation]()

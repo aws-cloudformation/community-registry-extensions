@@ -1,7 +1,7 @@
 
 ## TF::GitHub::Repository
 
-## This resource allows you to create and manage repositories within your
+This resource allows you to create and manage repositories within your
 GitHub organization or personal account.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-tf-custom-types.git) 

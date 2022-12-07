@@ -1,7 +1,7 @@
 
 ## Sysdig::Helm::Agent
 
-## Sysdig Agent EKS cluster deployment.
+Sysdig Agent EKS cluster deployment.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;sysdiglabs&#x2F;cloudformation-resource-providers.git) 
 - [Documentation]()

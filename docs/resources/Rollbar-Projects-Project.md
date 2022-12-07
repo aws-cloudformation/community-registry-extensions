@@ -1,7 +1,7 @@
 
 ## Rollbar::Projects::Project
 
-## Manage a project on Rollbar.
+Manage a project on Rollbar.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-rollbar-resource-providers.git) 
 - [Documentation]()

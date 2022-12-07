@@ -1,7 +1,7 @@
 
 ## Okta::Group::Membership
 
-## Adds Okta users to groups
+Adds Okta users to groups
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-okta-resource-providers&#x2F;tree&#x2F;main&#x2F;Okta-Group-Membership) 
 - [Documentation]()

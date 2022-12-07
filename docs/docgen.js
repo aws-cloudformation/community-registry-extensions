@@ -17,7 +17,30 @@ const cfn = new aws.CloudFormation();
 (async function main() {
     try {
         const resources = await getAllResources()
-        fs.writeFileSync("_data/resources.json", JSON.stringify(resources))
+        const publishers = {}
+        for (const resource of resources) {
+            const publisherName = resource.PublisherName
+            const publisherId = resource.PublisherId
+            if (!(publisherName in publishers)) {
+                publishers[publisherName] = {}
+                publishers[publisherName].PublisherName = publisherName
+                publishers[publisherName].PublisherId = publisherId
+                publishers[publisherName].Resources = []
+            }
+            publishers[publisherName].Resources.push(resource)
+        }
+        const siteData = {
+            publishers: []
+        }
+        for (const key in publishers) {
+            const pd = await cfn.describePublisher({
+                PublisherId: publishers[key].PublisherId
+            }).promise()
+            publishers[key].PublisherProfile = pd.PublisherProfile
+            console.log("Looked up profile for", key)
+            siteData.publishers.push(publishers[key])
+        }
+        fs.writeFileSync("_data/resources.json", JSON.stringify(siteData))
         for (const t of resources) {
             console.log(t.TypeName)
 
@@ -41,7 +64,7 @@ const cfn = new aws.CloudFormation();
             const template = `
 ## {{TypeName}}
 
-## {{Description}}
+{{Description}}
 
 - [Source]({{SourceUrl}}) 
 - [Documentation]({{DocumenationUrl}})

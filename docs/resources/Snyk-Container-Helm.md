@@ -1,7 +1,7 @@
 
 ## Snyk::Container::Helm
 
-## Snyk integrates with Amazon EKS, enabling you to import and test your running workloads and identify vulnerabilities in their associated images and configurations that might make those workloads less secure. Once imported, Snyk continues to monitor those workloads, identifying additional security issues as new images are deployed and the workload configuration changes.
+Snyk integrates with Amazon EKS, enabling you to import and test your running workloads and identify vulnerabilities in their associated images and configurations that might make those workloads less secure. Once imported, Snyk continues to monitor those workloads, identifying additional security issues as new images are deployed and the workload configuration changes.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;snyk&#x2F;aws-cloudformation-resource-providers.git) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## PaloAltoNetworks::CloudNGFW::RuleStack
 
-## A rulestack defines the NGFW&#39;s advanced access control (APP-ID, URL Filtering) and threat prevention behavior.
+A rulestack defines the NGFW&#39;s advanced access control (APP-ID, URL Filtering) and threat prevention behavior.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-cloudformation&#x2F;aws-cloudformation-rpdk.git) 
 - [Documentation]()

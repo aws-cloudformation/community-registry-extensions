@@ -1,7 +1,7 @@
 
 ## TF::AWS::S3Bucket
 
-## Provides a S3 bucket resource.
+Provides a S3 bucket resource.
 
 -&gt; This functionality is for managing S3 in an AWS Partition. To manage [S3 on Outposts](https:&#x2F;&#x2F;docs.aws.amazon.com&#x2F;AmazonS3&#x2F;latest&#x2F;dev&#x2F;S3onOutposts.html), see the [&#x60;aws_s3control_bucket&#x60;](&#x2F;docs&#x2F;providers&#x2F;aws&#x2F;r&#x2F;s3control_bucket.html) resource.
 

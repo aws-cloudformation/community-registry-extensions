@@ -1,7 +1,7 @@
 
 ## Rollbar::Projects::AccessToken
 
-## Manage an access token for a Rollbar project.
+Manage an access token for a Rollbar project.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-rollbar-resource-providers.git) 
 - [Documentation]()

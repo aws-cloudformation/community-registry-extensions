@@ -1,7 +1,7 @@
 
 ## TF::PagerDuty::Service
 
-## A [service](https:&#x2F;&#x2F;v2.developer.pagerduty.com&#x2F;v2&#x2F;page&#x2F;api-reference#!&#x2F;Services&#x2F;get_services) represents something you monitor (like a web service, email service, or database service). It is a container for related incidents that associates them with escalation policies.
+A [service](https:&#x2F;&#x2F;v2.developer.pagerduty.com&#x2F;v2&#x2F;page&#x2F;api-reference#!&#x2F;Services&#x2F;get_services) represents something you monitor (like a web service, email service, or database service). It is a container for related incidents that associates them with escalation policies.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-tf-custom-types.git) 
 - [Documentation]()

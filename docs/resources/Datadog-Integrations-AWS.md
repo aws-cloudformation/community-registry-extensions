@@ -1,7 +1,7 @@
 
 ## Datadog::Integrations::AWS
 
-## Datadog AWS Integration 2.2.1
+Datadog AWS Integration 2.2.1
 
 - [Source]() 
 - [Documentation]()

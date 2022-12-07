@@ -1,7 +1,7 @@
 
 ## TF::AD::User
 
-## CloudFormation equivalent of ad_user
+CloudFormation equivalent of ad_user
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;iann0036&#x2F;cfn-tf-custom-types.git) 
 - [Documentation]()

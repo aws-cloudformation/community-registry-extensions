@@ -1,7 +1,7 @@
 
 ## GitLab::Projects::GroupAccessToProject
 
-## Adds a group as a member of a GitLab project
+Adds a group as a member of a GitLab project
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-gitlab-resource-providers.git) 
 - [Documentation]()

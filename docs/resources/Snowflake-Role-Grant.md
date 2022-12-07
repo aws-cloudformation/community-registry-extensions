@@ -1,7 +1,7 @@
 
 ## Snowflake::Role::Grant
 
-## Allows privileges to be granted on a role to a user. https:&#x2F;&#x2F;docs.snowflake.com&#x2F;en&#x2F;sql-reference&#x2F;sql&#x2F;grant-privilege.html
+Allows privileges to be granted on a role to a user. https:&#x2F;&#x2F;docs.snowflake.com&#x2F;en&#x2F;sql-reference&#x2F;sql&#x2F;grant-privilege.html
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-snowflake-resource-providers.git) 
 - [Documentation]()

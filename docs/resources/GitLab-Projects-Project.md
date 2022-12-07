@@ -1,7 +1,7 @@
 
 ## GitLab::Projects::Project
 
-## Creates a project in GitLab
+Creates a project in GitLab
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-gitlab-resource-providers.git) 
 - [Documentation]()

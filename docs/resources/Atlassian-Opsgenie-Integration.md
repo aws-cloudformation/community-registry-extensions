@@ -1,7 +1,7 @@
 
 ## Atlassian::Opsgenie::Integration
 
-## Opsgenie Integration Resource definition
+Opsgenie Integration Resource definition
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;opsgenie&#x2F;opsgenie-cloudformation-resources) 
 - [Documentation]()

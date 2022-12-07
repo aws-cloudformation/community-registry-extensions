@@ -1,7 +1,7 @@
 
 ## Fastly::Services::Domain
 
-## Manage a Fastly service domain.
+Manage a Fastly service domain.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-fastly-resource-providers.git) 
 - [Documentation]()

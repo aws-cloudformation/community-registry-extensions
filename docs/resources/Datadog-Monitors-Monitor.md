@@ -1,7 +1,7 @@
 
 ## Datadog::Monitors::Monitor
 
-## Datadog Monitor 4.4.0
+Datadog Monitor 4.4.0
 
 - [Source]() 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## ConfluentCloud::IAM::ServiceAccount
 
-## Service Account as defined in Confluent Cloud IAM v2 API.
+Service Account as defined in Confluent Cloud IAM v2 API.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;JohnPreston&#x2F;aws-cfn-confluentcloud-iam-serviceaccount) 
 - [Documentation]()

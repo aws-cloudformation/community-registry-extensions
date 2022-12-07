@@ -1,7 +1,7 @@
 
 ## GitHub::Teams::Membership
 
-## Manages people&#39;s membership to GitHub teams
+Manages people&#39;s membership to GitHub teams
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-github-resource-providers.git) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## Cloudflare::LoadBalancer::LoadBalancer
 
-## A Cloudflare resource for managing load-balancing across pools
+A Cloudflare resource for managing load-balancing across pools
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-cloudflare-resource-providers.git) 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## Okta::Policy::Policy
 
-## Manages an Okta Policy
+Manages an Okta Policy
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-okta-resource-providers.git) 
 - [Documentation]()

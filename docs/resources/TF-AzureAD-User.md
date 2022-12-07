@@ -1,7 +1,7 @@
 
 ## TF::AzureAD::User
 
-## Manages a User within Azure Active Directory.
+Manages a User within Azure Active Directory.
 
 -&gt; **NOTE:** If you&#39;re authenticating using a Service Principal then it must have permissions to &#x60;Directory.ReadWrite.All&#x60; within the &#x60;Windows Azure Active Directory&#x60; API.
 

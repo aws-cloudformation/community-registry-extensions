@@ -1,7 +1,7 @@
 
 ## PagerDuty::EscalationPolicies::EscalationPolicy
 
-## Manage an escalation policy in PagerDuty.
+Manage an escalation policy in PagerDuty.
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-pagerduty-resource-providers.git) 
 - [Documentation]()

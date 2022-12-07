@@ -1,7 +1,7 @@
 
 ## MongoDB::Atlas::DatabaseUser
 
-## Returns, adds, edits, and removes database users.
+Returns, adds, edits, and removes database users.
 
 - [Source]() 
 - [Documentation]()

@@ -1,7 +1,7 @@
 
 ## Datadog::Dashboards::Dashboard
 
-## Datadog Dashboard 2.0.2
+Datadog Dashboard 2.0.2
 
 - [Source]() 
 - [Documentation]()

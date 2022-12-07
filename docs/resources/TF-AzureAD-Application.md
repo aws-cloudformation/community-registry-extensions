@@ -1,7 +1,7 @@
 
 ## TF::AzureAD::Application
 
-## Manages an Application within Azure Active Directory.
+Manages an Application within Azure Active Directory.
 
 -&gt; **NOTE:** If you&#39;re authenticating using a Service Principal then it must have permissions to both &#x60;Read and write owned by applications&#x60; and &#x60;Sign in and read user profile&#x60; within the &#x60;Windows Azure Active Directory&#x60; API.
 

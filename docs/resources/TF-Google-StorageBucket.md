@@ -1,7 +1,7 @@
 
 ## TF::Google::StorageBucket
 
-## Creates a new bucket in Google cloud storage service (GCS).
+Creates a new bucket in Google cloud storage service (GCS).
 Once a bucket has been created, its location can&#39;t be changed.
 
 For more information see

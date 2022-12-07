@@ -1,7 +1,7 @@
 
 ## AWSQS::Kubernetes::Resource
 
-## Applys a YAML manifest to the specified Kubernetes cluster
+Applys a YAML manifest to the specified Kubernetes cluster
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-quickstart&#x2F;quickstart-amazon-eks.git) 
 - [Documentation]()

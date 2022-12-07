@@ -1,7 +1,7 @@
 
 ## GitHub::Git::Tag
 
-## Manage a git tag on GitHub
+Manage a git tag on GitHub
 
 - [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-ia&#x2F;cloudformation-github-resource-providers.git) 
 - [Documentation]()
