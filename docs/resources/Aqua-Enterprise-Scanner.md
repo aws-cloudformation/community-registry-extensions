@@ -1,0 +1,217 @@
+
+## Aqua::Enterprise::Scanner
+
+## A resource provider for Aqua Enterprise Scanner.
+
+- [Source](https:&#x2F;&#x2F;github.com&#x2F;aquasecurity&#x2F;aqua-helm.git) 
+- [Documentation]()
+
+Published by Aqua Security Software Inc.
+
+## Schema
+{% highlight json %}
+{
+    "typeName": "Aqua::Enterprise::Scanner",
+    "description": "A resource provider for Aqua Enterprise Scanner.",
+    "sourceUrl": "https://github.com/aquasecurity/aqua-helm.git",
+    "definitions": {
+        "Arn": {
+            "type": "string",
+            "pattern": "^arn:aws(-(cn|us-gov))?:[a-z-]+:(([a-z]+-)+[0-9])?:([0-9]{12})?:[^.]+$"
+        }
+    },
+    "properties": {
+        "ClusterID": {
+            "description": "EKS cluster name",
+            "type": "string"
+        },
+        "KubeConfig": {
+            "description": "Secrets Manager ARN for kubeconfig file",
+            "$ref": "#/definitions/Arn"
+        },
+        "RoleArn": {
+            "description": "IAM to use with EKS cluster authentication, if not resource execution role will be used",
+            "$ref": "#/definitions/Arn"
+        },
+        "Namespace": {
+            "description": "Namespace to use with helm. Created if doesn't exist and default will be used if not provided",
+            "type": "string"
+        },
+        "Name": {
+            "description": "Name for the helm release",
+            "type": "string"
+        },
+        "Values": {
+            "description": "Custom Values can optionally be specified",
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^.+$": {
+                    "type": "string"
+                }
+            }
+        },
+        "ValueYaml": {
+            "description": "String representation of a values.yaml file",
+            "type": "string"
+        },
+        "Version": {
+            "description": "Version can be specified, if not latest will be used",
+            "type": "string"
+        },
+        "ValueOverrideURL": {
+            "description": "Custom Value Yaml file can optionally be specified",
+            "type": "string",
+            "pattern": "^[sS]3://[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])(:[0-9]*)*([?/#].*)?$"
+        },
+        "ID": {
+            "description": "Primary identifier for Cloudformation",
+            "type": "string"
+        },
+        "TimeOut": {
+            "description": "Timeout for resource provider. Default 60 mins",
+            "type": "integer"
+        },
+        "VPCConfiguration": {
+            "type": "object",
+            "description": "For network connectivity to Cluster inside VPC",
+            "additionalProperties": false,
+            "properties": {
+                "SecurityGroupIds": {
+                    "description": "Specify one or more security groups",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "SubnetIds": {
+                    "description": "Specify one or more subnets",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "additionalProperties": false,
+    "readOnlyProperties": [
+        "/properties/Resources",
+        "/properties/ID"
+    ],
+    "primaryIdentifier": [
+        "/properties/ID"
+    ],
+    "createOnlyProperties": [
+        "/properties/Name",
+        "/properties/Namespace",
+        "/properties/ClusterID"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "secretsmanager:GetSecretValue",
+                "kms:Decrypt",
+                "eks:DescribeCluster",
+                "s3:GetObject",
+                "sts:AssumeRole",
+                "iam:PassRole",
+                "ec2:CreateNetworkInterface",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DeleteNetworkInterface",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeRouteTables",
+                "ec2:DescribeSecurityGroups",
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:DeleteFunction",
+                "lambda:GetFunction",
+                "lambda:InvokeFunction",
+                "lambda:CreateFunction",
+                "lambda:UpdateFunctionCode"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "secretsmanager:GetSecretValue",
+                "kms:Decrypt",
+                "eks:DescribeCluster",
+                "s3:GetObject",
+                "sts:AssumeRole",
+                "iam:PassRole",
+                "ec2:CreateNetworkInterface",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DeleteNetworkInterface",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeRouteTables",
+                "ec2:DescribeSecurityGroups",
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:DeleteFunction",
+                "lambda:GetFunction",
+                "lambda:InvokeFunction",
+                "lambda:CreateFunction",
+                "lambda:UpdateFunctionCode"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "secretsmanager:GetSecretValue",
+                "kms:Decrypt",
+                "eks:DescribeCluster",
+                "s3:GetObject",
+                "sts:AssumeRole",
+                "iam:PassRole",
+                "ec2:CreateNetworkInterface",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DeleteNetworkInterface",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeRouteTables",
+                "ec2:DescribeSecurityGroups",
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:DeleteFunction",
+                "lambda:GetFunction",
+                "lambda:InvokeFunction",
+                "lambda:CreateFunction",
+                "lambda:UpdateFunctionCode"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "secretsmanager:GetSecretValue",
+                "kms:Decrypt",
+                "eks:DescribeCluster",
+                "s3:GetObject",
+                "sts:AssumeRole",
+                "iam:PassRole",
+                "ec2:CreateNetworkInterface",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DeleteNetworkInterface",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeRouteTables",
+                "ec2:DescribeSecurityGroups",
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "lambda:UpdateFunctionConfiguration",
+                "lambda:DeleteFunction",
+                "lambda:GetFunction",
+                "lambda:InvokeFunction",
+                "lambda:CreateFunction",
+                "lambda:UpdateFunctionCode"
+            ]
+        }
+    }
+}
+{% endhighlight %}

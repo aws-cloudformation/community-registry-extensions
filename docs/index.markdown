@@ -6,7 +6,7 @@ layout: home
 ---
 
 {% for item in site.data.resources %}
-## {{ item.TypeName }}
+## [{{ item.TypeName }}](./resources/{{item.TypeNameDashes}})
 
 {{ item.Description }}
 

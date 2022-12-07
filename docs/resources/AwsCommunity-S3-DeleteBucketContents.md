@@ -1,0 +1,62 @@
+
+## AwsCommunity::S3::DeleteBucketContents
+
+## An experimental extension that deletes all contents of the referenced bucket when the stack is deleted. Use with caution!
+
+- [Source](https:&#x2F;&#x2F;github.com&#x2F;aws-cloudformation&#x2F;community-registry-extensions.git) 
+- [Documentation]()
+
+Published by AWS Community
+
+## Schema
+{% highlight json %}
+{
+    "typeName": "AwsCommunity::S3::DeleteBucketContents",
+    "description": "An experimental extension that deletes all contents of the referenced bucket when the stack is deleted. Use with caution!",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions.git",
+    "definitions": {},
+    "properties": {
+        "BucketName": {
+            "description": "The name of the bucket",
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "tagging": {
+        "taggable": false
+    },
+    "required": [
+        "BucketName"
+    ],
+    "createOnlyProperties": [
+        "/properties/BucketName"
+    ],
+    "primaryIdentifier": [
+        "/properties/BucketName"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "s3:ListBucket",
+                "s3:GetBucketTagging",
+                "s3:PutBucketTagging"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "s3:ListBucket",
+                "s3:GetBucketTagging"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "s3:DeleteObject",
+                "s3:ListBucket",
+                "s3:ListBucketVersions",
+                "s3:GetBucketTagging",
+                "s3:PutBucketTagging"
+            ]
+        }
+    }
+}
+{% endhighlight %}
