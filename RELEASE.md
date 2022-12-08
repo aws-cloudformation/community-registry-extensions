@@ -105,8 +105,6 @@ your own sandbox account for development and testing.
 - Create a secret in Secrets Manager for the GitHub webhook secret. 
 *This should be a plaintext string that you determine. Note the ARN of the secret.*
 
-- Create an ECR repository called `cep-cicd` in your AWS account.
-
 - Create S3 buckets for `alpha`, `beta`, `prod` environments
 
 ***Development Machine***
