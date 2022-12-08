@@ -1,0 +1,13 @@
+{
+  "TableName": "{{TableForItemTest}}",
+  "Item": {
+    "title": {
+      "S": "one"
+    }
+  },
+  "Key": {
+    "pk": {
+      "S": "one"
+    }
+  }
+}
