@@ -21,18 +21,18 @@ export NOTIFICATION_EMAIL="developer@email.com"
 
 export CEP_ENV=alpha
 export GIT_BRANCH=main
-export PACKAGE_BUCKET=community-registry-extensions-alpha-packages
+export PACKAGE_BUCKET=developer-alpha-packages
 
 ./deploy-cicd.sh
 
 export CEP_ENV=prod
 export GIT_BRANCH=release
-export PACKAGE_BUCKET=community-registry-extensions-prod-packages
+export PACKAGE_BUCKET=developer-prod-packages
 
 ./deploy-cicd.sh
 
 export CEP_ENV=beta
 export GIT_BRANCH=release
-export PACKAGE_BUCKET=community-registry-extensions-beta-packages
+export PACKAGE_BUCKET=developer-beta-packages
 ./deploy-cicd.sh
 
