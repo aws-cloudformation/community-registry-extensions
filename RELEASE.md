@@ -107,6 +107,8 @@ your own sandbox account for development and testing.
 
 - Create an ECR repository called `cep-cicd` in your AWS account.
 
+- Create S3 buckets for `alpha`, `beta`, `prod` environments
+
 ***Development Machine***
 You will need to have the following software installed
 
@@ -116,22 +118,18 @@ You will need to have the following software installed
 - `docker`
 
 Make copies of the `scripts/deploy-*.sh` scripts in the git-ignored `local/`
-folder and change the environment variables in the files.
+folder and update the environment variables in the shell scripts you will be
+using.  To set up the development pipelines you would update the
+`deploy-dev-pipeline.sh` file.
 
-Deploy them in this order from the `releases` directory:
+Change to the `releases` directory and run
 
-1. `../local/deploy-alpha.sh`
-2. `../local/deploy-prod.sh`
-3. `../local/deploy-beta.sh`
+1. `../local/deploy-dev-pipeline.sh`
 
-You can then run
+Building the image for the first time will take a fair amount of time.  We recommend
+doing this from a Cloud9 instance in your account if that is an issue.
 
-* `./deploy-build-image.sh <ACCOUNT NUMBER> <PROFILE NAME>`
-
-Deploying the build image will take a while from outside the PROD network,
-so it's recommended to do this from a Cloud9 instance in your account.
-
-Once `deploy-cicd.sh` has run, you will need to manually confgure a GitHub
+Once `deploy-dev-pipeline.sh` has completed, you will need to confgure a GitHub
 webhook from your fork to point to the API Gateway `prod` stage that is created
 by the `cicd.yml` template. Set the content-type to `application-json` and
 leave the default of "Just the push event". The "Recent Deliveries" tab on the
