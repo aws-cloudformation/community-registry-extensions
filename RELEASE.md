@@ -130,9 +130,11 @@ doing this from a Cloud9 instance in your account if that is a concern.
 Once `deploy-dev-pipeline.sh` has completed, you will need to confgure a GitHub
 webhook from your fork to point to the API Gateway `prod` stage that is created
 by the `cicd.yml` template. Set the content-type to `application-json` and
-leave the default of "Just the push event". The "Recent Deliveries" tab on the
-webhook screen can be used to re-deliver payloads if you are troubleshooting
-it.
+leave the default of "Just the push event".
+
+The Webhook URL is in the output of the cloudformation stacks of cep-alpha and
+cep-beta.  The "Recent Deliveries" tab on the webhook screen can be used to re-deliver
+payloads if you are troubleshooting it.
 
 ### 3rd party resources
 
