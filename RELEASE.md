@@ -99,19 +99,34 @@ to fix a bug that is not related to the release process.  See the
 If you need to make changes to the release process, deploy the CICD stacks to
 your own sandbox account for development and testing. 
 
-First, create a secret in Secrets Manager for the GitHub webhook secret. 
-It should be a plaintext string that you determine. Note the ARN of the secret.
+**Pre-Requisites**
+
+***In your development AWS Account***
+- Create a secret in Secrets Manager for the GitHub webhook secret. 
+*This should be a plaintext string that you determine. Note the ARN of the secret.*
+
+- Create an ECR repository called `cep-cicd` in your AWS account.
+
+***Development Machine***
+You will need to have the following software installed
+
+- [cfn-lint](https://github.com/aws-cloudformation/cfn-lint)
+- [aws](https://aws.amazon.com/cli/)
+- [rain](https://github.com/aws-cloudformation/rain)
+- `docker`
 
 Make copies of the `scripts/deploy-*.sh` scripts in the git-ignored `local/`
-folder and deploy each of them after changing the environment variables. 
+folder and change the environment variables in the files.
 
-Deploy them in this order:
+Deploy them in this order from the `releases` directory:
 
-1. `deploy-cicd.sh`
-2. `deploy-prod.sh`
-3. `deploy-beta.sh`
+1. `../local/deploy-alpha.sh`
+2. `../local/deploy-prod.sh`
+3. `../local/deploy-beta.sh`
 
-Manually create an ECR repository called cep-cicd in your account.
+You can then run
+
+* `./deploy-build-image.sh <ACCOUNT NUMBER> <PROFILE NAME>`
 
 Deploying the build image will take a while from outside the PROD network,
 so it's recommended to do this from a Cloud9 instance in your account.
