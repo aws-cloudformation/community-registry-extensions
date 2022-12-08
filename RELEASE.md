@@ -125,7 +125,7 @@ Change to the `releases` directory and run
 1. `../local/deploy-dev-pipeline.sh`
 
 Building the image for the first time will take a fair amount of time.  We recommend
-doing this from a Cloud9 instance in your account if that is an issue.
+doing this from a Cloud9 instance in your account if that is a concern.
 
 Once `deploy-dev-pipeline.sh` has completed, you will need to confgure a GitHub
 webhook from your fork to point to the API Gateway `prod` stage that is created
