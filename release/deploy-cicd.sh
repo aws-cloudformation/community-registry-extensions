@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # See scripts/deploy-*.sh for an example of how to call this
 #
