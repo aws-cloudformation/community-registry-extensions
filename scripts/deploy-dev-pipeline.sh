@@ -17,7 +17,7 @@ export PROD_ACCOUNT_ID=$AWS_ACCOUNT
 export BETA_ACCOUNT_ID=$AWS_ACCOUNT
 export NOTIFICATION_EMAIL="developer@email.com"
 
-aws --profile $PROFILE --region $AWS_REGION ecr --repository-name cep-cicd
+aws --profile $PROFILE --region $AWS_REGION ecr create-repository --repository-name cep-cicd
 
 ./deploy-build-image.sh $AWS_ACCOUNT $PROFILE
 
