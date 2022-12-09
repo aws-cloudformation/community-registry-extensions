@@ -101,13 +101,13 @@ your own sandbox account for development and testing.
 
 **Pre-Requisites**
 
-***In your development AWS Account***
+***In your sandbox AWS Account***
 - Create a secret in Secrets Manager for the GitHub webhook secret. 
 *This should be a plaintext string that you determine. Note the ARN of the secret.*
 
 - Create S3 buckets for `alpha`, `beta`, `prod` environments
 
-***Development Machine***
+***Local Machine***
 You will need to have the following software installed
 
 - [cfn-lint](https://github.com/aws-cloudformation/cfn-lint)
@@ -117,17 +117,17 @@ You will need to have the following software installed
 
 Make copies of the `scripts/deploy-*.sh` scripts in the git-ignored `local/`
 folder and update the environment variables in the shell scripts you will be
-using.  To set up the development pipelines you would update the
-`deploy-dev-pipeline.sh` file.
+using.  To set up the sandbox pipelines you would update the
+`deploy-sandbox-pipeline.sh` file.
 
 Change to the `releases` directory and run
 
-1. `../local/deploy-dev-pipeline.sh`
+1. `../local/deploy-sandbox-pipeline.sh`
 
 Building the image for the first time will take a fair amount of time.  We recommend
 doing this from a Cloud9 instance in your account if that is a concern.
 
-Once `deploy-dev-pipeline.sh` has completed, you will need to confgure a GitHub
+Once `deploy-sandbox-pipeline.sh` has completed, you will need to confgure a GitHub
 webhook from your fork to point to the API Gateway `prod` stage that is created
 by the `cicd.yml` template. Set the content-type to `application-json` and
 leave the default of "Just the push event".

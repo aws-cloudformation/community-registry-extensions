@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Deploy all developer environment pipelines into 1 account
+# Deploy all sandbox environment pipelines into 1 account
 # 
 # Run from the release folder
 
