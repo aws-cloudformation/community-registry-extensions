@@ -208,9 +208,9 @@ Resources:
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
         - Name: FASTLY_SERVICE_ID
-          Type: PLAINTEXT
+          Type: PARAMETER_STORE
           Value: "cep-fastly-service-id"
-        - Name: FASTLY_VERSION_ID
+        - Name: PARAMETER_STORE
           Type: PLAINTEXT
           Value: "cep-fastly-version-id"
       ServiceRole: !GetAtt FastlyServicesDomainBuildProjectRole.Arn
