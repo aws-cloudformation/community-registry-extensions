@@ -96,7 +96,7 @@ def handler(event, context): #pylint:disable=W0613
             ],
         )
     else:
-        print("Not starting build for branch:", branch)
+        print("Not starting build for branch:", branch, " Looking for :" , os.environ['GIT_BRANCH'])
     return {
         "statusCode": 200,
         "headers": {},
