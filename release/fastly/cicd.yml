@@ -104,7 +104,6 @@ Resources:
             Resource: "*"
           - Action:
               - kms:CreateKey
-              - kms:DeleteKey
               - kms:Create*
               - kms:Describe*
               - kms:Enable*
@@ -131,7 +130,7 @@ Resources:
               - iam:DeleteRolePolicy
               - iam:GetRolePolicy
               - iam:PassRole
-              - iam:UpdateAssumeRolePolicyDocument
+              - iam:UpdateAssumeRolePolicy
             Effect: Allow
             Resource: 
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
