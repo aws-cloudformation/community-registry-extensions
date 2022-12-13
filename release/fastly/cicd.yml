@@ -199,7 +199,7 @@ Resources:
   FastlyServicesDomainBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-services-domain"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -226,7 +226,7 @@ Resources:
   FastlyDictionaryDictionaryBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-dictionary-dictionary"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
