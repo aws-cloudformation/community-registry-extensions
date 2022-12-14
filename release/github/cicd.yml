@@ -8,22 +8,6 @@ Parameters:
     Description: The environment, alpha, beta, or prod. In a sandbox these are all in one account, but the actual deployment is to three different accounts.
     AllowedValues: ["alpha", "beta", "prod"]
 
-  GitUrl:
-    Type: String
-    Description: The URL to the Git repo to clone
-
-  GitBranch:
-    Type: String
-    Description: The branch to clone
-
-  GitHubSecretArn: 
-    Type: String
-    Description: The arn to the github webhook secret
-
-  Prefix:
-    Type: String
-    Description: The extension prefix, for example, AwsCommunity
-
   PrefixLower:
     Type: String
     Description: The extension prefix lowercase, for example, awscommunity.
@@ -105,6 +89,61 @@ Resources:
         Version: '2012-10-17'
 
   GitHubOrgMemberBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  GitHubRepoCollaboratorBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  GitHubTeamBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  GitHubRepoWebhookBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  GitHubTeamRepoAccessBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
+  GitHubTeamMembershipBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -215,6 +254,11 @@ Resources:
         - !Ref GitHubRepositoryBuildProjectRole
         - !Ref GitHubTagsBuildProjectRole
         - !Ref GitHubOrgMemberBuildProjectRole
+        - !Ref GitHubRepoCollaboratorBuildProjectRole
+        - !Ref GitHubRepoWebhookBuildProjectRole
+        - !Ref GitHubTeamBuildProjectRole
+        - !Ref GitHubTeamRepoAccessBuildProjectRole
+        - !Ref GitHubTeamMembershipBuildProjectRole
 
   GitHubRepositoryBuildProject:
     Type: AWS::CodeBuild::Project
@@ -300,6 +344,147 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
 
+  GitHubRepoCollaboratorBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-repo-collaborator"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+        - Name: GITHUB_USERNAME
+          Type: PARAMETER_STORE
+          Value: "cep-github-collab-username"
+        - Name: GITHUB_REPO
+          Type: PARAMETER_STORE
+          Value: "cep-github-repo"
+      ServiceRole: !GetAtt GitHubRepoCollaboratorBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  GitHubRepoWebhookBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-repo-webhook"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+        - Name: GITHUB_REPO
+          Type: PARAMETER_STORE
+          Value: "cep-github-repo"
+      ServiceRole: !GetAtt GitHubRepoWebhookBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  GitHubTeamBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-team"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+      ServiceRole: !GetAtt GitHubTeamBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  GitHubTeamRepoAccessBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-team-repo-access"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+        - Name: GITHUB_TEAM
+          Type: PARAMETER_STORE
+          Value: "cep-github-team"
+        - Name: GITHUB_REPO
+          Type: PARAMETER_STORE
+          Value: "cep-github-repo"
+      ServiceRole: !GetAtt GitHubTeamRepoAccessBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  GitHubTeamMembershipBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-team-membership"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+        - Name: GITHUB_TEAM
+          Type: PARAMETER_STORE
+          Value: "cep-github-team"
+        - Name: GITHUB_USERNAME
+          Type: PARAMETER_STORE
+          Value: "cep-github-username"
+      ServiceRole: !GetAtt GitHubTeamMembershipBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -355,6 +540,11 @@ Resources:
                   - !GetAtt GitHubRepositoryBuildProject.Arn
                   - !GetAtt GitHubTagsBuildProject.Arn
                   - !GetAtt GitHubOrgMemberBuildProject.Arn
+                  - !GetAtt GitHubRepoCollaboratorBuildProject.Arn
+                  - !GetAtt GitHubRepoWebhookBuildProject.Arn
+                  - !GetAtt GitHubTeamBuildProject.Arn
+                  - !GetAtt GitHubTeamRepoAccessBuildProject.Arn
+                  - !GetAtt GitHubTeamMembershipBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -411,6 +601,11 @@ Resources:
                 - !GetAtt GitHubRepositoryBuildProjectRole.Arn
                 - !GetAtt GitHubTagsBuildProjectRole.Arn
                 - !GetAtt GitHubOrgMemberBuildProjectRole.Arn
+                - !GetAtt GitHubRepoCollaboratorBuildProjectRole.Arn
+                - !GetAtt GitHubRepoWebhookBuildProjectRole.Arn
+                - !GetAtt GitHubTeamBuildProjectRole.Arn
+                - !GetAtt GitHubTeamRepoAccessBuildProjectRole.Arn
+                - !GetAtt GitHubTeamMembershipBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -517,6 +712,102 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "GitHub-Organizations-Membership"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: GitHubRepoCollaborator
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubRepoCollaboratorBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Repositories-Collaborator"
+                      "value": "GitHub-Repositories-Webhook"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: GitHubRepoWebhook
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubRepoWebhookBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Repositories-Webhook"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: GitHubTeam
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubTeamBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Teams-Team"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: GitHubTeamRepoAccess
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubTeamRepoAccessBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Teams-RepositoryAccess"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: GitHubTeamMembership
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubTeamMembershipBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Teams-Membership"
                     }
                   ]
               RunOrder: 2

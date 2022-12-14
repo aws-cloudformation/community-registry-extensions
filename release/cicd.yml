@@ -1023,3 +1023,7 @@ Resources:
       Code: delay.py 
       MemorySize: 1024
 
+Outputs:
+  WebHookInvokeURL:
+    Value: !Sub https://${WebHookRestApi}.execute-api.${AWS::Region}.amazonaws.com/${WebHookStage}
+    Condition: IsNotProd
