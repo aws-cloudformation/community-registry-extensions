@@ -8,22 +8,6 @@ Parameters:
     Description: The environment, alpha, beta, or prod. In a sandbox these are all in one account, but the actual deployment is to three different accounts.
     AllowedValues: ["alpha", "beta", "prod"]
 
-  GitUrl:
-    Type: String
-    Description: The URL to the Git repo to clone
-
-  GitBranch:
-    Type: String
-    Description: The branch to clone
-
-  GitHubSecretArn: 
-    Type: String
-    Description: The arn to the github webhook secret
-
-  Prefix:
-    Type: String
-    Description: The extension prefix, for example, AwsCommunity
-
   PrefixLower:
     Type: String
     Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
@@ -92,93 +76,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
-
-  CommonBuildProjectPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - s3:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - kms:CreateKey
-              - kms:DeleteKey
-              - kms:Create*
-              - kms:Describe*
-              - kms:Enable*
-              - kms:List*
-              - kms:Put*
-              - kms:Update*
-              - kms:Revoke*
-              - kms:Disable*
-              - kms:Get*
-              - kms:Delete*
-              - kms:ScheduleKeyDeletion
-              - kms:CancelKeyDeletion
-              - kms:Encrypt
-              - kms:Decrypt
-              - kms:ReEncrypt*
-              - kms:GenerateDataKey*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - iam:CreateRole
-              - iam:DeleteRole
-              - iam:GetRole
-              - iam:PutRolePolicy
-              - iam:DeleteRolePolicy
-              - iam:GetRolePolicy
-              - iam:PassRole
-              - iam:UpdateAssumeRolePolicyDocument
-            Effect: Allow
-            Resource: 
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation*'
-          - Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource: 
-              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
-
-          - Action:
-              - codebuild:CreateReportGroup
-              - codebuild:CreateReport
-              - codebuild:UpdateReport
-              - codebuild:BatchPutTestCases
-              - codebuild:BatchPutCodeCoverages
-            Effect: Allow
-            Resource: 
-              - !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
-          - Action:
-              - s3:GetObject*
-              - s3:GetBucket*
-              - s3:List*
-              - s3:DeleteObject*
-              - s3:PutObject*
-              - s3:Abort*
-            Effect: Allow
-            Resource:
-              - !GetAtt ArtifactBucket.Arn
-              - !Sub "${ArtifactBucket.Arn}/*"
-          - Action:
-              - cloudformation:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - ecr:GetDownloadUrlForLayer
-              - ecr:BatchGetImage
-              - ecr:BatchCheckLayerAvailability
-              - ecr:GetAuthorizationToken
-            Effect: Allow
-            Resource: "*"
-        Version: '2012-10-17'
-      PolicyName: common-build-project-policy
-      Roles:
-        - !Ref OktaGroupBuildProjectRole
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   OktaGroupBuildProjectPolicy:
     Type: AWS::IAM::Policy
