@@ -225,10 +225,10 @@ Resources:
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
         - Name: FASTLY_SERVICE_ID
-          Type: SECRETS_MANAGER
+          Type: PARAMETER_STORE
           Value: "cep-fastly-service-id"
         - Name: FASTLY_VERSION_ID
-          Type: SECRETS_MANAGER
+          Type: PARAMETER_STORE
           Value: "cep-fastly-version-id"
       ServiceRole: !GetAtt FastlyServicesDomainBuildProjectRole.Arn
       Source:
@@ -252,10 +252,10 @@ Resources:
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
         - Name: FASTLY_SERVICE_ID
-          Type: SECRETS_MANAGER
+          Type: PARAMETER_STORE
           Value: "cep-fastly-service-id"
         - Name: FASTLY_VERSION_ID
-          Type: SECRETS_MANAGER
+          Type: PARAMETER_STORE
           Value: "cep-fastly-version-id"
       ServiceRole: !GetAtt FastlyDictionaryDictionaryBuildProjectRole.Arn
       Source:
@@ -279,10 +279,10 @@ Resources:
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
         - Name: FASTLY_SERVICE_ID
-          Type: SECRETS_MANAGER
+          Type: PARAMETER_STORE
           Value: "cep-fastly-service-id"
         - Name: FASTLY_DICTIONARY_ID
-          Type: SECRETS_MANAGER
+          Type: PARAMETER_STORE
           Value: "cep-fastly-dictionary-id"
       ServiceRole: !GetAtt FastlyDictionaryDictionaryItemBuildProjectRole.Arn
       Source:
@@ -684,96 +684,6 @@ Resources:
             Resource: 
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
-
-  StackSetAdministrationRole:
-    Type: AWS::IAM::Role
-    Condition: IsProd
-    Properties:
-      RoleName: !Sub "${PrefixLower}-stackset-admin"
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: cloudformation.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: /
-      Policies:
-        - PolicyName: AssumeRole-AWSCloudFormationStackSetExecutionRole
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - sts:AssumeRole
-                Resource:
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole"
-
-  StackSetExecutionRole:
-    Type: AWS::IAM::Role
-    Condition: IsProd
-    Metadata:
-      Comment: We can limit this role to this account, since we are using stack sets to deploy across all regions, but not to multiple accounts
-    Properties:
-      RoleName: !Sub "${PrefixLower}-stackset-exec"
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "${AWS::AccountId}"
-            Action:
-              - sts:AssumeRole
-      Path: /
-
-  StackSetExecutionPolicy:
-    Type: AWS::IAM::Policy
-    Condition: IsProd
-    Properties:
-      Roles:
-        - !Ref StackSetExecutionRole
-      PolicyName: cep-stack-set-execution
-      PolicyDocument:
-        Statement:
-          - Action:
-              - iam:CreateRole
-              - iam:DeleteRole
-              - iam:GetRole
-              - iam:PutRolePolicy
-              - iam:DeleteRolePolicy
-              - iam:GetRolePolicy
-              - iam:PassRole
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - codebuild:*
-            Effect: Allow
-            Resource: "*" 
-          - Action:
-              - codepipeline:*
-            Effect: Allow
-            Resource: "*"
-          - Action: 
-              - s3:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - events:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - cloudformation:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - sns:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - codestar-notifications:*
-            Effect: Allow
-            Resource: "*"
 
   PublishCrossAccountRole:
     Type: AWS::IAM::Role
