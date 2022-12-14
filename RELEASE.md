@@ -99,29 +99,42 @@ to fix a bug that is not related to the release process.  See the
 If you need to make changes to the release process, deploy the CICD stacks to
 your own sandbox account for development and testing. 
 
-First, create a secret in Secrets Manager for the GitHub webhook secret. 
-It should be a plaintext string that you determine. Note the ARN of the secret.
+**Pre-Requisites**
+
+***In your sandbox AWS Account***
+- Create a secret in Secrets Manager for the GitHub webhook secret. 
+*This should be a plaintext string that you determine. Note the ARN of the secret.*
+
+- Create S3 buckets for `alpha`, `beta`, `prod` environments
+
+***Local Machine***
+You will need to have the following software installed
+
+- [cfn-lint](https://github.com/aws-cloudformation/cfn-lint)
+- [aws](https://aws.amazon.com/cli/)
+- [rain](https://github.com/aws-cloudformation/rain)
+- `docker`
 
 Make copies of the `scripts/deploy-*.sh` scripts in the git-ignored `local/`
-folder and deploy each of them after changing the environment variables. 
+folder and update the environment variables in the shell scripts you will be
+using.  To set up the sandbox pipelines you would update the
+`deploy-sandbox-pipeline.sh` file.
 
-Deploy them in this order:
+Change to the `releases` directory and run
 
-1. `deploy-cicd.sh`
-2. `deploy-prod.sh`
-3. `deploy-beta.sh`
+1. `../local/deploy-sandbox-pipeline.sh`
 
-Manually create an ECR repository called cep-cicd in your account.
+Building the image for the first time will take a fair amount of time.  We recommend
+doing this from a Cloud9 instance in your account if that is a concern.
 
-Deploying the build image will take a while from outside the PROD network,
-so it's recommended to do this from a Cloud9 instance in your account.
-
-Once `deploy-cicd.sh` has run, you will need to manually confgure a GitHub
+Once `deploy-sandbox-pipeline.sh` has completed, you will need to confgure a GitHub
 webhook from your fork to point to the API Gateway `prod` stage that is created
 by the `cicd.yml` template. Set the content-type to `application-json` and
-leave the default of "Just the push event". The "Recent Deliveries" tab on the
-webhook screen can be used to re-deliver payloads if you are troubleshooting
-it.
+leave the default of "Just the push event".
+
+The Webhook URL is in the output of the cloudformation stacks of cep-alpha and
+cep-beta.  The "Recent Deliveries" tab on the webhook screen can be used to re-deliver
+payloads if you are troubleshooting it.
 
 ### 3rd party resources
 
