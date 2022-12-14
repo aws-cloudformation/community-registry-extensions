@@ -104,6 +104,17 @@ Resources:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
 
+  FastlyDictionaryDictionaryItemBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+
   CommonBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -195,6 +206,7 @@ Resources:
       Roles:
         - !Ref FastlyServicesDomainBuildProjectRole
         - !Ref FastlyDictionaryDictionaryBuildProjectRole
+        - !Ref FastlyDictionaryDictionaryItemBuildProjectRole
 
   FastlyServicesDomainBuildProject:
     Type: AWS::CodeBuild::Project
@@ -246,6 +258,33 @@ Resources:
           Type: SECRETS_MANAGER
           Value: "cep-fastly-version-id"
       ServiceRole: !GetAtt FastlyDictionaryDictionaryBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  FastlyDictionaryDictionaryItemBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-dictionary-dictionaryitem"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: FASTLY_SERVICE_ID
+          Type: SECRETS_MANAGER
+          Value: "cep-fastly-service-id"
+        - Name: FASTLY_DICTIONARY_ID
+          Type: SECRETS_MANAGER
+          Value: "cep-fastly-dictionary-id"
+      ServiceRole: !GetAtt FastlyDictionaryDictionaryItemBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
@@ -304,6 +343,7 @@ Resources:
                 Resource: 
                   - !GetAtt FastlyServicesDomainBuildProject.Arn
                   - !GetAtt FastlyDictionaryDictionaryBuildProject.Arn
+                  - !GetAtt FastlyDictionaryDictionaryItemBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -359,6 +399,7 @@ Resources:
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !GetAtt FastlyServicesDomainBuildProjectRole.Arn
                 - !GetAtt FastlyDictionaryDictionaryBuildProjectRole.Arn
+                - !GetAtt FastlyDictionaryDictionaryItemBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -451,6 +492,27 @@ Resources:
                     }
                   ]
               RunOrder: 1
+        - Name: FastlyDictionaryDictionaryItemBuild
+          Actions:
+            - Name: FastlyDictionaryDictionary
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref FastlyDictionaryDictionaryItemBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Fastly-Dictionary-DictionaryItem"
+                    }
+                  ]
+              RunOrder: 2
         - !If
           - IsBeta
           - Name: CopyBuildToProd
