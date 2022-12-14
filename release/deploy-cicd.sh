@@ -7,15 +7,9 @@
 
 set -eou pipefail
 
-STACK_NAME="cep-${CEP_ENV}"
 COMMON_STACK_NAME="cep-common-${CEP_ENV}"
-TEMPLATE_DIR="."
-
-if [ ! -z "${1:-}" ]
-then
-    TEMPLATE_DIR=$1
-    STACK_NAME="cep-${CEP_ENV}-${TEMPLATE_DIR}"
-fi
+TEMPLATE_DIR=$1
+STACK_NAME="cep-${CEP_ENV}-${TEMPLATE_DIR}"
 TEMPLATE_FILE="${TEMPLATE_DIR}/cicd.yml"
 
 if [ -z "${GIT_BRANCH:-}" ]
@@ -49,5 +43,5 @@ rain --profile $PROFILE deploy --params Env=$CEP_ENV,GitUrl=$GIT_URL,GitBranch=$
 
 # Deploy the namespace-specific stack
 aws --profile $PROFILE cloudformation package --template-file $TEMPLATE_FILE --s3-bucket $PACKAGE_BUCKET > ${CEP_ENV}-package.yml
-rain --profile $PROFILE deploy --params Env=$CEP_ENV,Prefix=$PREFIX,PrefixLower=$PREFIX_LOWER,ProdAccountId=$PROD_ACCOUNT_ID,NotificationEmail=$NOTIFICATION_EMAIL,BetaAccountId=$BETA_ACCOUNT_ID ${CEP_ENV}-package.yml $STACK_NAME
+rain --profile $PROFILE deploy --params Env=$CEP_ENV,PrefixLower=$PREFIX_LOWER,ProdAccountId=$PROD_ACCOUNT_ID,NotificationEmail=$NOTIFICATION_EMAIL,BetaAccountId=$BETA_ACCOUNT_ID ${CEP_ENV}-package.yml $STACK_NAME
 

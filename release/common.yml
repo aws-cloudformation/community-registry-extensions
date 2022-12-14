@@ -26,7 +26,19 @@ Conditions:
       - !Ref Env
       - prod
 
+  IsProd: !Equals
+      - !Ref Env
+      - prod
+
 Resources:
+
+  HandlerBucket:
+    Type: AWS::S3::Bucket
+    Condition: IsProd
+    Metadata:
+      Comment: This bucket holds the handler package and logs for extension publishing
+    Properties:
+      BucketName: !Sub "cep-handler-${AWS::AccountId}"
 
   CommonBuildProjectPolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -163,7 +175,7 @@ Resources:
         bucket to drop the source into. A bucket notification starts the 
         related pipeline.  
     Properties:
-      Name: !Sub "cep-${Env}-webhook"
+      Name: !Sub "cep-${Env}-common-webhook"
       Artifacts:
         Type: NO_ARTIFACTS
       Environment:
@@ -378,5 +390,8 @@ Outputs:
     Description: The ARN to the common build policy for community registry extensions
     Value: !Ref CommonBuildProjectPolicy
     Export:
-      Name: cep-common-build-project-policy
+      Name: !Sub "cep-${Env}-common-build-project-policy"
+  WebHookInvokeURL:
+    Value: !Sub https://${WebHookRestApi}.execute-api.${AWS::Region}.amazonaws.com/${WebHookStage}
+    Condition: IsNotProd
 
