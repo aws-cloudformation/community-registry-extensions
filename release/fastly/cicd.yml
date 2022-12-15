@@ -440,7 +440,7 @@ Resources:
                 PollForSourceChanges: true
               OutputArtifacts:
                 - Name: extensions-source 
-        - Name: FastlyServicesDomainBuild
+        - Name: FastlyResourceBuilds
           Actions:
             - Name: FastlyServicesDomain
               InputArtifacts:
@@ -461,7 +461,6 @@ Resources:
                     }
                   ]
               RunOrder: 1
-        - Name: FastlyDictionaryDictionaryBuild
           Actions:
             - Name: FastlyDictionaryDictionary
               InputArtifacts:
@@ -482,7 +481,6 @@ Resources:
                     }
                   ]
               RunOrder: 1
-        - Name: FastlyDictionaryDictionaryItemBuild
           Actions:
             - Name: FastlyDictionaryDictionary
               InputArtifacts:
