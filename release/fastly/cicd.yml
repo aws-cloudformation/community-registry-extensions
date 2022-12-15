@@ -8,22 +8,6 @@ Parameters:
     Description: The environment, alpha, beta, or prod. In a sandbox these are all in one account, but the actual deployment is to three different accounts.
     AllowedValues: ["alpha", "beta", "prod"]
 
-  GitUrl:
-    Type: String
-    Description: The URL to the Git repo to clone
-
-  GitBranch:
-    Type: String
-    Description: The branch to clone
-
-  GitHubSecretArn: 
-    Type: String
-    Description: The arn to the github webhook secret
-
-  Prefix:
-    Type: String
-    Description: The extension prefix, for example, AwsCommunity
-
   PrefixLower:
     Type: String
     Description: The extension prefix lowercase, for example, awscommunity.
