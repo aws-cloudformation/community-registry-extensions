@@ -8,22 +8,6 @@ Parameters:
     Description: The environment, alpha, beta, or prod. In a sandbox these are all in one account, but the actual deployment is to three different accounts.
     AllowedValues: ["alpha", "beta", "prod"]
 
-  GitUrl:
-    Type: String
-    Description: The URL to the Git repo to clone
-
-  GitBranch:
-    Type: String
-    Description: The branch to clone
-
-  GitHubSecretArn: 
-    Type: String
-    Description: The arn to the github webhook secret
-
-  Prefix:
-    Type: String
-    Description: The extension prefix, for example, AwsCommunity
-
   PrefixLower:
     Type: String
     Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
@@ -49,11 +33,6 @@ Conditions:
   IsProd: !Equals
     - !Ref Env
     - prod
-
-  IsNotProd: !Not
-    - !Equals
-      - !Ref Env
-      - prod
 
 Resources:
 
@@ -97,6 +76,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   CloudFrontLoggingEnabledBuildProjectRole:
     Type: AWS::IAM::Role
@@ -108,6 +89,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   S3BucketNotificationBuildProjectRole:
     Type: AWS::IAM::Role
@@ -119,6 +102,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   S3DeleteBucketContentsBuildProjectRole:
     Type: AWS::IAM::Role
@@ -130,6 +115,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   CloudFrontWebAclAssociationBuildProjectRole:
     Type: AWS::IAM::Role
@@ -141,6 +128,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
   
   ResourceIamPasswordPolicyRole:
     Type: AWS::IAM::Role
@@ -152,96 +141,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
-
-  CommonBuildProjectPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - s3:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - kms:CreateKey
-              - kms:Create*
-              - kms:Describe*
-              - kms:Enable*
-              - kms:List*
-              - kms:Put*
-              - kms:Update*
-              - kms:Revoke*
-              - kms:Disable*
-              - kms:Get*
-              - kms:Delete*
-              - kms:ScheduleKeyDeletion
-              - kms:CancelKeyDeletion
-              - kms:Encrypt
-              - kms:Decrypt
-              - kms:ReEncrypt*
-              - kms:GenerateDataKey*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - iam:CreateRole
-              - iam:DeleteRole
-              - iam:GetRole
-              - iam:PutRolePolicy
-              - iam:DeleteRolePolicy
-              - iam:GetRolePolicy
-              - iam:PassRole
-              - iam:UpdateAssumeRolePolicy
-            Effect: Allow
-            Resource: 
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation*'
-          - Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource: 
-              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
-
-          - Action:
-              - codebuild:CreateReportGroup
-              - codebuild:CreateReport
-              - codebuild:UpdateReport
-              - codebuild:BatchPutTestCases
-              - codebuild:BatchPutCodeCoverages
-            Effect: Allow
-            Resource: 
-              - !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
-          - Action:
-              - s3:GetObject*
-              - s3:GetBucket*
-              - s3:List*
-              - s3:DeleteObject*
-              - s3:PutObject*
-              - s3:Abort*
-            Effect: Allow
-            Resource:
-              - !GetAtt ArtifactBucket.Arn
-              - !Sub "${ArtifactBucket.Arn}/*"
-          - Action:
-              - cloudformation:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - ecr:GetDownloadUrlForLayer
-              - ecr:BatchGetImage
-              - ecr:BatchCheckLayerAvailability
-              - ecr:GetAuthorizationToken
-            Effect: Allow
-            Resource: "*"
-        Version: '2012-10-17'
-      PolicyName: common-build-project-policy
-      Roles:
-        - !Ref S3BucketNotificationBuildProjectRole
-        - !Ref S3DeleteBucketContentsBuildProjectRole
-        - !Ref S3BucketVersioningEnabledBuildProjectRole
-        - !Ref CloudFrontLoggingEnabledBuildProjectRole
-        - !Ref CloudFrontWebAclAssociationBuildProjectRole
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   S3BucketNotificationBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -782,278 +683,6 @@ Resources:
                 #                  ]
                 #              RunOrder: 2
 
-  # The webhook is invoked by GitHub when there is a push to a repo.
-  # There is a webhook in the alpha account and in the beta account.
-  # There is only one webhook for all namespaces in each env.
-  # We don't replicate this in the templates for each 3rd party like Okta, etc.
-  # The webhook handler and the CodeBuild it invokes clone the correct repo 
-  # and drop the source into the correct bucket, which starts an independenent
-  # pipeline for each namespace.
-
-  WebHookBuildProjectRole:
-    Type: AWS::IAM::Role
-    Condition: IsNotProd
-    Metadata: 
-      Comment: Note that we give this project access to the source buckets for all 3rd parties, since we only have one instance of the webhook to start all pipelines when there is a push to one of the repos.
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-        Version: '2012-10-17'
-      Policies:
-        - 
-          PolicyDocument:
-            Statement:
-              - Action:
-                  - s3:PutObject
-                Effect: Allow
-                Resource: 
-                  - !Sub "arn:aws:s3:::cep-source-${AWS::AccountId}-${Env}-*"
-              - Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Effect: Allow
-                Resource: 
-                  - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
-              - Action:
-                  - codebuild:CreateReportGroup
-                  - codebuild:CreateReport
-                  - codebuild:UpdateReport
-                  - codebuild:BatchPutTestCases
-                  - codebuild:BatchPutCodeCoverages
-                Effect: Allow
-                Resource: 
-                  - !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
-            Version: '2012-10-17'
-          PolicyName: webhook-build-project-policy
-
-  WebHookBuildProject:
-    Type: AWS::CodeBuild::Project
-    Condition: IsNotProd
-    Metadata:
-      Comment: |
-        This build project is invoked by a Lambda that is called from GitHub
-        webhooks configured on the repos handled by this build process. The
-        lambda maps repos to the extension prefix, which is what determines the
-        bucket to drop the source into. A bucket notification starts the 
-        related pipeline.  
-    Properties:
-      Name: !Sub "cep-${Env}-webhook"
-      Artifacts:
-        Type: NO_ARTIFACTS
-      Environment:
-        ComputeType: BUILD_GENERAL1_LARGE
-        Image: aws/codebuild/standard:3.0
-        ImagePullCredentialsType: CODEBUILD
-        PrivilegedMode: false
-        Type: LINUX_CONTAINER
-        EnvironmentVariables:
-        - Name: GIT_URL
-          Type: PLAINTEXT
-          Value: "Placeholder - lambda will provide when it invokes"
-        - Name: GIT_BRANCH
-          Type: PLAINTEXT
-          Value: !Ref GitBranch
-        - Name: SOURCE_BUCKET_PREFIX
-          Type: PLAINTEXT
-          Value: !Sub "cep-source-${AWS::AccountId}-${Env}-"
-        - Name: SOURCE_KEY
-          Type: PLAINTEXT
-          Value: "source.zip"
-        - Name: COMMIT_MESSAGE
-          Type: PLAINTEXT
-          Value: "Placeholder - lambda will provide when it invokes"
-        - Name: REPO
-          Type: PLAINTEXT
-          Value: "Placeholder - lambda will provide when it invokes"
-        - Name: EXTENSION_PREFIX
-          Type: PLAINTEXT
-          Value: "Placeholder - lambda will provide when it invokes"
-      ServiceRole: !GetAtt WebHookBuildProjectRole.Arn
-      Source:
-        Type: NO_SOURCE
-        BuildSpec: |
-          version: 0.2
-          phases:
-            build:
-              commands:
-                - echo $GIT_URL
-                - echo $GIT_BRANCH
-                - echo $SOURCE_BUCKET
-                - git clone --depth=1 --branch=$GIT_BRANCH $GIT_URL /tmp/source
-                - cd /tmp/source
-                - zip -r source.zip *  
-                - echo "COMMIT_MESSAGE is $COMMIT_MESSAGE"
-                - METADATA="{\"codepipeline-artifact-revision-summary\":\""
-                - METADATA="${METADATA}${COMMIT_MESSAGE}"
-                - METADATA="${METADATA}\"}"
-                - echo "METADATA is $METADATA"
-                - aws s3 cp source.zip s3://${SOURCE_BUCKET_PREFIX}${EXTENSION_PREFIX}/ --metadata "${METADATA}"
-
-
-  WebHookHandlerRole:
-    Type: AWS::IAM::Role
-    Condition: IsNotProd
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-      Policies:
-        -
-          PolicyName: lambdaexec
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Effect: Allow
-                Resource: "*"
-              - Action:
-                  - codebuild:StartBuild 
-                Effect: Allow
-                Resource: !GetAtt WebHookBuildProject.Arn 
-              - Action:
-                  - secretsmanager:GetSecretValue
-                Effect: Allow
-                Resource: !Ref GitHubSecretArn 
-
-  WebHookHandler:
-    Type: AWS::Lambda::Function
-    Condition: IsNotProd
-    Properties:
-      Code: webhook.py
-      Role: !GetAtt WebHookHandlerRole.Arn
-      Handler: webhook.handler
-      Runtime: python3.7
-      MemorySize: 1024
-      Environment:
-        Variables:
-          SOURCE_BUCKET: !Ref SourceBucket
-          SOURCE_KEY: "source.zip"
-          GIT_URL: !Ref GitUrl
-          GIT_BRANCH: !Ref GitBranch
-          BUILD_PROJECT: !Ref WebHookBuildProject
-          SECRET_ARN: !Ref GitHubSecretArn
-
-  WebHookRestApi:
-    Type: AWS::ApiGateway::RestApi
-    Condition: IsNotProd
-    Properties:
-      Name: !Sub "cep-${Env}-github-webhook"
-
-  WebHookCloudWatchRole:
-    Type: AWS::IAM::Role
-    Condition: IsNotProd
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: apigateway.amazonaws.com
-      Path: /
-      Policies:
-        -
-          PolicyName: cwlogsapigateway
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:DescribeLogGroups
-                  - logs:DescribeLogStreams
-                  - logs:PutLogEvents
-                  - logs:GetLogEvents
-                  - logs:FilterLogEvents
-                Effect: Allow
-                Resource: "*"
-
-  WebHookAccount:
-    Type: AWS::ApiGateway::Account
-    Condition: IsNotProd
-    Properties:
-      CloudWatchRoleArn: !GetAtt WebHookCloudWatchRole.Arn
-    DependsOn: WebHookRestApi
-
-  WebHookDeployment:
-    Type: AWS::ApiGateway::Deployment
-    Condition: IsNotProd
-    Properties:
-      RestApiId: !Ref WebHookRestApi
-    DependsOn:
-      - WebHookANYProxy
-      - WebHookANYRoot
-
-  WebHookStage:
-    Type: AWS::ApiGateway::Stage
-    Condition: IsNotProd
-    Properties:
-      RestApiId: !Ref WebHookRestApi
-      DeploymentId: !Ref WebHookDeployment
-      StageName: prod
-
-  WebHookProxy:
-    Type: AWS::ApiGateway::Resource
-    Condition: IsNotProd
-    Properties:
-      ParentId: !GetAtt WebHookRestApi.RootResourceId
-      PathPart: "{proxy+}"
-      RestApiId: !Ref WebHookRestApi
-
-  WebHookRestApiPermission:
-    Type: AWS::Lambda::Permission
-    Condition: IsNotProd
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt WebHookHandler.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${WebHookRestApi}/*/*/*" 
-
-  WebHookRestApiRootPermission:
-    Type: AWS::Lambda::Permission
-    Condition: IsNotProd
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt WebHookHandler.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${WebHookRestApi}/*/*/" 
-
-  WebHookANYRoot:
-    Type: AWS::ApiGateway::Method
-    Condition: IsNotProd
-    Properties:
-      HttpMethod: ANY
-      ResourceId: !GetAtt WebHookRestApi.RootResourceId
-      RestApiId: !Ref WebHookRestApi
-      AuthorizationType: NONE
-      Integration:
-        IntegrationHttpMethod: POST
-        Type: AWS_PROXY
-        Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebHookHandler.Arn}/invocations"
-
-  WebHookANYProxy:
-    Type: AWS::ApiGateway::Method
-    Condition: IsNotProd
-    Properties:
-      HttpMethod: ANY
-      ResourceId: !Ref WebHookProxy
-      RestApiId: !Ref WebHookRestApi
-      AuthorizationType: NONE
-      Integration:
-        IntegrationHttpMethod: POST
-        Type: AWS_PROXY
-        Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebHookHandler.Arn}/invocations"
-
   PublishBuildBucketRole:
     Type: AWS::IAM::Role
     Condition: IsBeta
@@ -1213,14 +842,6 @@ Resources:
             Resource: 
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
-
-  HandlerBucket:
-    Type: AWS::S3::Bucket
-    Condition: IsProd
-    Metadata:
-      Comment: This bucket holds the handler package and logs for extension publishing
-    Properties:
-      BucketName: !Sub "cep-handler-${AWS::AccountId}"
 
   StackSetAdministrationRole:
     Type: AWS::IAM::Role
@@ -1394,7 +1015,3 @@ Resources:
       Code: delay.py 
       MemorySize: 1024
 
-Outputs:
-  WebHookInvokeURL:
-    Value: !Sub https://${WebHookRestApi}.execute-api.${AWS::Region}.amazonaws.com/${WebHookStage}
-    Condition: IsNotProd

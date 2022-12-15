@@ -14,4 +14,4 @@ export PROD_ACCOUNT_ID=387586997764
 export BETA_ACCOUNT_ID=676545906896
 export NOTIFICATION_EMAIL="community-registry-extensions-alerts@amazon.com"
 
-./deploy-cicd.sh
+./deploy-cicd.sh awscommunity
