@@ -271,9 +271,6 @@ Resources:
         - Name: FASTLY_SERVICE_ID
           Type: PARAMETER_STORE
           Value: "cep-fastly-service-id"
-        - Name: FASTLY_DICTIONARY_ID
-          Type: PARAMETER_STORE
-          Value: "cep-fastly-dictionary-id"
       ServiceRole: !GetAtt FastlyDictionaryDictionaryItemBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
