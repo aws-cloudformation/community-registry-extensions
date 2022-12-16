@@ -66,6 +66,19 @@ Resources:
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*" 
 
+  FastlyParameterPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Action:
+            - ssm:GetParameter
+            - ssm:GetParameters
+          Effect: Allow
+          Resource: 
+            - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cep-${PrefixLower}-*"
+        Version: '2012-10-17'
+
   FastlyServicesDomainBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -78,6 +91,7 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
 
   FastlyDictionaryDictionaryBuildProjectRole:
     Type: AWS::IAM::Role
@@ -91,6 +105,7 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
 
   FastlyDictionaryDictionaryItemBuildProjectRole:
     Type: AWS::IAM::Role
@@ -104,6 +119,7 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
 
   FastlyLoggingS3BuildProjectRole:
     Type: AWS::IAM::Role
@@ -117,7 +133,8 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
-        
+        - !Ref FastlyParameterPolicy
+       
   FastlyLoggingSplunkBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -130,6 +147,7 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
 
   FastlyServicesDomainBuildProject:
     Type: AWS::CodeBuild::Project
