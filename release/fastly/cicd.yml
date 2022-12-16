@@ -76,6 +76,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   FastlyDictionaryDictionaryBuildProjectRole:
     Type: AWS::IAM::Role
@@ -87,6 +89,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   FastlyDictionaryDictionaryItemBuildProjectRole:
     Type: AWS::IAM::Role
@@ -98,6 +102,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   FastlyLoggingS3BuildProjectRole:
     Type: AWS::IAM::Role
@@ -109,7 +115,9 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
-
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        
   FastlyLoggingSplunkBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -120,107 +128,8 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
-
-  CommonBuildProjectPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - s3:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - kms:CreateKey
-              - kms:Create*
-              - kms:Describe*
-              - kms:Enable*
-              - kms:List*
-              - kms:Put*
-              - kms:Update*
-              - kms:Revoke*
-              - kms:Disable*
-              - kms:Get*
-              - kms:Delete*
-              - kms:ScheduleKeyDeletion
-              - kms:CancelKeyDeletion
-              - kms:Encrypt
-              - kms:Decrypt
-              - kms:ReEncrypt*
-              - kms:GenerateDataKey*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - iam:CreateRole
-              - iam:DeleteRole
-              - iam:GetRole
-              - iam:PutRolePolicy
-              - iam:DeleteRolePolicy
-              - iam:GetRolePolicy
-              - iam:PassRole
-              - iam:UpdateAssumeRolePolicy
-            Effect: Allow
-            Resource: 
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${PrefixLower}*'
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation*'
-          - Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource: 
-              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*'
-
-          - Action:
-              - codebuild:CreateReportGroup
-              - codebuild:CreateReport
-              - codebuild:UpdateReport
-              - codebuild:BatchPutTestCases
-              - codebuild:BatchPutCodeCoverages
-            Effect: Allow
-            Resource: 
-              - !Sub 'arn:${AWS::Partition}:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
-          - Action:
-              - s3:GetObject*
-              - s3:GetBucket*
-              - s3:List*
-              - s3:DeleteObject*
-              - s3:PutObject*
-              - s3:Abort*
-            Effect: Allow
-            Resource:
-              - !GetAtt ArtifactBucket.Arn
-              - !Sub "${ArtifactBucket.Arn}/*"
-          - Action:
-              - cloudformation:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - ecr:GetDownloadUrlForLayer
-              - ecr:BatchGetImage
-              - ecr:BatchCheckLayerAvailability
-              - ecr:GetAuthorizationToken
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - secretsmanager:GetSecretValue
-            Effect: Allow
-            Resource: 
-              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:cep-${PrefixLower}-*"
-          - Action:
-              - ssm:GetParameter
-              - ssm:GetParameters
-            Effect: Allow
-            Resource: 
-              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cep-${PrefixLower}-*"
-        Version: '2012-10-17'
-      PolicyName: common-build-project-policy
-      Roles:
-        - !Ref FastlyServicesDomainBuildProjectRole
-        - !Ref FastlyDictionaryDictionaryBuildProjectRole
-        - !Ref FastlyDictionaryDictionaryItemBuildProjectRole
-        - !Ref FastlyLoggingS3BuildProjectRole
-        - !Ref FastlyLoggingSplunkBuildProjectRole
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   FastlyServicesDomainBuildProject:
     Type: AWS::CodeBuild::Project
