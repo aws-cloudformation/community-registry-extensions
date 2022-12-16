@@ -112,6 +112,10 @@ Resources:
               - ecr:GetAuthorizationToken
             Effect: Allow
             Resource: "*"
+          - Action:
+              - ssm:GetParameters
+            Effect: Allow
+            Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cep-*"
         Version: '2012-10-17'
       
 

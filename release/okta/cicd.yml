@@ -410,9 +410,15 @@ Resources:
               - Action:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
+                  - codebuild:StopBuild
+                  - codebuild:RetryBuild
                 Effect: Allow
                 Resource: 
                   - !GetAtt OktaGroupBuildProject.Arn
+                  - !GetAtt OktaApplicationBuildProject.Arn
+                  - !GetAtt OktaAppAssocBuildProject.Arn
+                  - !GetAtt OktaPolicyBuildProject.Arn
+                  - !GetAtt OktaGroupMembershipBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -467,6 +473,10 @@ Resources:
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !GetAtt OktaGroupBuildProjectRole.Arn
+                - !GetAtt OktaApplicationBuildProjectRole.Arn
+                - !GetAtt OktaAppAssocBuildProjectRole.Arn
+                - !GetAtt OktaPolicyBuildProjectRole.Arn
+                - !GetAtt OktaGroupMembershipBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
