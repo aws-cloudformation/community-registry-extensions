@@ -27,16 +27,16 @@ export CEP_ENV=alpha
 export GIT_BRANCH=main
 export PACKAGE_BUCKET=developer-alpha-packages
 
-./deploy-cicd.sh
+./deploy-cicd.sh $PREFIX_LOWER
 
 export CEP_ENV=prod
 export GIT_BRANCH=release
 export PACKAGE_BUCKET=developer-prod-packages
 
-./deploy-cicd.sh
+./deploy-cicd.sh $PREFIX_LOWER
 
 export CEP_ENV=beta
 export GIT_BRANCH=release
 export PACKAGE_BUCKET=developer-beta-packages
-./deploy-cicd.sh
+./deploy-cicd.sh $PREFIX_LOWER
 
