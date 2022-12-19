@@ -98,6 +98,48 @@ Resources:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
         - !Ref FastlyParameterPolicy
 
+  FastlyServicesBackendBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
+
+  FastlyServicesHealthcheckBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
+
+  FastlyServicesServiceBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
+
   FastlyDictionaryDictionaryBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -178,6 +220,87 @@ Resources:
           Type: PARAMETER_STORE
           Value: "cep-fastly-version-id"
       ServiceRole: !GetAtt FastlyServicesDomainBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  FastlyServicesBackendBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-services-backend"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: FASTLY_SERVICE_ID
+          Type: PARAMETER_STORE
+          Value: "cep-fastly-service-id"
+        - Name: FASTLY_VERSION_ID
+          Type: PARAMETER_STORE
+          Value: "cep-fastly-version-id"
+      ServiceRole: !GetAtt FastlyServicesBackendBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  FastlyServicesHealthcheckBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-services-healthcheck"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: FASTLY_SERVICE_ID
+          Type: PARAMETER_STORE
+          Value: "cep-fastly-service-id"
+        - Name: FASTLY_VERSION_ID
+          Type: PARAMETER_STORE
+          Value: "cep-fastly-version-id"
+      ServiceRole: !GetAtt FastlyServicesHealthcheckBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  FastlyServicesServiceBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-services-service"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: FASTLY_SERVICE_ID
+          Type: PARAMETER_STORE
+          Value: "cep-fastly-service-id"
+        - Name: FASTLY_VERSION_ID
+          Type: PARAMETER_STORE
+          Value: "cep-fastly-version-id"
+      ServiceRole: !GetAtt FastlyServicesServiceBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
@@ -343,6 +466,9 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - !GetAtt FastlyServicesDomainBuildProject.Arn
+                  - !GetAtt FastlyServicesBackendBuildProject.Arn
+                  - !GetAtt FastlyServicesHealthcheckBuildProject.Arn
+                  - !GetAtt FastlyServicesServiceBuildProject.Arn
                   - !GetAtt FastlyDictionaryDictionaryBuildProject.Arn
                   - !GetAtt FastlyDictionaryDictionaryItemBuildProject.Arn
                   - !GetAtt FastlyLoggingS3BuildProject.Arn
@@ -401,6 +527,9 @@ Resources:
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !GetAtt FastlyServicesDomainBuildProjectRole.Arn
+                - !GetAtt FastlyServicesBackendBuildProjectRole.Arn
+                - !GetAtt FastlyServicesHealthcheckBuildProjectRole.Arn
+                - !GetAtt FastlyServicesServiceBuildProjectRole.Arn
                 - !GetAtt FastlyDictionaryDictionaryBuildProjectRole.Arn
                 - !GetAtt FastlyDictionaryDictionaryItemBuildProjectRole.Arn
                 - !GetAtt FastlyLoggingS3BuildProjectRole.Arn
@@ -473,6 +602,63 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "Fastly-Services-Domain"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: FastlyServicesBackend
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref FastlyServicesBackendBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Fastly-Services-Backend"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: FastlyServicesHealthcheck
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref FastlyServicesHealthcheckBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Fastly-Services-Healthcheck"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: FastlyServicesService
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref FastlyServicesServiceBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Fastly-Services-Service"
                     }
                   ]
               RunOrder: 1
