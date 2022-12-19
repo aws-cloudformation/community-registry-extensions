@@ -294,12 +294,6 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-        - Name: FASTLY_SERVICE_ID
-          Type: PARAMETER_STORE
-          Value: "cep-fastly-service-id"
-        - Name: FASTLY_VERSION_ID
-          Type: PARAMETER_STORE
-          Value: "cep-fastly-version-id"
       ServiceRole: !GetAtt FastlyServicesServiceBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
