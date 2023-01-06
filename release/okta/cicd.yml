@@ -175,6 +175,12 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
+        - Name: GROUP_ID
+          Type: PARAMETER_STORE
+          Value: "cep-okta-group-id"
+        - Name: USER_ID
+          Type: PARAMETER_STORE
+          Value: "cep-okta-user-id"
       ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
