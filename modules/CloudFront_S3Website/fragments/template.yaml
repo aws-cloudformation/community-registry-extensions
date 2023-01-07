@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: |
+  Create a S3 bucket that is made available as a website using CloudFront
+Parameters:
+  Alias:
+    Type: String
+    Description: The DNS name for the website
+    AllowedPattern: (?!-)[a-zA-Z0-9-.]{1,63}(?<!-)
+    ConstraintDescription: must be a valid DNS name.
+  HostedZoneId:
+    Type: String
+    Description: The Route53 HostedZoneId to use for certificates and registering the website DNS Name
+  AcmCertificateArn:
+    Type: String
+    Description: The ARN for the ACM Certificate to use
+    Default: ""
+Conditions:
+  IsAcmCertificateArn: !Not [!Equals [!Ref AcmCertificateArn, ""]] 
+Resources:
+  Certificate:
+    Condition: IsAcmCertificateArn
+    Type: AWS::CertificateManager::Certificate
+    Properties: 
+      DomainName: !Ref Alias
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref Alias
+          HostedZoneId: !Ref HostedZoneId
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      WebsiteConfiguration:
+        IndexDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  Oac:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties: 
+      OriginAccessControlConfig: 
+        Description: !Sub "OAC for ${AWS::StackName}"
+        Name: !Ref AWS::StackName
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: cloudfront.amazonaws.com
+          Action: s3:GetObject
+          Resource: !Sub "${Bucket.Arn}/*"
+          Condition: 
+            StringEquals:
+              AWS:SourceArn: !Sub "arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+        - Action: "s3:*"
+          Effect: Deny
+          Resource:
+          - !GetAtt Bucket.Arn
+          - !Sub "${Bucket.Arn}/*"
+          Condition:
+            Bool:
+              aws:SecureTranspor: false
+          Principal: "*"
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: CDN for S3-backed website
+        Aliases:
+          - !Ref Alias
+        Enabled: "true"
+        DefaultRootObject: index.html
+        HttpVersion: "http2"
+        IPV6Enabled: true
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: "/"
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: "/"
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: false
+          TargetOriginId: origin1
+          ViewerProtocolPolicy: redirect-to-https
+        Origins:
+          - ConnectionAttempts: 3
+            ConnectionTimeout: 10
+            DomainName: !GetAtt Bucket.RegionalDomainName
+            Id: "origin1"
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+            OriginAccessControlId: !Ref Oac
+        ViewerCertificate:
+          AcmCertificateArn: !If [IsAcmCertificateArn, !Ref Certificate, !Ref AcmCertificateArn]
+          SslSupportMethod: "sni-only"
+  Dns:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Comment: CNAME redirect custom name to CloudFront distribution
+      Name: !Ref Alias
+      Type: CNAME
+      TTL: 900
+      ResourceRecords:
+        - !GetAtt Distribution.DomainName
+Outputs:
+  WebsiteURL:
+    Value: !Sub "https://${Alias}"
+    Description: The URL of the newly created website
