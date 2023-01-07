@@ -1,0 +1,11 @@
+Resources:
+  OperationsContact:
+    Type: AwsCommunity::Account::AlternateContact
+    Properties:
+      AccountId: !Ref "AWS::AccountId"
+      # we only test OPERATIONS as we don't want to change security or billing
+      AlternateContactType: OPERATIONS
+      EmailAddress: operations@example.com
+      Name: Operations Distribution List
+      PhoneNumber: +12065550000
+      Title: Ops

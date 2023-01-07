@@ -1,0 +1,13 @@
+  # We do not need any resources, but we need to know the account id.
+  # When testing in a management account, we might want to add accounts to test
+  # with here
+Resources:
+  # Any resource would be fine, these are easy and don't require permissions
+  Dummy:
+    Type: AWS::CloudFormation::WaitConditionHandle
+Outputs:
+  CurrentAccountId:
+    Description: The account id of the current account
+    Value: !Ref "AWS::AccountId"
+    Export:
+      Name: AccountAlternateContactCurrentAccountId

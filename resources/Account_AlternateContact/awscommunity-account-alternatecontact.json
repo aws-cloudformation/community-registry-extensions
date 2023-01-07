@@ -1,0 +1,83 @@
+{
+    "typeName": "AwsCommunity::Account::AlternateContact",
+    "description": "An alternate contact attached to an Amazon Web Services account.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions.git",
+    "definitions": {
+    },
+    "properties": {
+        "AccountId": {
+            "description": "The account ID of the AWS account that you want to add an alternate contact to. If you do not specify this parameter, it defaults to the current AWS account.",
+            "type": "string",
+            "pattern": "^\\d{12}$"
+        },
+        "AlternateContactType": {
+            "description": "The type of alternate contact you want to create.",
+            "type": "string",
+            "enum": ["BILLING", "OPERATIONS", "SECURITY"]
+        },
+        "EmailAddress": {
+            "description": "The email address for the alternate contact.",
+            "type": "string",
+            "pattern": "^[\\s]*[\\w+=.#!&-]+@[\\w.-]+\\.[\\w]+[\\s]*$"
+        },
+        "Name": {
+            "description": "The name for the alternate contact.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+        },
+        "PhoneNumber": {
+            "description": "The phone number for the alternate contact.",
+            "type": "string",
+            "pattern": "^[\\s0-9()+-]{1,25}$"
+        },
+        "Title": {
+            "description": "The title for the alternate contact.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "AccountId",
+        "AlternateContactType",
+        "EmailAddress",
+        "Name",
+        "PhoneNumber",
+        "Title"
+    ],
+    "createOnlyProperties": [
+        "/properties/AccountId", "/properties/AlternateContactType"
+    ],
+    "primaryIdentifier": [
+        "/properties/AccountId", "/properties/AlternateContactType"
+    ],
+    "tagging": {
+        "taggable": false
+    },
+    "handlers": {
+        "create": {
+            "permissions": [
+                "account:GetAlternateContact",
+                "account:PutAlternateContact"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "account:GetAlternateContact"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "account:GetAlternateContact",
+                "account:PutAlternateContact"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "account:DeleteAlternateContact"
+            ]
+        }
+    }
+}
