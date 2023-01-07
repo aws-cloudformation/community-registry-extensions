@@ -66,8 +66,12 @@ Resources:
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*" 
 
+  # Okta::Group::Group
+
   OktaGroupBuildProjectRole:
     Type: AWS::IAM::Role
+    Metadata:
+      Comment: Okta::Group::Group build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -81,6 +85,8 @@ Resources:
 
   OktaGroupBuildProjectPolicy:
     Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Okta::Group::Group build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -96,6 +102,8 @@ Resources:
 
   OktaGroupBuildProject:
     Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Okta::Group::Group build project
     Properties:
       Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group"
       Artifacts:
@@ -114,6 +122,252 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  # Okta::Group::GroupMembership
+
+  OktaGroupMembershipBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Okta::Group::GroupMembership build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  OktaGroupMembershipBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Okta::Group::GroupMembership build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: 
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-group-membership-build-project-policy"
+      Roles:
+        - !Ref OktaGroupMembershipBuildProjectRole
+
+  OktaGroupMembershipBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Okta::Group::GroupMembership build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group-membership"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GROUP_ID
+          Type: PARAMETER_STORE
+          Value: "cep-okta-group-id"
+        - Name: USER_ID
+          Type: PARAMETER_STORE
+          Value: "cep-okta-user-id"
+      ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+
+  # Okta::Application::Application
+
+  OktaApplicationBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Okta::Application::Application build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  OktaApplicationBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Okta::Application::Application build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: 
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-application-build-project-policy"
+      Roles:
+        - !Ref OktaApplicationBuildProjectRole
+
+  OktaApplicationBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Okta::Application::Application build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-application"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt OktaApplicationBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  # Okta::Group::GroupApplicationAssociation
+
+  OktaAppAssocBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Okta::Group::GroupApplicationAssociation build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  OktaAppAssocBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Okta::Group::GroupApplicationAssociation build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: 
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-appassoc-build-project-policy"
+      Roles:
+        - !Ref OktaAppAssocBuildProjectRole
+
+  OktaAppAssocBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Okta::Group::GroupApplicationAssociation build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-appassoc"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GROUP_ID
+          Type: PARAMETER_STORE
+          Value: "cep-okta-group-id"
+        - Name: APPLICATION_ID
+          Type: PARAMETER_STORE
+          Value: "cep-okta-application-id"
+      ServiceRole: !GetAtt OktaAppAssocBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  # Okta::Policy::Policy
+
+  OktaPolicyBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Okta::Policy::Policy build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  OktaPolicyBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Okta::Policy::Policy build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: 
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-policy-build-project-policy"
+      Roles:
+        - !Ref OktaPolicyBuildProjectRole
+
+  OktaPolicyBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Okta::Policy::Policy build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-policy"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GROUP_ID
+          Type: PARAMETER_STORE
+          Value: "cep-okta-group-id"
+      ServiceRole: !GetAtt OktaPolicyBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -165,9 +419,15 @@ Resources:
               - Action:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
+                  - codebuild:StopBuild
+                  - codebuild:RetryBuild
                 Effect: Allow
                 Resource: 
                   - !GetAtt OktaGroupBuildProject.Arn
+                  - !GetAtt OktaApplicationBuildProject.Arn
+                  - !GetAtt OktaAppAssocBuildProject.Arn
+                  - !GetAtt OktaPolicyBuildProject.Arn
+                  - !GetAtt OktaGroupMembershipBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -222,6 +482,10 @@ Resources:
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !GetAtt OktaGroupBuildProjectRole.Arn
+                - !GetAtt OktaApplicationBuildProjectRole.Arn
+                - !GetAtt OktaAppAssocBuildProjectRole.Arn
+                - !GetAtt OktaPolicyBuildProjectRole.Arn
+                - !GetAtt OktaGroupMembershipBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -293,6 +557,82 @@ Resources:
                     }
                   ]
               RunOrder: 1
+            - Name: OktaGroupMembership
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref OktaGroupMembershipBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Okta-Group-Membership"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: OktaAppAssoc
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref OktaAppAssocBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Okta-Group-Application-Association"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: OktaApplication
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref OktaApplicationBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Okta-Application-Application"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: OktaPolicy
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref OktaPolicyBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Okta-Policy"
+                    }
+                  ]
+              RunOrder: 2
         - !If
           - IsBeta
           - Name: CopyBuildToProd
@@ -464,96 +804,6 @@ Resources:
             Resource: 
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
-
-  StackSetAdministrationRole:
-    Type: AWS::IAM::Role
-    Condition: IsProd
-    Properties:
-      RoleName: !Sub "${PrefixLower}-stackset-admin"
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: cloudformation.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: /
-      Policies:
-        - PolicyName: AssumeRole-AWSCloudFormationStackSetExecutionRole
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - sts:AssumeRole
-                Resource:
-                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole"
-
-  StackSetExecutionRole:
-    Type: AWS::IAM::Role
-    Condition: IsProd
-    Metadata:
-      Comment: We can limit this role to this account, since we are using stack sets to deploy across all regions, but not to multiple accounts
-    Properties:
-      RoleName: !Sub "${PrefixLower}-stackset-exec"
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "${AWS::AccountId}"
-            Action:
-              - sts:AssumeRole
-      Path: /
-
-  StackSetExecutionPolicy:
-    Type: AWS::IAM::Policy
-    Condition: IsProd
-    Properties:
-      Roles:
-        - !Ref StackSetExecutionRole
-      PolicyName: cep-stack-set-execution
-      PolicyDocument:
-        Statement:
-          - Action:
-              - iam:CreateRole
-              - iam:DeleteRole
-              - iam:GetRole
-              - iam:PutRolePolicy
-              - iam:DeleteRolePolicy
-              - iam:GetRolePolicy
-              - iam:PassRole
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - codebuild:*
-            Effect: Allow
-            Resource: "*" 
-          - Action:
-              - codepipeline:*
-            Effect: Allow
-            Resource: "*"
-          - Action: 
-              - s3:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - events:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - cloudformation:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - sns:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
-              - codestar-notifications:*
-            Effect: Allow
-            Resource: "*"
 
   PublishCrossAccountRole:
     Type: AWS::IAM::Role
