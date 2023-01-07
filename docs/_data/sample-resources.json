@@ -1,0 +1,64 @@
+{
+    "TypeSummaries": [
+        {
+            "Type": "RESOURCE",
+            "TypeName": "AWSQS::EKS::Cluster",
+            "TypeArn": "arn:aws:cloudformation:us-east-1::type/resource/408988dff9e863704bcc72e7e13f8d645cee8311/AWSQS-EKS-Cluster",
+            "LastUpdated": "2021-11-04T00:10:58.050000+00:00",
+            "Description": "A resource that creates Amazon Elastic Kubernetes Service (Amazon EKS) clusters.",
+            "PublisherId": "408988dff9e863704bcc72e7e13f8d645cee8311",
+            "LatestPublicVersion": "1.12.0",
+            "PublisherIdentity": "GitHub",
+            "PublisherName": "aws-quickstart",
+            "IsActivated": false
+        },
+        {
+            "Type": "RESOURCE",
+            "TypeName": "AWSQS::Kubernetes::Get",
+            "TypeArn": "arn:aws:cloudformation:us-east-1::type/resource/408988dff9e863704bcc72e7e13f8d645cee8311/AWSQS-Kubernetes-Get",
+            "LastUpdated": "2021-08-03T23:06:35.584000+00:00",
+            "Description": "Fetches data from a kubernetes cluster using jsonpath expressions.",
+            "PublisherId": "408988dff9e863704bcc72e7e13f8d645cee8311",
+            "LatestPublicVersion": "1.13.0",
+            "PublisherIdentity": "GitHub",
+            "PublisherName": "aws-quickstart",
+            "IsActivated": false
+        },
+        {
+            "Type": "RESOURCE",
+            "TypeName": "AWSQS::Kubernetes::Helm",
+            "TypeArn": "arn:aws:cloudformation:us-east-1::type/resource/408988dff9e863704bcc72e7e13f8d645cee8311/AWSQS-Kubernetes-Helm",
+            "LastUpdated": "2022-07-19T18:11:04.478000+00:00",
+            "Description": "A resource provider for managing helm. Version: 1.2.1",
+            "PublisherId": "408988dff9e863704bcc72e7e13f8d645cee8311",
+            "LatestPublicVersion": "1.16.0",
+            "PublisherIdentity": "GitHub",
+            "PublisherName": "aws-quickstart",
+            "IsActivated": false
+        },
+        {
+            "Type": "RESOURCE",
+            "TypeName": "AWSQS::Kubernetes::Resource",
+            "TypeArn": "arn:aws:cloudformation:us-east-1::type/resource/408988dff9e863704bcc72e7e13f8d645cee8311/AWSQS-Kubernetes-Resource",
+            "LastUpdated": "2021-08-03T23:06:32.352000+00:00",
+            "Description": "Applys a YAML manifest to the specified Kubernetes cluster",
+            "PublisherId": "408988dff9e863704bcc72e7e13f8d645cee8311",
+            "LatestPublicVersion": "1.15.0",
+            "PublisherIdentity": "GitHub",
+            "PublisherName": "aws-quickstart",
+            "IsActivated": false
+        },
+        {
+            "Type": "RESOURCE",
+            "TypeName": "Aqua::Enterprise::Enforcer",
+            "TypeArn": "arn:aws:cloudformation:us-east-1::type/resource/4f06bc39af5f4b984dd46ad17f10316e6258d9fa/Aqua-Enterprise-Enforcer",
+            "LastUpdated": "2021-06-17T21:53:52.012000+00:00",
+            "Description": "A resource provider for Aqua Enterprise Enforcer.",
+            "PublisherId": "4f06bc39af5f4b984dd46ad17f10316e6258d9fa",
+            "LatestPublicVersion": "1.6.0",
+            "PublisherIdentity": "AWS_Marketplace",
+            "PublisherName": "Aqua Security Software Inc.",
+            "IsActivated": false
+        }
+    ]
+}
