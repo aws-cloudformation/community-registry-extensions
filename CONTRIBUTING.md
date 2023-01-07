@@ -92,9 +92,9 @@ https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-te
 Rename the `example_inputs` folder to `inputs` and edit the JSON files to
 reflect outputs from the setup stack. You can skip creation of `setup.yml` if your 
 resource does not require any resources to be created beforehand. (One gotcha with the input files: Export variables can't have special characters in them)
+if there are multiple inputs (e.g. `inputs_2_create.json`), you can reuse the same `setup.yml` or `setup.json`. Either reuse the created resources, or create more resources and a different output/export if they need to be independent. 
 
 TODO: Can we change the init templates to just do this stuff by default?
-TODO: What if there are multiple inputs, e.g. `inputs_2_create.json`, will we need `setup2.yml?`
 
 Put a sample template into your `README.md` file to demonstrate usage. Also
 create a template called `test/integ.yml` to be run by the release process to

@@ -1,6 +1,6 @@
 Resources:
   AccountPasswordPolicy:
-    Type: AwsCommunity::S3::BucketNotification
+    Type: AwsCommunity::IAM::PasswordPolicy
     Properties:
       AllowUsersToChangePassword: true
       HardExpiry: false
