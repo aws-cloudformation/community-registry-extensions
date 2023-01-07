@@ -504,6 +504,7 @@ Resources:
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
+              - !GetAtt S3BucketModuleBuildProject.Arn
           - Action:
               - kms:*
             Effect: Allow
