@@ -1,0 +1,8 @@
+{
+    "AccountId": "{{AccountAlternateContactCurrentAccountId}}",
+    "AlternateContactType": "OPERATIONS",
+    "EmailAddress": "operations+112233445566@example.com",
+    "Name": "Operations Distribution List",
+    "PhoneNumber": "+1 206-555-1233",
+    "Title": "Ops"
+}
