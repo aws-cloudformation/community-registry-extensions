@@ -1,0 +1,74 @@
+{
+    "typeName": "AwsCommunity::S3::Bucket::MODULE",
+    "description": "Schema for Module Fragment of type AwsCommunity::S3::Bucket::MODULE",
+    "properties": {
+        "Parameters": {
+            "type": "object",
+            "properties": {
+                "BucketName": {
+                    "type": "object",
+                    "properties": {
+                        "Type": {
+                            "type": "string"
+                        },
+                        "Description": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "Type",
+                        "Description"
+                    ],
+                    "description": "The name of the bucket"
+                },
+                "LogBucketName": {
+                    "type": "object",
+                    "properties": {
+                        "Type": {
+                            "type": "string"
+                        },
+                        "Description": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "Type",
+                        "Description"
+                    ],
+                    "description": "The name of the log bucket"
+                }
+            }
+        },
+        "Resources": {
+            "properties": {
+                "LogBucket": {
+                    "type": "object",
+                    "properties": {
+                        "Type": {
+                            "type": "string",
+                            "const": "AWS::S3::Bucket"
+                        },
+                        "Properties": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "CompliantBucket": {
+                    "type": "object",
+                    "properties": {
+                        "Type": {
+                            "type": "string",
+                            "const": "AWS::S3::Bucket"
+                        },
+                        "Properties": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "type": "object",
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": true
+}
