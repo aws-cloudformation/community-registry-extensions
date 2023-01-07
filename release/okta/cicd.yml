@@ -588,7 +588,7 @@ Resources:
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Group-GroupApplicationAssociation"
+                      "value": "Okta-Group-Application-Association"
                     }
                   ]
               RunOrder: 2
@@ -626,7 +626,7 @@ Resources:
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Policy-Policy"
+                      "value": "Okta-Policy"
                     }
                   ]
               RunOrder: 2
