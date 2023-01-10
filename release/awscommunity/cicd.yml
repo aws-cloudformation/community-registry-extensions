@@ -34,6 +34,11 @@ Conditions:
     - !Ref Env
     - prod
 
+  IsNotProd: !Not
+    - !Equals
+      - !Ref Env
+      - prod
+
 Resources:
 
   ArtifactBucket:
@@ -119,6 +124,19 @@ Resources:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   CloudFrontWebAclAssociationBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  S3BucketModuleBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -403,6 +421,27 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
 
+  S3BucketModuleBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-s3-bucket-module"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: MODULE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-module"
+      ServiceRole: !GetAtt S3BucketModuleBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "modules/${Env}-buildspec.yml"
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -465,6 +504,7 @@ Resources:
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
+              - !GetAtt S3BucketModuleBuildProject.Arn
           - Action:
               - kms:*
             Effect: Allow
@@ -568,25 +608,28 @@ Resources:
                 - Name: extensions-source 
         - Name: Build
           Actions:
-            #- Name: BucketNotification
-            #  InputArtifacts:
-            #    - Name: extensions-source
-            #  ActionTypeId:
-            #    Category: Build
-            #    Owner: AWS
-            #    Provider: CodeBuild
-            #    Version: 1
-            #  Configuration:
-            #    ProjectName: !Ref S3BucketNotificationBuildProject
-            #    EnvironmentVariables: |-
-            #      [
-            #        {
-            #          "name": "RESOURCE_PATH",
-            #          "type": "PLAINTEXT",
-            #          "value": "resources/S3_BucketNotification"
-            #        }
-            #      ]
-            #  RunOrder: 2
+            - !If
+              - IsNotProd
+              - Name: BucketNotification
+                InputArtifacts:
+                  - Name: extensions-source
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: 1
+                Configuration:
+                  ProjectName: !Ref S3BucketNotificationBuildProject
+                  EnvironmentVariables: |-
+                    [
+                      {
+                        "name": "RESOURCE_PATH",
+                        "type": "PLAINTEXT",
+                        "value": "resources/S3_BucketNotification"
+                      }
+                    ]
+                RunOrder: 2
+              - !Ref AWS::NoValue
                 #            - Name: CloudFrontWebAclAssociation
                 #              InputArtifacts:
                 #                - Name: extensions-source
@@ -622,6 +665,25 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "resources/S3_DeleteBucketContents"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: S3BucketModule
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref S3BucketModuleBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "MODULE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "modules/S3_Bucket"
                     }
                   ]
               RunOrder: 1

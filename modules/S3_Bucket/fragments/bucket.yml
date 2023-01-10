@@ -1,0 +1,70 @@
+Description: |
+  This module creates a bucket that will pass cfn_nag checks by 
+  configuring common best practices like encryption and logging
+
+Parameters:
+
+  BucketName:
+    Type: String
+    Description: The name of the bucket
+  
+  LogBucketName:
+    Type: String
+    Description: The name of the log bucket
+
+Resources:
+  
+  LogBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket records access logs for MyBucket
+      cfn_nag:
+        rules_to_suppress:
+          - id: W35
+            reason: "This is the log bucket"
+          - id: W51
+            reason: "Will be added by the consumer"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Ref LogBucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  CompliantBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: A bucket that will pass cfn_nag checks
+      cfn_nag:
+        rules_to_suppress:
+          - id: W51
+            reason: "Will be added by the consumer"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Ref BucketName
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+             SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+
+
