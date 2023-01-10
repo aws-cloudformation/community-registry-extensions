@@ -24,8 +24,8 @@ phases:
       - cfn validate
       - cfn generate
       - SETUP_STACK_NAME="setup-$(echo $MODULE_PATH | sed s/modules\\///g | sed s/_/-/g)"
-      - aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
-      - aws cloudformation wait stack-create-complete --stack-name $SETUP_STACK_NAME
+      - if test -e ./test/setup.yml; then aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml; fi
+      - if test -e ./test/setup.yml; then aws cloudformation wait stack-create-complete --stack-name $SETUP_STACK_NAME; fi
       - cfn submit
       - ./setup.sh
       - INTEG_STACK_NAME="integ-$(echo $MODULE_PATH | sed s/modules\\///g | sed s/_/-/g)"
@@ -33,8 +33,8 @@ phases:
       - aws cloudformation wait stack-create-complete --stack-name $INTEG_STACK_NAME
     finally:
       - cat rpdk.log
-      - aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME
-      - aws cloudformation wait stack-delete-complete --stack-name $SETUP_STACK_NAME
+      - if test -e ./test/setup.yml; then aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME; fi
+      - if test -e ./test/setup.yml; then aws cloudformation wait stack-delete-complete --stack-name $SETUP_STACK_NAME; fi
       - aws cloudformation delete-stack --stack-name $INTEG_STACK_NAME
       - aws cloudformation wait stack-delete-complete --stack-name $INTEG_STACK_NAME
       - ./cleanup.sh
