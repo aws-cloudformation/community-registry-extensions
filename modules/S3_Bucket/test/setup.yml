@@ -1,0 +1,6 @@
+Resources:
+  Dummy:
+    Type: AWS::CloudFormation::WaitConditionHandle
+    Metadata:
+      Comment: We don't need any setup for this module
+

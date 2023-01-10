@@ -1,0 +1,5 @@
+{
+    "artifact_type": "MODULE",
+    "typeName": "AwsCommunity::S3::Bucket::MODULE",
+    "settings": {}
+}
