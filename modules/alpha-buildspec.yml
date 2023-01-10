@@ -8,10 +8,6 @@ phases:
       - echo Entered the install phase...
       - echo About to build $MODULE_PATH
       - export PATH="/usr/local/bin:$PATH"
-      - ENTRY_PATH=$(python scripts/entry.py $MODULE_PATH/.rpdk-config)
-      - echo ENTRY_PATH is $ENTRY_PATH
-      - BUILD_FILE_NAME=$(cat ENTRY_PATH | sed s/_/-/g)
-      - BUILD_FILE_NAME="${BUILD_FILE_NAME}.zip"
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
       - cd $MODULE_PATH
@@ -27,22 +23,20 @@ phases:
       - echo Entered the build phase...
       - cfn validate
       - cfn generate
-      - SETUP_STACK_NAME="setup-$(echo $ENTRY_PATH | sed s/_/-/g)"
+      - SETUP_STACK_NAME="setup-$(echo $MODULE_PATH | sed s/modules\\///g | sed s/_/-/g)"
       - aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml
       - aws cloudformation wait stack-create-complete --stack-name $SETUP_STACK_NAME
       - cfn submit
       - ./setup.sh
-      - INTEG_STACK_NAME="integ-$(echo $ENTRY_PATH | sed s/_/-/g)"
+      - INTEG_STACK_NAME="integ-$(echo $MODULE_PATH | sed s/modules\\///g | sed s/_/-/g)"
       - aws cloudformation create-stack --stack-name $INTEG_STACK_NAME --template-body file://test/integ.yml
       - aws cloudformation wait stack-create-complete --stack-name $INTEG_STACK_NAME
     finally:
       - cat rpdk.log
       - aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME
+      - aws cloudformation wait stack-delete-complete --stack-name $SETUP_STACK_NAME
       - aws cloudformation delete-stack --stack-name $INTEG_STACK_NAME
+      - aws cloudformation wait stack-delete-complete --stack-name $INTEG_STACK_NAME
       - ./cleanup.sh
-artifacts:
-  files:
-    - $BUILD_FILE_NAME 
-  name: extensions-build
 
 
