@@ -610,7 +610,7 @@ Resources:
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Application-Application"
+                      "value": "Okta-Application"
                     }
                   ]
               RunOrder: 2
