@@ -7,6 +7,5 @@ cloudformation-cli-java-plugin==2.0.12
 cloudformation-cli-typescript-plugin==1.0.1
 cloudformation-cli-go-plugin==2.0.4
 pylint==2.15.2
-pytest==7.1.3
+pytest==7.2.0
 bandit==1.7.4
-
