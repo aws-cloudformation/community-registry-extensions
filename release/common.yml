@@ -36,7 +36,7 @@ Resources:
     Type: AWS::S3::Bucket
     Condition: IsProd
     Metadata:
-      Comment: This bucket holds the handler package and logs for extension publishing.
+      Comment: This bucket holds the handler package and logs for extension publishing
     Properties:
       BucketName: !Sub "cep-handler-${AWS::AccountId}"
 
