@@ -58,7 +58,7 @@ jobs:
       matrix:
         files: ${{ fromJSON(needs.rust-files.outputs.rustfiles) }} 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: cd $GITHUB_WORKSPACE && mv ${{ matrix.files }}/* .
       - uses: actions-rs/audit-check@v1
         with:
