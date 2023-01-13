@@ -3,4 +3,4 @@ cloudformation-cli==0.2.25
 cloudformation-cli-python-lib==2.1.12
 cloudformation-cli-python-plugin==2.1.5
 pylint==2.15.2
-pytest==7.1.3
+pytest==7.2.0

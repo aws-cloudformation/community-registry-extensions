@@ -4,4 +4,4 @@ cloudformation-cli-python-lib==2.1.12
 cloudformation-cli-python-plugin==2.1.5
 git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
 pylint==2.15.2
-pytest==7.1.3
+pytest==7.2.0
