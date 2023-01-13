@@ -1,0 +1,42 @@
+---
+name: 'Dependency Review'
+on: [pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  req-files:
+    runs-on: ubuntu-latest
+    outputs:
+      reqfiles: ${{ steps.get-files.outputs.REQLIST }}
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v3
+      - id: get-files
+        run:
+          echo "REQLIST=$(find . -name 'requirements.txt' -print  | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+  dependency-review:
+    needs: req-files
+    strategy:
+      matrix:
+        python: [ 3.7, 3.8, 3.9, "3.10" ]
+        os: [ubuntu-latest]
+        files: ${{ fromJSON(needs.req-files.outputs.reqfiles) }} 
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install pip-audit on non-Windows
+        run: |
+          pip install pip-audit
+      - name: 'Dependency Review'
+        uses: actions/dependency-review-action@v3
+      - name: 'Pip Audit'
+        uses: pypa/gh-action-pip-audit@v1.0.5
+        with:
+          inputs: ${{ matrix.files }}
