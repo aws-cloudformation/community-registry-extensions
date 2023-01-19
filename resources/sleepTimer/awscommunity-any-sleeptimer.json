@@ -1,0 +1,61 @@
+{
+    "typeName": "AwsCommunity::any::sleepTimer",
+    "description": "An example resource schema demonstrating some basic constructs and validation rules.",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {
+        "InitechDateFormat": {
+            "$comment": "Use the `definitions` block to provide shared resource property schemas",
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "properties": {
+        "Title": {
+            "description": "The title of the mandatory element.",
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 250
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "Title"
+    ],
+    "primaryIdentifier": [
+        "/properties/Title"
+    ],
+    "readOnlyProperties": [
+        "/properties/Title"
+    ],
+    "createOnlyProperties": [
+        "/properties/Title"
+    ],
+    
+    "handlers": {
+        "create": {
+            "permissions": [
+                "initech:CreateReport"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "initech:DescribeReport"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "initech:UpdateReport"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "initech:DeleteReport"
+            ]
+        },
+        "list": {
+            "permissions": [
+                "initech:ListReports"
+            ]
+        }
+    }
+}
