@@ -442,6 +442,56 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "modules/${Env}-buildspec.yml"
 
+  AlternateContactBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  AlternateContactBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - account:GetAlternateContact
+              - account:PutAlternateContact
+              - account:DeleteAlternateContact
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: alternate-contact-build-project-policy
+      Roles:
+        - !Ref AlternateContactBuildProjectRole
+
+  AlternateContactBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-alternate-contact"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: MODULE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-module"
+      ServiceRole: !GetAtt AlternateContactBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -505,6 +555,7 @@ Resources:
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
               - !GetAtt S3BucketModuleBuildProject.Arn
+              - !GetAtt AlternateContactBuildProject.Arn
           - Action:
               - kms:*
             Effect: Allow
@@ -561,6 +612,7 @@ Resources:
                 - !GetAtt S3BucketNotificationBuildProjectRole.Arn
                 - !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
                 - !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
+                - !GetAtt AlternateContactBuildProjectRole.Arn
                 - !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
             Resource: "*"
@@ -667,6 +719,25 @@ Resources:
                       "value": "resources/S3_DeleteBucketContents"
                     }
                   ]
+              RunOrder: 2
+            - Name: Account_AlternateContact
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref AlternateContactBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/Account_AlternateContact"
+                    }
+                  ]
               RunOrder: 1
             - Name: S3BucketModule
               InputArtifacts:
@@ -686,7 +757,7 @@ Resources:
                       "value": "modules/S3_Bucket"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
         - !If
           - IsBeta
           - Name: CopyBuildToProd
