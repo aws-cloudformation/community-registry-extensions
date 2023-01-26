@@ -73,7 +73,7 @@ multiple stacks being deployed from the same template in the same account.
 
 The beta account uses the same CloudFormation template, `release/cicd.yml`, as 
 the alpha account, since the pipeline and permissions are very similar. The pipeline 
-is started by a commit being made on the `release` branch.
+is started by creating a release in the GitHub repo and then copying the zip file to the `cep-source-${ACCOUNT_ID}-beta-awscommunity` bucket in the beta account. There is a script to do this here:  `release/awscommunity/release.sh`.
 
 The beta pipeline has one extra stage which copies the source zip to a bucket in the 
 prod account to start the publishing process, if all beta tests succeed. 
