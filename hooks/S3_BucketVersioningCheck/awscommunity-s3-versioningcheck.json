@@ -1,0 +1,27 @@
+{
+    "typeName": "AwsCommunity::S3::VersioningCheck",
+    "description": "This hook checks if S3 Versioning is enabled for buckets",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/hooks/S3_BucketVersioningCheck",
+    "documentationUrl": "https://github.com/aws-cloudformation/example-sse-hook/blob/main/hooks/S3_BucketVersioningCheck/README.md",
+    "typeConfiguration": {
+        "properties": {
+        },
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        }
+    },
+    "additionalProperties": false
+}

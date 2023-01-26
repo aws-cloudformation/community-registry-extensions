@@ -1,0 +1,17 @@
+{
+  "AWS::S3::Bucket": {
+    "resourceProperties": {
+      "BucketName": "test-compliant",
+      "VersioningConfiguration": {
+        "Status": "Enabled"
+      },
+    "previousResourceProperties": {
+      "BucketName": "test-compliant",
+      "VersioningConfiguration": {
+        "Status": "Suspended"
+      }
+    }
+  }
+}
+}
+

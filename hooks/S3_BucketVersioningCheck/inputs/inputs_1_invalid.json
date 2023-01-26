@@ -1,0 +1,8 @@
+{
+    "AWS::S3::Bucket": {
+      "resourceProperties": {
+        "BucketName": "test-compliant",
+        "NotValid": "The property of this resource is not valid."
+      }
+    }
+}
