@@ -25,6 +25,10 @@ Parameters:
     Description: Email address for pipeline notifications
 
 Conditions:
+  
+  IsAlpha: !Equals
+    - !Ref Env
+    - alpha
 
   IsBeta: !Equals
     - !Ref Env
@@ -192,6 +196,17 @@ Resources:
               - sqs:SetQueueAttributes
             Effect: Allow
             Resource: "*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt S3BucketNotificationBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: bucket-notification-build-project-policy
       Roles:
@@ -218,6 +233,17 @@ Resources:
               - s3:ListBucketVersions
             Effect: Allow
             Resource: "*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt S3DeleteBucketContentsBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: delete-bucket-contents-build-project-policy
       Roles:
@@ -261,6 +287,17 @@ Resources:
               - s3:DeleteBucketPolicy
             Effect: Allow
             Resource: "*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: cloudfront-webacl-association-build-project-policy
       Roles:
@@ -290,6 +327,17 @@ Resources:
               - s3:DeleteBucketPolicy
             Effect: Allow
             Resource: "*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt IamPasswordPolicyBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: cloudfront-webacl-association-build-project-policy
       Roles:
@@ -315,6 +363,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt S3BucketNotificationBuildProjectRole.Arn
 
   IamPasswordPolicyBuildProject:
     Type: AWS::CodeBuild::Project
@@ -336,6 +386,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt ResourceIamPasswordPolicyRole.Arn
 
   CloudFrontWebAclAssociationBuildProject:
     Type: AWS::CodeBuild::Project
@@ -357,6 +409,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
 
   S3DeleteBucketContentsBuildProject:
     Type: AWS::CodeBuild::Project
@@ -378,6 +432,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
 
   S3BucketVersioningEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -399,6 +455,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
 
   CloudFrontLoggingEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -420,6 +478,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
 
   S3BucketModuleBuildProject:
     Type: AWS::CodeBuild::Project
@@ -441,6 +501,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "modules/${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt S3BucketModuleBuildProjectRole.Arn
 
   AlternateContactBuildProjectRole:
     Type: AWS::IAM::Role
@@ -466,6 +528,17 @@ Resources:
               - account:DeleteAlternateContact
             Effect: Allow
             Resource: "*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt AlternateContactBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: alternate-contact-build-project-policy
       Roles:
@@ -491,6 +564,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt AlternateContactBuildProjectRole.Arn
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -547,6 +622,11 @@ Resources:
           - Action:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
             Effect: Allow
             Resource: 
               - !GetAtt S3BucketNotificationBuildProject.Arn
@@ -672,6 +752,7 @@ Resources:
                   Version: 1
                 Configuration:
                   ProjectName: !Ref S3BucketNotificationBuildProject
+                  BatchEnabled: true
                   EnvironmentVariables: |-
                     [
                       {
@@ -711,6 +792,7 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref S3DeleteBucketContentsBuildProject
+                BatchEnabled: true
                 EnvironmentVariables: |-
                   [
                     {
@@ -730,6 +812,7 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref AlternateContactBuildProject
+                BatchEnabled: true
                 EnvironmentVariables: |-
                   [
                     {
@@ -739,25 +822,29 @@ Resources:
                     }
                   ]
               RunOrder: 1
-            - Name: S3BucketModule
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref S3BucketModuleBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "MODULE_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "modules/S3_Bucket"
-                    }
-                  ]
-              RunOrder: 2
+            - !If
+              - IsAlpha
+              - Name: S3BucketModule
+                InputArtifacts:
+                  - Name: extensions-source
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: 1
+                Configuration:
+                  ProjectName: !Ref S3BucketModuleBuildProject
+                  BatchEnabled: true
+                  EnvironmentVariables: |-
+                    [
+                      {
+                        "name": "MODULE_PATH",
+                        "type": "PLAINTEXT",
+                        "value": "modules/S3_Bucket"
+                      }
+                    ]
+                RunOrder: 2
+              - !Ref AWS::NoValue
         - !If
           - IsBeta
           - Name: CopyBuildToProd
@@ -787,6 +874,7 @@ Resources:
                 #                Version: 1
                 #              Configuration:
                 #                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
+                #                BatchEnabled: true
                 #                EnvironmentVariables: |-
                 #                  [
                 #                    {
@@ -806,6 +894,7 @@ Resources:
                 #                Version: 1
                 #              Configuration:
                 #                ProjectName: !Ref CloudFrontLoggingEnabledBuildProject
+                #                BatchEnabled: true
                 #                EnvironmentVariables: |-
                 #                  [
                 #                    {

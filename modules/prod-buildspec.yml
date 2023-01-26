@@ -6,118 +6,121 @@ phases:
       python: 3.7
     commands:
       - echo Entered the install phase...
-      - echo About to build $RESOURCE_PATH
+      - echo About to build $MODULE_PATH
       - export PATH="/usr/local/bin:$PATH"
-      - /usr/local/bin/dockerd-entrypoint.sh
-      - cat /var/log/docker.log
-      - ENTRY_PATH=$(python scripts/entry.py $RESOURCE_PATH/.rpdk-config)
-      - echo ENTRY_PATH is $ENTRY_PATH
-      - TYPE_NAME=$(python scripts/type_name.py $RESOURCE_PATH/.rpdk-config)
-      - echo TYPE_NAME is $TYPE_NAME
-      - cd $RESOURCE_PATH
-      - pwd
-      - ls
-      - aws --version
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
+      - cd $MODULE_PATH
+      - which python
+      - python --version
+      - ls /usr/local/bin
+      - pip freeze
+      - cfn --version
+      - echo $PATH
+
 
 batch:
   build-list:
-    - identifier: af_south_1
+    - identifier: af-south-1
       env:
         PUBLISH_TO_REGION: af-south-1
-    - identifier: ap_east_1 
+    - identifier: ap-east-1 
       env:
         PUBLISH_TO_REGION: ap-east-1
-    - identifier: ap_northeast_1 
+    - identifier: ap-northeast-1 
       env:
         PUBLISH_TO_REGION: ap-northeast-1
-    - identifier: ap_northeast_2
+    - identifier: ap-northeast-2
       env:
         PUBLISH_TO_REGION: ap-northeast-2
-    - identifier: ap_northeast_3
+    - identifier: ap-northeast-3
       env:
         PUBLISH_TO_REGION: ap-northeast-3
-    - identifier: ap_south_1
+    - identifier: ap-south-1
       env:
         PUBLISH_TO_REGION: ap-south-1
-    - identifier: ap_south_2
+    - identifier: ap-south-2
       env:
         PUBLISH_TO_REGION: ap-south-2
-    - identifier: ap_southeast_1
+    - identifier: ap-southeast-1
       env:
         PUBLISH_TO_REGION: ap-southeast-1 
-    - identifier: ap_southeast_2
+    - identifier: ap-southeast-2
       env:
         PUBLISH_TO_REGION: ap-southeast-2 
-    - identifier: ap_southeast_3
+    - identifier: ap-southeast-3
       env:
         PUBLISH_TO_REGION: ap-southeast-3
-    - identifier: ca_central_1
+    - identifier: ca-central-1
       env:
         PUBLISH_TO_REGION: ca-central-1
-    - identifier: cn_amazon
+    - identifier: cn-amazon
       env:
         PUBLISH_TO_REGION: cn-amazon
-    - identifier: eu_central_1
+    - identifier: eu-central-1
       env:
         PUBLISH_TO_REGION: eu-central-1  
-    - identifier: eu_central_2
+    - identifier: eu-central-2
       env:
         PUBLISH_TO_REGION: eu-central-2
-    - identifier: eu_luxembourg
+    - identifier: eu-luxembourg
       env:
         PUBLISH_TO_REGION: eu-luxembourg
-    - identifier: eu_north_1
+    - identifier: eu-north-1
       env:
         PUBLISH_TO_REGION: eu-north-1
-    - identifier: eu_south_1
+    - identifier: eu-south-1
       env:
         PUBLISH_TO_REGION: eu-south-1 
-    - identifier: eu_south_2
+    - identifier: eu-south-2
       env:
         PUBLISH_TO_REGION: eu-south-2
-    - identifier: eu_west_1
+    - identifier: eu-west-1
       env:
         PUBLISH_TO_REGION: eu-west-1
-    - identifier: eu_west_2
+    - identifier: eu-west-2
       env:
         PUBLISH_TO_REGION: eu-west-2
-    - identifier: eu_west_3
+    - identifier: eu-west-3
       env:
         PUBLISH_TO_REGION: eu-west-3
-    - identifier: in_amazon_1
+    - identifier: in-amazon-1
       env:
         PUBLISH_TO_REGION: in-amazon-1 
-    - identifier: me_central_1
+    - identifier: me-central-1
       env:
         PUBLISH_TO_REGION: me-central-1
-    - identifier: me_south_1
+    - identifier: me-south-1
       env:
         PUBLISH_TO_REGION: me-south-1
-    - identifier: sa_east_1
+    - identifier: sa-east-1
       env:
         PUBLISH_TO_REGION: sa-east-1
-    - identifier: us_east_1
+    - identifier: us-east-1
       env:
         PUBLISH_TO_REGION: us-east-1
-    - identifier: us_east_2
+    - identifier: us-east-2
       env:
         PUBLISH_TO_REGION: us-east-2
-    - identifier: us_seattle
+    - identifier: us-seattle
       env:
         PUBLISH_TO_REGION: us-seattle
-    - identifier: us_west_1
+    - identifier: us-west-1
       env:
         PUBLISH_TO_REGION: us-west-1 
-    - identifier: us_west_2
+    - identifier: us-west-2
       env:
         PUBLISH_TO_REGION: us-west-2
 
   build:
     commands:
       - echo Entered the build phase...
+      - ./setup.sh
       - ls -l ../../release
-      - ../../release/deregister-all.sh $PUBLISH_TO_REGION RESOURCE
-      - ../../release/publish-resource.sh $PUBLISH_TO_REGION
+      - ../../release/deregister-all.sh $PUBLISH_TO_REGION MODULE
+      - ../../release/publish-module.sh $PUBLISH_TO_REGION
     finally:
       - cat rpdk.log
+      - ./cleanup.sh
+
 
