@@ -1,4 +1,6 @@
-# AWS CloudFormation Community Registry Extensions
+# Static Analysis for Infrastructure as Code to validate against AWS Best Practices
+
+## AWS CloudFormation Community Registry Extensions
 
 This repository hosts [registry extensions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html)
 that are published under the `AwsCommunity::` namespace in AWS CloudFormation.
