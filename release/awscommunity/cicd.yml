@@ -752,7 +752,11 @@ Resources:
                   Version: 1
                 Configuration:
                   ProjectName: !Ref S3BucketNotificationBuildProject
-                  BatchEnabled: true
+                  BatchEnabled: 
+                    !If
+                      - IsProd
+                      - true
+                      - false
                   EnvironmentVariables: |-
                     [
                       {
@@ -792,7 +796,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref S3DeleteBucketContentsBuildProject
-                BatchEnabled: true
+                BatchEnabled: 
+                  !If
+                    - IsProd
+                    - true
+                    - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -812,7 +820,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref AlternateContactBuildProject
-                BatchEnabled: true
+                BatchEnabled: 
+                  !If
+                    - IsProd
+                    - true
+                    - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -834,7 +846,11 @@ Resources:
                   Version: 1
                 Configuration:
                   ProjectName: !Ref S3BucketModuleBuildProject
-                  BatchEnabled: true
+                  BatchEnabled: 
+                    !If
+                      - IsProd
+                      - true
+                      - false
                   EnvironmentVariables: |-
                     [
                       {
