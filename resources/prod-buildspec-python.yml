@@ -19,14 +19,105 @@ phases:
       - ls
       - aws --version
 
+batch:
+  build-list:
+    - identifier: af-south-1
+      env:
+        PUBLISH_TO_REGION: af-south-1
+    - identifier: ap-east-1 
+      env:
+        PUBLISH_TO_REGION: ap-east-1
+    - identifier: ap-northeast-1 
+      env:
+        PUBLISH_TO_REGION: ap-northeast-1
+    - identifier: ap-northeast-2
+      env:
+        PUBLISH_TO_REGION: ap-northeast-2
+    - identifier: ap-northeast-3
+      env:
+        PUBLISH_TO_REGION: ap-northeast-3
+    - identifier: ap-south-1
+      env:
+        PUBLISH_TO_REGION: ap-south-1
+    - identifier: ap-south-2
+      env:
+        PUBLISH_TO_REGION: ap-south-2
+    - identifier: ap-southeast-1
+      env:
+        PUBLISH_TO_REGION: ap-southeast-1 
+    - identifier: ap-southeast-2
+      env:
+        PUBLISH_TO_REGION: ap-southeast-2 
+    - identifier: ap-southeast-3
+      env:
+        PUBLISH_TO_REGION: ap-southeast-3
+    - identifier: ca-central-1
+      env:
+        PUBLISH_TO_REGION: ca-central-1
+    - identifier: cn-amazon
+      env:
+        PUBLISH_TO_REGION: cn-amazon
+    - identifier: eu-central-1
+      env:
+        PUBLISH_TO_REGION: eu-central-1  
+    - identifier: eu-central-2
+      env:
+        PUBLISH_TO_REGION: eu-central-2
+    - identifier: eu-luxembourg
+      env:
+        PUBLISH_TO_REGION: eu-luxembourg
+    - identifier: eu-north-1
+      env:
+        PUBLISH_TO_REGION: eu-north-1
+    - identifier: eu-south-1
+      env:
+        PUBLISH_TO_REGION: eu-south-1 
+    - identifier: eu-south-2
+      env:
+        PUBLISH_TO_REGION: eu-south-2
+    - identifier: eu-west-1
+      env:
+        PUBLISH_TO_REGION: eu-west-1
+    - identifier: eu-west-2
+      env:
+        PUBLISH_TO_REGION: eu-west-2
+    - identifier: eu-west-3
+      env:
+        PUBLISH_TO_REGION: eu-west-3
+    - identifier: in-amazon-1
+      env:
+        PUBLISH_TO_REGION: in-amazon-1 
+    - identifier: me-central-1
+      env:
+        PUBLISH_TO_REGION: me-central-1
+    - identifier: me-south-1
+      env:
+        PUBLISH_TO_REGION: me-south-1
+    - identifier: sa-east-1
+      env:
+        PUBLISH_TO_REGION: sa-east-1
+    - identifier: us-east-1
+      env:
+        PUBLISH_TO_REGION: us-east-1
+    - identifier: us-east-2
+      env:
+        PUBLISH_TO_REGION: us-east-2
+    - identifier: us-seattle
+      env:
+        PUBLISH_TO_REGION: us-seattle
+    - identifier: us-west-1
+      env:
+        PUBLISH_TO_REGION: us-west-1 
+    - identifier: us-west-2
+      env:
+        PUBLISH_TO_REGION: us-west-2
+
   build:
     commands:
       - echo Entered the build phase...
       - ls -l ../../release
-      - ../../release/deregister-all.sh us-east-1
-      - ../../release/publish.sh us-east-1
-      - ../../release/deregister-all.sh us-west-2
-      - ../../release/publish.sh us-west-2
+      - ../../release/deregister-all.sh $PUBLISH_TO_REGION
+      - ../../release/publish.sh $PUBLISH_TO_REGION
     finally:
       - cat rpdk.log
 
