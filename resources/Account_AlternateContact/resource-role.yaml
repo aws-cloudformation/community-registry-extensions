@@ -33,6 +33,7 @@ Resources:
                 - "account:DeleteAlternateContact"
                 - "account:GetAlternateContact"
                 - "account:PutAlternateContact"
+                - "cloudformation:ListExports"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
