@@ -114,6 +114,7 @@ phases:
   build:
     commands:
       - echo Entered the build phase...
+      - echo $PUBLISH_TO_REGION
       - ls -l ../../release
       - ../../release/deregister-all.sh $PUBLISH_TO_REGION RESOURCE
       - ../../release/publish-resource.sh $PUBLISH_TO_REGION
