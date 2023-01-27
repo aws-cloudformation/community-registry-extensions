@@ -91,6 +91,17 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt OktaGroupBuildProject.Arn
+          - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
             Resource: 
@@ -122,6 +133,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt OktaGroupBuildProjectRole.Arn
 
   # Okta::Group::GroupMembership
 
@@ -147,6 +160,17 @@ Resources:
     Properties:
       PolicyDocument:
         Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt OktaGroupMembershipBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
@@ -185,6 +209,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
 
 
   # Okta::Application::Application
@@ -211,6 +237,17 @@ Resources:
     Properties:
       PolicyDocument:
         Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt OktaApplicationBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
@@ -243,6 +280,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt OktaApplicationBuildProjectRole.Arn
 
   # Okta::Group::GroupApplicationAssociation
 
@@ -268,6 +307,17 @@ Resources:
     Properties:
       PolicyDocument:
         Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt OktaAppAssocBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
@@ -306,6 +356,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt OktaAppAssocBuildProjectRole.Arn
 
   # Okta::Policy::Policy
 
@@ -331,6 +383,17 @@ Resources:
     Properties:
       PolicyDocument:
         Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt OktaPolicyBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
@@ -366,8 +429,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
-
-
+      BuildBatchConfig:
+        ServiceRole: !GetAtt OktaPolicyBuildProjectRole.Arn
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -420,7 +483,10 @@ Resources:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
                   - codebuild:StopBuild
-                  - codebuild:RetryBuild
+                  - codebuild:RetryBuild             
+                  - codebuild:StartBuildBatch
+                  - codebuild:RetryBuildBatch
+                  - codebuild:StopBuildBatch
                 Effect: Allow
                 Resource: 
                   - !GetAtt OktaGroupBuildProject.Arn
@@ -548,6 +614,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaGroupBuildProject
+                BatchEnabled: 
+                    !If
+                      - IsProd
+                      - true
+                      - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -567,6 +638,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaGroupMembershipBuildProject
+                BatchEnabled: 
+                    !If
+                      - IsProd
+                      - true
+                      - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -586,6 +662,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaAppAssocBuildProject
+                BatchEnabled: 
+                    !If
+                      - IsProd
+                      - true
+                      - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -605,6 +686,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaApplicationBuildProject
+                BatchEnabled: 
+                    !If
+                      - IsProd
+                      - true
+                      - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -624,6 +710,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaPolicyBuildProject
+                BatchEnabled: 
+                    !If
+                      - IsProd
+                      - true
+                      - false
                 EnvironmentVariables: |-
                   [
                     {
