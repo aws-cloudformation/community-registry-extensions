@@ -76,6 +76,8 @@ then
     PUBLISHING_ENABLED=1
 fi
 
+echo "PUBLISHING_ENABLED: $PUBLISHING_ENABLELD"
+
 HANDLER_BUCKET="cep-handler-${ACCOUNT_ID}"
 
 # Copy the package to S3
@@ -161,28 +163,36 @@ else
     echo "Did not find get_type_configuration.py, skipping type configuration"
 fi
 
-# Test the resource type
-echo "About to run test-type"
-echo ""
-TYPE_VERSION_ARN=$(aws cloudformation --region $AWS_REGION test-type --type RESOURCE --type-name $TYPE_NAME --log-delivery-bucket $HANDLER_BUCKET | jq .TypeVersionArn | sed s/\"//g)
-echo "TYPE_VERSION_ARN is $TYPE_VERSION_ARN"
-echo ""
+TEST_STATUS=""
 
-TEST_STATUS="IN_PROGRESS"
+# Only test in us-east-1. Testing multiple regions for non-regional 3p resources doesn't work
+if "$AWS_REGION" == "us-east-1"
+then
+    # Test the resource type
+    echo "About to run test-type"
+    echo ""
+    TYPE_VERSION_ARN=$(aws cloudformation --region $AWS_REGION test-type --type RESOURCE --type-name $TYPE_NAME --log-delivery-bucket $HANDLER_BUCKET | jq .TypeVersionArn | sed s/\"//g)
+    echo "TYPE_VERSION_ARN is $TYPE_VERSION_ARN"
+    echo ""
 
-echo "About to poll test status for $TYPE_VERSION_ARN"
-check_test_status() {
-    TEST_STATUS=$(aws cloudformation --region $AWS_REGION describe-type --arn $TYPE_VERSION_ARN | jq -r .TypeTestsStatus)
-}
+    TEST_STATUS="IN_PROGRESS"
 
-# Check status
-while [ "$TEST_STATUS" == "IN_PROGRESS" ]
-do
-    sleep 5
-    check_test_status
-done
+    echo "About to poll test status for $TYPE_VERSION_ARN"
+    check_test_status() {
+        TEST_STATUS=$(aws cloudformation --region $AWS_REGION describe-type --arn $TYPE_VERSION_ARN | jq -r .TypeTestsStatus)
+    }
 
-echo $TEST_STATUS
+    # Check status
+    while [ "$TEST_STATUS" == "IN_PROGRESS" ]
+    do
+        sleep 5
+        check_test_status
+    done
+
+    echo $TEST_STATUS
+else
+    echo "Not running test-type since we are not in us-east-1"
+fi
 
 # Publish the type
 if [ "$PUBLISHING_ENABLED" -eq 1 ]
@@ -199,6 +209,11 @@ if [ -f "test/setup.yml" ]
 then
     SETUP_STACK_NAME="setup-prod-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
     aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME
+fi
+
+if [ "$TEST_STATUS" == "FAILED"] 
+then
+    exit 1    
 fi
 
 echo "Done"
