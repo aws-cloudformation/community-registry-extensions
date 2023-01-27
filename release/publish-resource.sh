@@ -71,7 +71,7 @@ PUBLISHING_ENABLED=0
 ACCOUNT_ID=$(aws sts get-caller-identity|jq -r .Account)
 echo "ACCOUNT_ID is $ACCOUNT_ID"
 
-if [ $"ACCOUNT_ID" == "387586997764" ]
+if [ "$ACCOUNT_ID" == "387586997764" ]
 then
     PUBLISHING_ENABLED=1
 fi
@@ -165,34 +165,28 @@ fi
 
 TEST_STATUS=""
 
-# Only test in us-east-1. Testing multiple regions for non-regional 3p resources doesn't work
-if "$AWS_REGION" == "us-east-1"
-then
-    # Test the resource type
-    echo "About to run test-type"
-    echo ""
-    TYPE_VERSION_ARN=$(aws cloudformation --region $AWS_REGION test-type --type RESOURCE --type-name $TYPE_NAME --log-delivery-bucket $HANDLER_BUCKET | jq .TypeVersionArn | sed s/\"//g)
-    echo "TYPE_VERSION_ARN is $TYPE_VERSION_ARN"
-    echo ""
+# Test the resource type
+echo "About to run test-type"
+echo ""
+TYPE_VERSION_ARN=$(aws cloudformation --region $AWS_REGION test-type --type RESOURCE --type-name $TYPE_NAME --log-delivery-bucket $HANDLER_BUCKET | jq .TypeVersionArn | sed s/\"//g)
+echo "TYPE_VERSION_ARN is $TYPE_VERSION_ARN"
+echo ""
 
-    TEST_STATUS="IN_PROGRESS"
+TEST_STATUS="IN_PROGRESS"
 
-    echo "About to poll test status for $TYPE_VERSION_ARN"
-    check_test_status() {
-        TEST_STATUS=$(aws cloudformation --region $AWS_REGION describe-type --arn $TYPE_VERSION_ARN | jq -r .TypeTestsStatus)
-    }
+echo "About to poll test status for $TYPE_VERSION_ARN"
+check_test_status() {
+    TEST_STATUS=$(aws cloudformation --region $AWS_REGION describe-type --arn $TYPE_VERSION_ARN | jq -r .TypeTestsStatus)
+}
 
-    # Check status
-    while [ "$TEST_STATUS" == "IN_PROGRESS" ]
-    do
-        sleep 5
-        check_test_status
-    done
+# Check status
+while [ "$TEST_STATUS" == "IN_PROGRESS" ]
+do
+    sleep 5
+    check_test_status
+done
 
-    echo $TEST_STATUS
-else
-    echo "Not running test-type since we are not in us-east-1"
-fi
+echo $TEST_STATUS
 
 # Publish the type
 if [ "$PUBLISHING_ENABLED" -eq 1 ]
@@ -211,7 +205,7 @@ then
     aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME
 fi
 
-if [ "$TEST_STATUS" == "FAILED"] 
+if [ "$TEST_STATUS" == "FAILED" ] 
 then
     exit 1    
 fi
