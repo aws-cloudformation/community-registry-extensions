@@ -359,9 +359,6 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-        - Name: PUBLISH_TO_REGION
-          Type: PLAINTEXT
-          Value: "placeholder-for-publish-to-region"
       ServiceRole: !GetAtt S3BucketNotificationBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -385,9 +382,6 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-        - Name: PUBLISH_TO_REGION
-          Type: PLAINTEXT
-          Value: "placeholder-for-publish-to-region"
       ServiceRole: !GetAtt ResourceIamPasswordPolicyRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -411,9 +405,6 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-        - Name: PUBLISH_TO_REGION
-          Type: PLAINTEXT
-          Value: "placeholder-for-publish-to-region"
       ServiceRole: !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -437,9 +428,6 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-        - Name: PUBLISH_TO_REGION
-          Type: PLAINTEXT
-          Value: "placeholder-for-publish-to-region"
       ServiceRole: !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -463,9 +451,6 @@ Resources:
         - Name: HOOK_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-hook"
-        - Name: PUBLISH_TO_REGION
-          Type: PLAINTEXT
-          Value: "placeholder-for-publish-to-region"
       ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -489,9 +474,6 @@ Resources:
         - Name: HOOK_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-        - Name: PUBLISH_TO_REGION
-          Type: PLAINTEXT
-          Value: "placeholder-for-publish-to-region"
       ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -515,9 +497,6 @@ Resources:
         - Name: MODULE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-module"
-        - Name: PUBLISH_TO_REGION
-          Type: PLAINTEXT
-          Value: "placeholder-for-publish-to-region"
       ServiceRole: !GetAtt S3BucketModuleBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -581,9 +560,6 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-        - Name: PUBLISH_TO_REGION
-          Type: PLAINTEXT
-          Value: "placeholder-for-publish-to-region"
       ServiceRole: !GetAtt AlternateContactBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
