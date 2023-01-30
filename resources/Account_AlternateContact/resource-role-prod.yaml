@@ -6,8 +6,6 @@ Description: >
 Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
-    Metadata:
-      Comment: A Deny all in the policy causes Test-Type to be a no-op in the prod account
     Properties:
       MaxSessionDuration: 8400
       AssumeRolePolicyDocument:
@@ -23,8 +21,12 @@ Resources:
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Effect: Deny
-                Action: "*"
+              - Effect: Allow
+                Action:
+                - "account:DeleteAlternateContact"
+                - "account:GetAlternateContact"
+                - "account:PutAlternateContact"
+                - "cloudformation:ListExports"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:

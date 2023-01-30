@@ -566,6 +566,7 @@ Resources:
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
       BuildBatchConfig:
         ServiceRole: !GetAtt AlternateContactBuildProjectRole.Arn
+      ConcurrentBuildLimit: 1
 
   SourceBucket:
     Type: AWS::S3::Bucket

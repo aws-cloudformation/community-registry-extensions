@@ -26,10 +26,10 @@ batch:
       env:
         variables:
           PUBLISH_TO_REGION: ap-south-1
-    - identifier: ap_south_2
-      env:
-        variables:
-          PUBLISH_TO_REGION: ap-south-2
+    # - identifier: ap_south_2
+    #   env:
+    #     variables:
+    #       PUBLISH_TO_REGION: ap-south-2
     - identifier: ap_southeast_1
       env:
         variables:
@@ -54,14 +54,14 @@ batch:
       env:
         variables:
           PUBLISH_TO_REGION: eu-central-1  
-    - identifier: eu_central_2
-      env:
-        variables:
-          PUBLISH_TO_REGION: eu-central-2
-    - identifier: eu_luxembourg
-      env:
-        variables:
-          PUBLISH_TO_REGION: eu-luxembourg
+    # - identifier: eu_central_2
+    #   env:
+    #     variables:
+    #       PUBLISH_TO_REGION: eu-central-2
+    # - identifier: eu_luxembourg
+    #   env:
+    #     variables:
+    #       PUBLISH_TO_REGION: eu-luxembourg
     - identifier: eu_north_1
       env:
         variables:
@@ -110,10 +110,10 @@ batch:
       env:
         variables:
           PUBLISH_TO_REGION: us-east-2
-    - identifier: us_seattle
-      env:
-        variables:
-          PUBLISH_TO_REGION: us-seattle
+    # - identifier: us_seattle
+    #   env:
+    #     variables:
+    #       PUBLISH_TO_REGION: us-seattle
     - identifier: us_west_1
       env:
         variables:
