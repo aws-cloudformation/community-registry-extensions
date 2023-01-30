@@ -676,30 +676,30 @@ Resources:
                     }
                   ]
               RunOrder: 2
-            - Name: OktaApplication
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref OktaApplicationBuildProject
-                BatchEnabled: 
-                    !If
-                      - IsProd
-                      - true
-                      - false
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "RESOURCE_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "Okta-Application"
-                    }
-                  ]
-              RunOrder: 2
+            # - Name: OktaApplication
+            #   InputArtifacts:
+            #     - Name: extensions-source
+            #   ActionTypeId:
+            #     Category: Build
+            #     Owner: AWS
+            #     Provider: CodeBuild
+            #     Version: 1
+            #   Configuration:
+            #     ProjectName: !Ref OktaApplicationBuildProject
+            #     BatchEnabled: 
+            #         !If
+            #           - IsProd
+            #           - true
+            #           - false
+            #     EnvironmentVariables: |-
+            #       [
+            #         {
+            #           "name": "RESOURCE_PATH",
+            #           "type": "PLAINTEXT",
+            #           "value": "Okta-Application"
+            #         }
+            #       ]
+            #   RunOrder: 2
             - Name: OktaPolicy
               InputArtifacts:
                 - Name: extensions-source
