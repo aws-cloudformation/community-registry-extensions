@@ -363,8 +363,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt S3BucketNotificationBuildProjectRole.Arn
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt S3BucketNotificationBuildProjectRole.Arn
 
   IamPasswordPolicyBuildProject:
     Type: AWS::CodeBuild::Project
@@ -386,8 +386,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt ResourceIamPasswordPolicyRole.Arn
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt ResourceIamPasswordPolicyRole.Arn
 
   CloudFrontWebAclAssociationBuildProject:
     Type: AWS::CodeBuild::Project
@@ -409,8 +409,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
 
   S3DeleteBucketContentsBuildProject:
     Type: AWS::CodeBuild::Project
@@ -432,8 +432,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
 
   S3BucketVersioningEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -455,8 +455,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
 
   CloudFrontLoggingEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -478,8 +478,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
 
   S3BucketModuleBuildProject:
     Type: AWS::CodeBuild::Project
@@ -501,8 +501,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "modules/${Env}-buildspec.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt S3BucketModuleBuildProjectRole.Arn
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt S3BucketModuleBuildProjectRole.Arn
 
   AlternateContactBuildProjectRole:
     Type: AWS::IAM::Role
@@ -564,9 +564,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt AlternateContactBuildProjectRole.Arn
-      ConcurrentBuildLimit: 1
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt AlternateContactBuildProjectRole.Arn
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -753,11 +752,11 @@ Resources:
                   Version: 1
                 Configuration:
                   ProjectName: !Ref S3BucketNotificationBuildProject
-                  BatchEnabled: 
-                    !If
-                      - IsProd
-                      - true
-                      - false
+                  # BatchEnabled: 
+                  #   !If
+                  #     - IsProd
+                  #     - true
+                  #     - false
                   EnvironmentVariables: |-
                     [
                       {
@@ -797,11 +796,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref S3DeleteBucketContentsBuildProject
-                BatchEnabled: 
-                  !If
-                    - IsProd
-                    - true
-                    - false
+                # BatchEnabled: 
+                #   !If
+                #     - IsProd
+                #     - true
+                #     - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -821,11 +820,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref AlternateContactBuildProject
-                BatchEnabled: 
-                  !If
-                    - IsProd
-                    - true
-                    - false
+                # BatchEnabled: 
+                #   !If
+                #     - IsProd
+                #     - true
+                #     - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -847,11 +846,11 @@ Resources:
                   Version: 1
                 Configuration:
                   ProjectName: !Ref S3BucketModuleBuildProject
-                  BatchEnabled: 
-                    !If
-                      - IsProd
-                      - true
-                      - false
+                  # BatchEnabled: 
+                  #   !If
+                  #     - IsProd
+                  #     - true
+                  #     - false
                   EnvironmentVariables: |-
                     [
                       {
