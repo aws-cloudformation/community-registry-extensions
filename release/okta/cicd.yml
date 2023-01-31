@@ -651,7 +651,7 @@ Resources:
                       "value": "Okta-Group-Membership"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
             - Name: OktaAppAssoc
               InputArtifacts:
                 - Name: extensions-source
@@ -675,31 +675,31 @@ Resources:
                       "value": "Okta-Group-Application-Association"
                     }
                   ]
-              RunOrder: 2
-            # - Name: OktaApplication
-            #   InputArtifacts:
-            #     - Name: extensions-source
-            #   ActionTypeId:
-            #     Category: Build
-            #     Owner: AWS
-            #     Provider: CodeBuild
-            #     Version: 1
-            #   Configuration:
-            #     ProjectName: !Ref OktaApplicationBuildProject
-            #     BatchEnabled: 
-            #         !If
-            #           - IsProd
-            #           - true
-            #           - false
-            #     EnvironmentVariables: |-
-            #       [
-            #         {
-            #           "name": "RESOURCE_PATH",
-            #           "type": "PLAINTEXT",
-            #           "value": "Okta-Application"
-            #         }
-            #       ]
-            #   RunOrder: 2
+              RunOrder: 1
+            - Name: OktaApplication
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref OktaApplicationBuildProject
+                BatchEnabled: 
+                    !If
+                      - IsProd
+                      - true
+                      - false
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Okta-Application"
+                    }
+                  ]
+              RunOrder: 1
             - Name: OktaPolicy
               InputArtifacts:
                 - Name: extensions-source
@@ -723,7 +723,7 @@ Resources:
                       "value": "Okta-Policy"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
         - !If
           - IsBeta
           - Name: CopyBuildToProd

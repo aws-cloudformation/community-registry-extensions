@@ -365,6 +365,7 @@ Resources:
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
       # BuildBatchConfig:
       #   ServiceRole: !GetAtt S3BucketNotificationBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   IamPasswordPolicyBuildProject:
     Type: AWS::CodeBuild::Project
@@ -388,6 +389,7 @@ Resources:
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
       # BuildBatchConfig:
       #   ServiceRole: !GetAtt ResourceIamPasswordPolicyRole.Arn
+      TimeoutInMinutes: 480
 
   CloudFrontWebAclAssociationBuildProject:
     Type: AWS::CodeBuild::Project
@@ -411,6 +413,7 @@ Resources:
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
       # BuildBatchConfig:
       #   ServiceRole: !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   S3DeleteBucketContentsBuildProject:
     Type: AWS::CodeBuild::Project
@@ -434,6 +437,7 @@ Resources:
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
       # BuildBatchConfig:
       #   ServiceRole: !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   S3BucketVersioningEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -457,6 +461,7 @@ Resources:
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
       # BuildBatchConfig:
       #   ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   CloudFrontLoggingEnabledBuildProject:
     Type: AWS::CodeBuild::Project
@@ -480,6 +485,7 @@ Resources:
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
       # BuildBatchConfig:
       #   ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   S3BucketModuleBuildProject:
     Type: AWS::CodeBuild::Project
@@ -503,6 +509,7 @@ Resources:
         BuildSpec: !Sub "modules/${Env}-buildspec.yml"
       # BuildBatchConfig:
       #   ServiceRole: !GetAtt S3BucketModuleBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   AlternateContactBuildProjectRole:
     Type: AWS::IAM::Role
@@ -566,6 +573,7 @@ Resources:
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
       # BuildBatchConfig:
       #   ServiceRole: !GetAtt AlternateContactBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -765,7 +773,7 @@ Resources:
                         "value": "resources/S3_BucketNotification"
                       }
                     ]
-                RunOrder: 2
+                RunOrder: 1
               - !Ref AWS::NoValue
                 #            - Name: CloudFrontWebAclAssociation
                 #              InputArtifacts:
@@ -785,7 +793,7 @@ Resources:
                 #                      "value": "resources/CloudFront_WebACLAssociation"
                 #                    }
                 #                  ]
-                #              RunOrder: 2
+                #              RunOrder: 1
             - Name: S3DeleteBucketContents
               InputArtifacts:
                 - Name: extensions-source
@@ -809,7 +817,7 @@ Resources:
                       "value": "resources/S3_DeleteBucketContents"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
             - Name: Account_AlternateContact
               InputArtifacts:
                 - Name: extensions-source
@@ -859,7 +867,7 @@ Resources:
                         "value": "modules/S3_Bucket"
                       }
                     ]
-                RunOrder: 2
+                RunOrder: 1
               - !Ref AWS::NoValue
         - !If
           - IsBeta
@@ -899,7 +907,7 @@ Resources:
                 #                      "value": "hooks/S3_BucketVersioningEnabled"
                 #                    }
                 #                  ]
-                #              RunOrder: 2
+                #              RunOrder: 1
                 #            - Name: CloudFrontLoggingEnabled
                 #              InputArtifacts:
                 #                - Name: extensions-source
@@ -919,7 +927,7 @@ Resources:
                 #                      "value": "hooks/CloudFront_LoggingEnabled"
                 #                    }
                 #                  ]
-                #              RunOrder: 2
+                #              RunOrder: 1
 
   PublishBuildBucketRole:
     Type: AWS::IAM::Role
