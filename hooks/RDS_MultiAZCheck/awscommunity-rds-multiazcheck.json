@@ -1,0 +1,27 @@
+{
+    "typeName": "AwsCommunity::RDS::MultiAZCheck",
+    "description": "This hook checks if RDS MultiAZ is enabled",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/hooks/RDS_MultiAZCheck",
+    "documentationUrl": "https://github.com/aws-cloudformation/example-sse-hook/blob/main/hooks/RDS_MultiAZCheck/README.md",
+    "typeConfiguration": {
+        "properties": {
+        },
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::RDS::DBInstance"
+            ],
+            "permissions": []
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::RDS::DBInstance"
+            ],
+            "permissions": []
+        }
+    },
+    "additionalProperties": false
+}

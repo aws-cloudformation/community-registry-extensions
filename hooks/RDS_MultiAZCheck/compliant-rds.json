@@ -1,0 +1,17 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Resources": {
+        "RDSInstance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+                "DBName"            : "CompliantDB" ,
+                "Engine"            : "MySQL",
+                "MultiAZ"           : true,
+                "MasterUsername"    : "admin",
+                "DBInstanceClass"   : "db.t2.small",
+                "AllocatedStorage"  : "10",
+                "MasterUserPassword": "password"
+            }
+        }
+    }
+}

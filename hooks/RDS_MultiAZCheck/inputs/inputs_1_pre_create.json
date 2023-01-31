@@ -1,0 +1,13 @@
+{
+  "AWS::RDS::DBInstance": {
+    "resourceProperties": {
+      "DBName"            : "CompliantDB" ,
+      "Engine"            : "MySQL",
+      "MultiAZ"           : true,
+      "MasterUsername"    : "admin",
+      "DBInstanceClass"   : "db.t2.small",
+      "AllocatedStorage"  : "10GiB",
+      "MasterUserPassword": "password"
+    }
+  }
+}

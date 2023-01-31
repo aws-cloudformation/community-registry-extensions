@@ -1,0 +1,6 @@
+{
+  "AWS::RDS::DBInstance" : {
+    "resourceProperties": {
+    }
+  }
+}
