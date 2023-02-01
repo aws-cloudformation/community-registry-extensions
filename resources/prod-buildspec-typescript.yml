@@ -27,10 +27,10 @@ phases:
       - ls
       - npm install && npm run build
       - ./setup.sh
-      - ../deregister-all.sh us-east-1
-      - ../publish.sh us-east-1
-      - ../deregister-all.sh us-west-2
-      - ../publish.sh us-west-2
+      - ../deregister-all.sh us-east-1 RESOURCE
+      - ../publish-resource.sh us-east-1
+      - ../deregister-all.sh us-west-2 RESOURCE
+      - ../publish-resource.sh us-west-2
     finally:
       - cat rpdk.log
       - ./cleanup.sh    

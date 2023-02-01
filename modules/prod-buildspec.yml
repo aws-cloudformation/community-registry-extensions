@@ -1,0 +1,126 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - echo Entered the install phase...
+      - echo About to build $MODULE_PATH
+      - export PATH="/usr/local/bin:$PATH"
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
+      - cd $MODULE_PATH
+      - which python
+      - python --version
+      - ls /usr/local/bin
+      - pip freeze
+      - cfn --version
+      - echo $PATH
+
+
+batch:
+  build-list:
+    - identifier: af_south_1
+      env:
+        PUBLISH_TO_REGION: af-south-1
+    - identifier: ap_east_1 
+      env:
+        PUBLISH_TO_REGION: ap-east-1
+    - identifier: ap_northeast_1 
+      env:
+        PUBLISH_TO_REGION: ap-northeast-1
+    - identifier: ap_northeast_2
+      env:
+        PUBLISH_TO_REGION: ap-northeast-2
+    - identifier: ap_northeast_3
+      env:
+        PUBLISH_TO_REGION: ap-northeast-3
+    - identifier: ap_south_1
+      env:
+        PUBLISH_TO_REGION: ap-south-1
+    - identifier: ap_south_2
+      env:
+        PUBLISH_TO_REGION: ap-south-2
+    - identifier: ap_southeast_1
+      env:
+        PUBLISH_TO_REGION: ap-southeast-1 
+    - identifier: ap_southeast_2
+      env:
+        PUBLISH_TO_REGION: ap-southeast-2 
+    - identifier: ap_southeast_3
+      env:
+        PUBLISH_TO_REGION: ap-southeast-3
+    - identifier: ca_central_1
+      env:
+        PUBLISH_TO_REGION: ca-central-1
+    - identifier: cn_amazon
+      env:
+        PUBLISH_TO_REGION: cn-amazon
+    - identifier: eu_central_1
+      env:
+        PUBLISH_TO_REGION: eu-central-1  
+    - identifier: eu_central_2
+      env:
+        PUBLISH_TO_REGION: eu-central-2
+    - identifier: eu_luxembourg
+      env:
+        PUBLISH_TO_REGION: eu-luxembourg
+    - identifier: eu_north_1
+      env:
+        PUBLISH_TO_REGION: eu-north-1
+    - identifier: eu_south_1
+      env:
+        PUBLISH_TO_REGION: eu-south-1 
+    - identifier: eu_south_2
+      env:
+        PUBLISH_TO_REGION: eu-south-2
+    - identifier: eu_west_1
+      env:
+        PUBLISH_TO_REGION: eu-west-1
+    - identifier: eu_west_2
+      env:
+        PUBLISH_TO_REGION: eu-west-2
+    - identifier: eu_west_3
+      env:
+        PUBLISH_TO_REGION: eu-west-3
+    - identifier: in_amazon_1
+      env:
+        PUBLISH_TO_REGION: in-amazon-1 
+    - identifier: me_central_1
+      env:
+        PUBLISH_TO_REGION: me-central-1
+    - identifier: me_south_1
+      env:
+        PUBLISH_TO_REGION: me-south-1
+    - identifier: sa_east_1
+      env:
+        PUBLISH_TO_REGION: sa-east-1
+    - identifier: us_east_1
+      env:
+        PUBLISH_TO_REGION: us-east-1
+    - identifier: us_east_2
+      env:
+        PUBLISH_TO_REGION: us-east-2
+    - identifier: us_seattle
+      env:
+        PUBLISH_TO_REGION: us-seattle
+    - identifier: us_west_1
+      env:
+        PUBLISH_TO_REGION: us-west-1 
+    - identifier: us_west_2
+      env:
+        PUBLISH_TO_REGION: us-west-2
+
+  build:
+    commands:
+      - echo Entered the build phase...
+      - ./setup.sh
+      - ls -l ../../release
+      - ../../release/deregister-all.sh $PUBLISH_TO_REGION MODULE
+      - ../../release/publish-module.sh $PUBLISH_TO_REGION
+    finally:
+      - cat rpdk.log
+      - ./cleanup.sh
+
+
