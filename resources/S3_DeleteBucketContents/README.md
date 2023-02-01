@@ -27,7 +27,6 @@ Resources:
   Bucket:
     Type: AWS::S3::Bucket
   Deleter:
-    DependsOn: Bucket
     Condition: IsNotProd
     Type: AwsCommunity::S3::DeleteBucketContents
     Properties:
