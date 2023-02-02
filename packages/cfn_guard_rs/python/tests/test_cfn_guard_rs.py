@@ -2,6 +2,7 @@
     Test cfn_guard_rs
 """
 from unittest.mock import patch
+import json
 import yaml
 import pytest
 import cfn_guard_rs.errors
@@ -138,6 +139,16 @@ def test_run_checks_errors(template, rules, error, parent_error, message):
 
     with pytest.raises(cfn_guard_rs.errors.GuardError, match=message):
         run_checks(template_str, rules)
+
+
+@patch("cfn_guard_rs.api.run_checks_rs")
+def test_json_decode_error(mock_run_check_rs):
+    """Test JSON Decode errors"""
+
+    mock_run_check_rs.return_value = '{ "bad": }'
+
+    with pytest.raises(json.JSONDecodeError):
+        run_checks("{}", "")
 
 
 def test_run_unknown_errors():

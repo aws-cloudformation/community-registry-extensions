@@ -6,10 +6,10 @@
 """
 import logging
 import json
-from .interface import DataOutput
+from cfn_guard_rs.interface import DataOutput
 
 # pylint: disable=no-name-in-module
-from .cfn_guard_rs import (
+from cfn_guard_rs.cfn_guard_rs import (
     CfnGuardParseError,
     CfnGuardMissingValue,
     run_checks_rs,
@@ -39,8 +39,8 @@ def run_checks(data: dict, rules: str) -> DataOutput:
         DataOutput representation of the result of running guard
     """
     try:
-        output = json.loads(run_checks_rs(json.dumps(data), rules, False))
-
+        raw_output = run_checks_rs(json.dumps(data), rules, False)
+        output = json.loads(raw_output)
         # remove the lib set items and replace with our defaults
         result = DataOutput(**output)
 
@@ -48,7 +48,7 @@ def run_checks(data: dict, rules: str) -> DataOutput:
     except json.JSONDecodeError as err:
         LOG.debug(
             "JSON decoding error when processing return value [%s] got error: %s",
-            output,
+            raw_output,
             err,
         )
         raise err
