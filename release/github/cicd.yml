@@ -170,6 +170,32 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  GitHubRepositoriesSecretBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  GitHubOrganizationsSecretBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   GitHubRepositoryBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -223,6 +249,60 @@ Resources:
           Type: PARAMETER_STORE
           Value: "cep-github-tags-sha"
       ServiceRole: !GetAtt GitHubTagsBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  GitHubRepositoriesSecretBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-repo-secret"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_OWNER
+          Type: PARAMETER_STORE
+          Value: "cep-github-owner"
+        - Name: GITHUB_REPO
+          Type: PARAMETER_STORE
+          Value: "cep-github-repo"
+      ServiceRole: !GetAtt GitHubRepositoriesSecretBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  GitHubOrganizationsSecretBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-org-secret"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+        - Name: GITHUB_REPO_ID
+          Type: PARAMETER_STORE
+          Value: 123456789
+      ServiceRole: !GetAtt GitHubOrganizationsSecretBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
@@ -455,6 +535,8 @@ Resources:
                   - !GetAtt GitHubTeamBuildProject.Arn
                   - !GetAtt GitHubTeamRepoAccessBuildProject.Arn
                   - !GetAtt GitHubTeamMembershipBuildProject.Arn
+                  - !GetAtt GitHubRepositoriesSecretBuildProjectRole.Arn
+                  - !GetAtt GitHubOrganizationsSecretBuildProjectRole.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -516,6 +598,8 @@ Resources:
                 - !GetAtt GitHubTeamBuildProjectRole.Arn
                 - !GetAtt GitHubTeamRepoAccessBuildProjectRole.Arn
                 - !GetAtt GitHubTeamMembershipBuildProjectRole.Arn
+                - !GetAtt GitHubRepositoriesSecretBuildProjectRole.Arn
+                - !GetAtt GitHubOrganizationsSecretBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -717,6 +801,44 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "GitHub-Teams-Membership"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: GitHubRepositoriesSecret
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubRepositoriesSecretBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Repositories-Secret"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: GitHubOrganizationsSecret
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubOrganizationsSecretBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Organizations-Secret"
                     }
                   ]
               RunOrder: 2
