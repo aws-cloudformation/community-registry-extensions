@@ -52,6 +52,8 @@ def handler(event, context): #pylint:disable=W0613
         extension_prefix = "github"
     elif repo1 == "cloudformation-fastly-resource-providers":
         extension_prefix = "fastly"
+    elif repo1 == "cloudformation-snowflake-resource-providers":
+        extension_prefix = "snowflake"
     else:
         raise Exception("Unexpected repo: " + repo)
 
