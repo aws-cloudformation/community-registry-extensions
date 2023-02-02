@@ -4,3 +4,4 @@
 cfn-submit-output.json
 local/
 rpdk.log
+.idea/
