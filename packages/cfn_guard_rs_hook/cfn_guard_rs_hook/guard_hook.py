@@ -1,11 +1,12 @@
 """
     Primary Guard hook code
 """
-from typing import Optional, MutableMapping, Any
+from typing import Optional, MutableMapping, Any, Callable, List
 import json
 import logging
 from dataclasses import asdict
 from types import ModuleType
+from jsonpath_rw import parse
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from cloudformation_cli_python_lib import (
     Hook,
@@ -18,6 +19,7 @@ from cloudformation_cli_python_lib import (
 )
 import cfn_guard_rs
 from cfn_guard_rs.errors import (GuardError, ParseError, MissingValueError)
+from cfn_guard_rs_hook.types import Converter
 
 LOG = logging.getLogger(__name__)
 
@@ -33,6 +35,7 @@ class GuardHook(Hook):
         type_name: str,
         type_configuration: Any,
         rules: ModuleType,
+        converters: Optional[List[Converter]] = None
     ) -> None:
         super().__init__(type_name, type_configuration)
         self._handlers = {
@@ -44,6 +47,10 @@ class GuardHook(Hook):
             loader=FileSystemLoader(rules.__path__), autoescape=select_autoescape()
         )
         self.rules = rules
+        if converters is not None:
+            self.converters = converters
+        else:
+            self.converters = []
 
     # pylint: disable=unused-argument
     def pre_create_handler(
@@ -121,7 +128,7 @@ class GuardHook(Hook):
                 and request.hookContext.targetLogicalId
                 and request.hookContext.targetName
             ):
-                template = self.__make_cloudformation(
+                template = self._make_cloudformation(
                     target_model.get("resourceProperties", {}),
                     request.hookContext.targetLogicalId,
                     request.hookContext.targetName,
@@ -153,7 +160,30 @@ class GuardHook(Hook):
 
         return progress
 
-    def __make_cloudformation(
+    def _get_path(self, match):
+        '''return an iterator based upon MATCH.PATH. Each item is a path component,
+    start from outer most item.'''
+        if match.context is not None:
+            for path_element in self._get_path(match.context):
+                yield path_element
+            yield str(match.path)
+
+    def _update_json(self, json, path, value):
+        '''Update JSON dictionnary PATH with VALUE. Return updated JSON'''
+        try:
+            first = next(path)
+            # check if item is an array
+            if first.startswith('[') and first.endswith(']'):
+                try:
+                    first = int(first[1:-1])
+                except ValueError:
+                    pass
+            json[first] = self._update_json(json[first], path, value)
+            return json
+        except StopIteration:
+            return value
+
+    def _make_cloudformation(
         self, props: dict, resource_name: str, resource_type: str
     ) -> dict:
         """
@@ -176,6 +206,14 @@ class GuardHook(Hook):
         dict
             A valid CloudFormation template
         """
+
+        for converter in self.converters:
+            jsonpath_expr = parse(converter.path)
+            matches = jsonpath_expr.find(props)
+            for match in matches:
+                value = converter.converter(match.value)
+                props = self._update_json(props, self._get_path(match), value)
+        
         return {
             "Resources": {resource_name: {"Type": resource_type, "Properties": props}}
         }
