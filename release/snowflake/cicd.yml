@@ -135,6 +135,7 @@ Resources:
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
         ServiceRole: !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -186,6 +187,11 @@ Resources:
               - Action:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
+                  - codebuild:StopBuild
+                  - codebuild:RetryBuild
+                  - codebuild:StartBuildBatch
+                  - codebuild:RetryBuildBatch
+                  - codebuild:StopBuildBatch
                 Effect: Allow
                 Resource:
                   - !GetAtt SnowflakeDatabaseDatabaseBuildProject.Arn
@@ -305,11 +311,6 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref SnowflakeDatabaseDatabaseBuildProject
-                BatchEnabled:
-                  !If
-                  - IsProd
-                  - true
-                  - false
                 EnvironmentVariables: |-
                   [
                     {
