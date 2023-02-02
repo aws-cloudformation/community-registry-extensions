@@ -39,7 +39,7 @@ Properties:
 
 #### AccountId
 
-The account ID of the AWS account that you want to add an alternate contact to. If you do not specify this parameter, it defaults to the current AWS account.
+The account ID of the AWS account that you want to add an alternate contact to.
 
 _Required_: Yes
 
