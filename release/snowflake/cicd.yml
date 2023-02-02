@@ -8,22 +8,6 @@ Parameters:
     Description: The environment, alpha, beta, or prod. In a sandbox these are all in one account, but the actual deployment is to three different accounts.
     AllowedValues: ["alpha", "beta", "prod"]
 
-  GitUrl:
-    Type: String
-    Description: The URL to the Git repo to clone
-
-  GitBranch:
-    Type: String
-    Description: The branch to clone
-
-  GitHubSecretArn: 
-    Type: String
-    Description: The arn to the github webhook secret
-
-  Prefix:
-    Type: String
-    Description: The extension prefix, for example, AwsCommunity
-
   PrefixLower:
     Type: String
     Description: The extension prefix lowercase, for example, awscommunity.
@@ -80,10 +64,14 @@ Resources:
               - s3:List*
             Resource: 
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
-              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*" 
+              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*"
+
+  # Snowflake::Database::Database
 
   SnowflakeDatabaseDatabaseBuildProjectRole:
     Type: AWS::IAM::Role
+    Metadata:
+      Comment: Snowflake::Database::Database build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -92,12 +80,27 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
         Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   SnowflakeDatabaseDatabaseBuildProjectPolicy:
     Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Snowflake::Database::Database build project policy
     Properties:
       PolicyDocument:
         Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt SnowflakeDatabaseDatabaseBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
@@ -110,6 +113,8 @@ Resources:
 
   SnowflakeDatabaseDatabaseBuildProject:
     Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Snowflake::Database::Database build project
     Properties:
       Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group"
       Artifacts:
@@ -128,6 +133,8 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -298,6 +305,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref SnowflakeDatabaseDatabaseBuildProject
+                BatchEnabled:
+                  !If
+                  - IsProd
+                  - true
+                  - false
                 EnvironmentVariables: |-
                   [
                     {
