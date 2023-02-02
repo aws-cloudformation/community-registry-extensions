@@ -18,7 +18,7 @@ RELEASE_NUMBER=$1
 FILE_NAME=release-${RELEASE_NUMBER}.zip
 ACCOUNT_ID=$(aws sts get-caller-identity|jq -r .Account)
 
-curl --output-dir /tmp -LO https://github.com/rajdnp/cloudformation-rollbar-resource-providers/archive/refs/tags/$FILE_NAME
+curl --output-dir /tmp -LO https://github.com/aws-ia/cloudformation-rollbar-resource-providers/archive/refs/tags/$FILE_NAME
 cd /tmp
 unzip $FILE_NAME
 cd cloudformation-rollbar-resource-providers-release-$RELEASE_NUMBER
