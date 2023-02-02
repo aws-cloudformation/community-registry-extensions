@@ -33,7 +33,7 @@ def handler(event, context): #pylint:disable=W0613
     branch = payload["ref"].split("/")[2]
 
     # Figure out which repo this is and pass it in as an 
-    # env variable to the build project, so it knows which 
+    # env variable to the build project, so it knows which
     # repo to clone and which pipeline to start, to accomodate
     # 3rd party extentions like Okta that have their own pipeline.
 
@@ -52,6 +52,8 @@ def handler(event, context): #pylint:disable=W0613
         extension_prefix = "github"
     elif repo1 == "cloudformation-fastly-resource-providers":
         extension_prefix = "fastly"
+    elif repo1 == "cloudformation-rollbar-resource-providers":
+        extension_prefix = "rollbar"
     elif repo1 == "cloudformation-snowflake-resource-providers":
         extension_prefix = "snowflake"
     else:
