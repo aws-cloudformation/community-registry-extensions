@@ -135,6 +135,7 @@ Resources:
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
         ServiceRole: !GetAtt OktaGroupBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   # Okta::Group::GroupMembership
 
@@ -211,6 +212,7 @@ Resources:
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
         ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
 
   # Okta::Application::Application
@@ -282,6 +284,7 @@ Resources:
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
         ServiceRole: !GetAtt OktaApplicationBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   # Okta::Group::GroupApplicationAssociation
 
@@ -358,6 +361,7 @@ Resources:
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
         ServiceRole: !GetAtt OktaAppAssocBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   # Okta::Policy::Policy
 
@@ -431,6 +435,7 @@ Resources:
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
         ServiceRole: !GetAtt OktaPolicyBuildProjectRole.Arn
+      TimeoutInMinutes: 480
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -614,11 +619,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaGroupBuildProject
-                BatchEnabled: 
-                    !If
-                      - IsProd
-                      - true
-                      - false
+                # BatchEnabled: 
+                #     !If
+                #       - IsProd
+                #       - true
+                #       - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -638,11 +643,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaGroupMembershipBuildProject
-                BatchEnabled: 
-                    !If
-                      - IsProd
-                      - true
-                      - false
+                # BatchEnabled: 
+                #     !If
+                #       - IsProd
+                #       - true
+                #       - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -662,11 +667,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaAppAssocBuildProject
-                BatchEnabled: 
-                    !If
-                      - IsProd
-                      - true
-                      - false
+                # BatchEnabled: 
+                #     !If
+                #       - IsProd
+                #       - true
+                #       - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -686,11 +691,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaApplicationBuildProject
-                BatchEnabled: 
-                    !If
-                      - IsProd
-                      - true
-                      - false
+                # BatchEnabled: 
+                #     !If
+                #       - IsProd
+                #       - true
+                #       - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -710,11 +715,11 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref OktaPolicyBuildProject
-                BatchEnabled: 
-                    !If
-                      - IsProd
-                      - true
-                      - false
+                # BatchEnabled: 
+                #     !If
+                #       - IsProd
+                #       - true
+                #       - false
                 EnvironmentVariables: |-
                   [
                     {

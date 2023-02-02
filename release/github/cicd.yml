@@ -196,6 +196,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubTagsBuildProject:
     Type: AWS::CodeBuild::Project
@@ -226,6 +227,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubOrgMemberBuildProject:
     Type: AWS::CodeBuild::Project
@@ -253,6 +255,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubRepoCollaboratorBuildProject:
     Type: AWS::CodeBuild::Project
@@ -283,6 +286,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubRepoWebhookBuildProject:
     Type: AWS::CodeBuild::Project
@@ -310,6 +314,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubTeamBuildProject:
     Type: AWS::CodeBuild::Project
@@ -334,6 +339,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubTeamRepoAccessBuildProject:
     Type: AWS::CodeBuild::Project
@@ -364,6 +370,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubTeamMembershipBuildProject:
     Type: AWS::CodeBuild::Project
@@ -394,6 +401,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -605,7 +613,7 @@ Resources:
                       "value": "GitHub-Git-Tag"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
             - Name: GitHubOrgMember
               InputArtifacts:
                 - Name: extensions-source
@@ -624,7 +632,7 @@ Resources:
                       "value": "GitHub-Organizations-Membership"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
             - Name: GitHubRepoCollaborator
               InputArtifacts:
                 - Name: extensions-source
@@ -643,7 +651,7 @@ Resources:
                       "value": "GitHub-Repositories-Collaborator"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
             - Name: GitHubRepoWebhook
               InputArtifacts:
                 - Name: extensions-source
@@ -662,7 +670,7 @@ Resources:
                       "value": "GitHub-Repositories-Webhook"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
             - Name: GitHubTeam
               InputArtifacts:
                 - Name: extensions-source
@@ -681,7 +689,7 @@ Resources:
                       "value": "GitHub-Teams-Team"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
             - Name: GitHubTeamRepoAccess
               InputArtifacts:
                 - Name: extensions-source
@@ -700,7 +708,7 @@ Resources:
                       "value": "GitHub-Teams-RepositoryAccess"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
             - Name: GitHubTeamMembership
               InputArtifacts:
                 - Name: extensions-source
@@ -719,7 +727,7 @@ Resources:
                       "value": "GitHub-Teams-Membership"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 1
         - !If
           - IsBeta
           - Name: CopyBuildToProd
