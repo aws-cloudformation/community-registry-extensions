@@ -301,7 +301,7 @@ Resources:
           Value: "cep-github-org"
         - Name: GITHUB_REPO_ID
           Type: PARAMETER_STORE
-          Value: 123456789
+          Value: "cep-github-repo-id"
       ServiceRole: !GetAtt GitHubOrganizationsSecretBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
