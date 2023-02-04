@@ -178,9 +178,6 @@ Resources:
           - Name: RESOURCE_PATH
             Type: PLAINTEXT
             Value: "Rollbar-Notifications-Rule"
-          - Name: ROLLBAR_PROJECT_TOKEN
-            Type: PARAMETER_STORE
-            Value: "cep-rollbar-project-token"
       ServiceRole: !GetAtt RollbarNotificationsRuleBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
