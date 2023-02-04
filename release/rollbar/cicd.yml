@@ -227,9 +227,6 @@ Resources:
           - Name: RESOURCE_PATH
             Type: PLAINTEXT
             Value: "Rollbar-Projects-AccessToken"
-          - Name: ROLLBAR_PROJECT_ID
-            Type: PARAMETER_STORE
-            Value: "cep-rollbar-project-id"
       ServiceRole: !GetAtt RollbarProjectsAccessTokenBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
