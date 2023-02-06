@@ -134,6 +134,108 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
 
+  RollbarNotificationsRuleBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  RollbarNotificationsRuleBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      Roles:
+        - !Ref RollbarNotificationsRuleBuildProjectRole
+
+  RollbarNotificationsRuleBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-notificationsrule"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Rollbar-Notifications-Rule"
+      ServiceRole: !GetAtt RollbarNotificationsRuleBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  RollbarProjectsAccessTokenBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  RollbarProjectsAccessTokenBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      Roles:
+        - !Ref RollbarProjectsAccessTokenBuildProjectRole
+
+  RollbarProjectsAccessTokenBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-accesstoken"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Rollbar-Projects-AccessToken"
+          - Name: ACCESSTOKEN_PROJECT_ID
+            Type: PARAMETER_STORE
+            Value: "cep-rollbar-accesstoken-project-id"
+      ServiceRole: !GetAtt RollbarProjectsAccessTokenBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -189,6 +291,8 @@ Resources:
                 Effect: Allow
                 Resource:
                   - !GetAtt RollbarProjectsProjectBuildProject.Arn
+                  - !GetAtt RollbarNotificationsRuleBuildProject.Arn
+                  - !GetAtt RollbarProjectsAccessTokenBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -243,6 +347,8 @@ Resources:
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !GetAtt RollbarProjectsProjectBuildProjectRole.Arn
+                - !GetAtt RollbarNotificationsRuleBuildProjectRole.Arn
+                - !GetAtt RollbarProjectsAccessTokenBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -311,6 +417,44 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "Rollbar-Projects-Project"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: RollbarNotificationsRule
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref RollbarNotificationsRuleBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Rollbar-Notifications-Rule"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: RollbarProjectsAccessToken
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref RollbarProjectsAccessTokenBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Rollbar-Projects-AccessToken"
                     }
                   ]
               RunOrder: 1
