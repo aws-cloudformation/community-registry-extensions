@@ -107,7 +107,7 @@ Resources:
             Resource: 
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-database-database-build-project-policy"
       Roles:
         - !Ref SnowflakeDatabaseDatabaseBuildProjectRole
 
@@ -116,7 +116,7 @@ Resources:
     Metadata:
       Comment: Snowflake::Database::Database build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-database"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -136,6 +136,386 @@ Resources:
       BuildBatchConfig:
         ServiceRole: !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
       TimeoutInMinutes: 480
+
+
+  # Snowflake::User::User
+
+  SnowflakeUserUserBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Snowflake::User::User build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  SnowflakeUserUserBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Snowflake::User::User build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt SnowflakeUserUserBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-user-user-build-project-policy"
+      Roles:
+        - !Ref SnowflakeUserUserBuildProjectRole
+
+  SnowflakeUserUserBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Snowflake::User::User build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-user"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt SnowflakeUserUserBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt SnowflakeUserUserBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
+  # Snowflake::Role::Role
+
+  SnowflakeRoleRoleBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Snowflake::Role::Role build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  SnowflakeRoleRoleBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Snowflake::Role::Role build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt SnowflakeRoleRoleBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-role-role-build-project-policy"
+      Roles:
+        - !Ref SnowflakeRoleRoleBuildProjectRole
+
+  SnowflakeRoleRoleBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Snowflake::Role::Role build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-role"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt SnowflakeRoleRoleBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt SnowflakeRoleRoleBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
+  # Snowflake::Database::Grant
+
+  SnowflakeDatabaseGrantBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Snowflake::Database::Grant build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  SnowflakeDatabaseGrantBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Snowflake::Database::Grant build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt SnowflakeDatabaseGrantBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-database-grant-build-project-policy"
+      Roles:
+        - !Ref SnowflakeDatabaseGrantBuildProjectRole
+
+  SnowflakeDatabaseGrantBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Snowflake::Database::Grant build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-databasegrant"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: DATABASE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-database-name"
+          - Name: ROLE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-role-name"
+      ServiceRole: !GetAtt SnowflakeDatabaseGrantBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt SnowflakeDatabaseGrantBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
+  # Snowflake::Role::Grant
+
+  SnowflakeRoleGrantBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Snowflake::Role::Grant build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  SnowflakeRoleGrantBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Snowflake::Role::Grant build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt SnowflakeRoleGrantBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-role-grant-build-project-policy"
+      Roles:
+        - !Ref SnowflakeRoleGrantBuildProjectRole
+
+  SnowflakeRoleGrantBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Snowflake::Role::Grant build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-rolegrant"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: USER_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-user-name"
+          - Name: ROLE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-role-name"
+      ServiceRole: !GetAtt SnowflakeRoleGrantBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt SnowflakeRoleGrantBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
+  # Snowflake::Warehouse::Grant
+
+  SnowflakeWarehouseGrantBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Snowflake::Warehouse::Grant build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  SnowflakeWarehouseGrantBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Snowflake::Warehouse::Grant build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt SnowflakeWarehouseGrantBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-warehouse-grant-build-project-policy"
+      Roles:
+        - !Ref SnowflakeWarehouseGrantBuildProjectRole
+
+  SnowflakeWarehouseGrantBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Snowflake::Warehouse::Grant build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-warehousegrant"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: WAREHOUSE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-warehouse-name"
+          - Name: ROLE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-role-name"
+      ServiceRole: !GetAtt SnowflakeWarehouseGrantBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt SnowflakeWarehouseGrantBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -195,6 +575,11 @@ Resources:
                 Effect: Allow
                 Resource:
                   - !GetAtt SnowflakeDatabaseDatabaseBuildProject.Arn
+                  - !GetAtt SnowflakeUserUserBuildProject.Arn
+                  - !GetAtt SnowflakeRoleRoleBuildProject.Arn
+                  - !GetAtt SnowflakeDatabaseGrantBuildProject.Arn
+                  - !GetAtt SnowflakeRoleGrantBuildProject.Arn
+                  - !GetAtt SnowflakeWarehouseGrantBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -249,6 +634,11 @@ Resources:
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
+                - !GetAtt SnowflakeUserUserBuildProjectRole.Arn
+                - !GetAtt SnowflakeRoleRoleBuildProjectRole.Arn
+                - !GetAtt SnowflakeDatabaseGrantBuildProjectRole.Arn
+                - !GetAtt SnowflakeRoleGrantBuildProjectRole.Arn
+                - !GetAtt SnowflakeWarehouseGrantBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -317,6 +707,101 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "Snowflake-Database-Database"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: SnowflakeUserUser
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref SnowflakeUserUserBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Snowflake-User-User"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: SnowflakeRoleRole
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref SnowflakeRoleRoleBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Snowflake-Role-Role"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: SnowflakeDatabaseGrant
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref SnowflakeDatabaseGrantBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Snowflake-Database-Grant"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: SnowflakeRoleGrant
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref SnowflakeRoleGrantBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Snowflake-Role-Grant"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: SnowflakeWarehouseGrant
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref SnowflakeWarehouseGrantBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Snowflake-Warehouse-Grant"
                     }
                   ]
               RunOrder: 1
