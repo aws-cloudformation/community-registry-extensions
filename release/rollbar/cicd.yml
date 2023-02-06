@@ -229,7 +229,7 @@ Resources:
             Value: "Rollbar-Projects-AccessToken"
           - Name: ACCESSTOKEN_PROJECT_ID
             Type: PARAMETER_STORE
-            Value: "cep-rollbar-accesstoken_project_id"
+            Value: "cep-rollbar-accesstoken-project-id"
       ServiceRole: !GetAtt RollbarProjectsAccessTokenBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
