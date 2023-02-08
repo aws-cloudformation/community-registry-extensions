@@ -1,0 +1,889 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Infrastructure for the registry extensions CICD pipeline
+
+Parameters:
+
+  Env:
+    Type: String
+    Description: The environment, alpha, beta, or prod. In a sandbox these are all in one account, but the actual deployment is to three different accounts.
+    AllowedValues: ["alpha", "beta", "prod"]
+
+  PrefixLower:
+    Type: String
+    Description: The extension prefix lowercase, for example, awscommunity.
+
+  BetaAccountId:
+    Type: String
+    Description: AccountId for the beta account, which pushes builds to the prod source bucket 
+
+  ProdAccountId:
+    Type: String
+    Description: Account ID for prod, required to share the KMS key so beta can deploy builds to the prod source bucket
+
+  NotificationEmail:
+    Type: String
+    Description: Email address for pipeline notifications
+
+Conditions:
+
+  IsBeta: !Equals
+    - !Ref Env
+    - beta
+
+  IsProd: !Equals
+    - !Ref Env
+    - prod
+
+Resources:
+
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: CodePipeline artifacts
+    Properties:
+      BucketName: !Sub "cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
+
+  ArtifactBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsBeta
+    Metadata:
+      Comment: Allows the beta account to use an assumed role in the prod account to drop builds into the prod account
+    Properties:
+      Bucket: !Ref ArtifactBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: BetaProdCrossAccount
+            Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub "arn:aws:iam::${ProdAccountId}:root"
+            Action: 
+              - s3:Put*
+              - s3:Get*
+              - s3:List*
+            Resource: 
+              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
+              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*"
+
+  # CLOUDFLARE::DNS::RECORD
+
+  CloudflareDnsRecordBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: CLOUDFLARE::DNS::RECORD build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  CloudflareDnsRecordBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: CLOUDFLARE::DNS::RECORD build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt CloudflareDnsRecordBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource: 
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-dns-record-build-project-policy"
+      Roles:
+        - !Ref CloudflareDnsRecordBuildProjectRole
+
+  CloudflareDnsRecordBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: CLOUDFLARE::DNS::RECORD build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-dnsrecord"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: DNS_NAME
+          Type: PARAMETER_STORE
+          Value: "cep-cloudflare-dnsname"
+        - Name: IP_ADDRESS
+          Type: PARAMETER_STORE
+          Value: "cep-cloudflare-ipaddress"
+        - Name: ZONE_ID
+          Type: PARAMETER_STORE
+          Value: "cep-cloudflare-zoneid"
+      ServiceRole: !GetAtt CloudflareDnsRecordBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt CloudflareDnsRecordBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
+      # CLOUDFLARE::LOADBALANCER::LOADBALANCER
+
+  CloudflareLoadBalancerBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: CLOUDFLARE::LOADBALANCER::LOADBALANCER build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  CloudflareLoadBalancerBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: CLOUDFLARE::LOADBALANCER::LOADBALANCER build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt CloudflareLoadBalancerBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-loadbalancer-build-project-policy"
+      Roles:
+        - !Ref CloudflareLoadBalancerBuildProjectRole
+
+  CloudflareLoadBalancerBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: CLOUDFLARE::LOADBALANCER::LOADBALANCER build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-loadbalancer"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: DOMAIN_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-dnsname"
+          - Name: POOL_ID
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-poolid"
+          - Name: ZONE_ID
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-zoneid"
+      ServiceRole: !GetAtt CloudflareLoadBalancerBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt CloudflareLoadBalancerBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
+  # CLOUDFLARE::LOADBALANCER::MONITOR
+
+  CloudflareLoadBalancerMonitorBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: CLOUDFLARE::LOADBALANCER::MONITOR build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  CloudflareLoadBalancerMonitorBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: CLOUDFLARE::LOADBALANCER::MONITOR build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt CloudflareLoadBalancerMonitorBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-loadbalancer-monitor-build-project-policy"
+      Roles:
+        - !Ref CloudflareLoadBalancerMonitorBuildProjectRole
+
+  CloudflareLoadBalancerMonitorBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: CLOUDFLARE::LOADBALANCER::MONITOR build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-loadbalancermonitor"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: ACCOUNT_ID
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-accountid"
+      ServiceRole: !GetAtt CloudflareLoadBalancerMonitorBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt CloudflareLoadBalancerMonitorBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
+  # CLOUDFLARE::LOADBALANCER::POOL
+
+  CloudflareLoadBalancerPoolBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: CLOUDFLARE::LOADBALANCER::POOL build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  CloudflareLoadBalancerPoolBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: CLOUDFLARE::LOADBALANCER::POOL build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt CloudflareLoadBalancerPoolBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-loadbalancer-pool-build-project-policy"
+      Roles:
+        - !Ref CloudflareLoadBalancerPoolBuildProjectRole
+
+  CloudflareLoadBalancerPoolBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: CLOUDFLARE::LOADBALANCER::POOL build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-loadbalancerpool"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: ACCOUNT_ID
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-accountid"
+          - Name: IP_ADDRESS
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-ipaddress"
+          - Name: IP_ADDRESS_2
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-ipaddress2"
+          - Name: MONITOR_ID
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-monitorid"
+      ServiceRole: !GetAtt CloudflareLoadBalancerPoolBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt CloudflareLoadBalancerPoolBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: The name is important here since it gets constructed by the webhook handler and CodeBuild job to drop the build into the correct bucket. We only use a one webhook for AwsCommunity and 3rd parties.
+    Properties:
+      BucketName: !Sub "cep-source-${AWS::AccountId}-${Env}-${PrefixLower}"
+      VersioningConfiguration: 
+        Status: Enabled
+
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "cep-${PrefixLower}-${Env}-pipeline-role"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+        Version: '2012-10-17'
+      Policies:
+        - PolicyName: "inline-pipeline-policy"
+          PolicyDocument:
+            Statement:
+              - Action: "sts:AssumeRole"
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:iam::${ProdAccountId}:role/${PrefixLower}-registry-extensions-publish-role"
+              - Action:
+                  - s3:GetObject*
+                  - s3:GetBucket*
+                  - s3:List*
+                  - s3:DeleteObject*
+                  - s3:PutObject*
+                  - s3:Abort*
+                Effect: Allow
+                Resource:
+                  - !GetAtt ArtifactBucket.Arn
+                  - !Join
+                    - ''
+                    - - !GetAtt ArtifactBucket.Arn
+                      - /*
+                  - !GetAtt SourceBucket.Arn
+                  - !Join
+                    - ''
+                    - - !GetAtt SourceBucket.Arn
+                      - /*
+              - Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StopBuild
+                  - codebuild:RetryBuild
+                  - codebuild:StartBuildBatch
+                  - codebuild:RetryBuildBatch
+                  - codebuild:StopBuildBatch
+                Effect: Allow
+                Resource:
+                  - !GetAtt CloudflareDnsRecordBuildProject.Arn
+                  - !GetAtt CloudflareLoadBalancerBuildProject.Arn
+                  - !GetAtt CloudflareLoadBalancerMonitorBuildProject.Arn
+                  - !GetAtt CloudflareLoadBalancerPoolBuildProject.Arn
+              - Action:
+                  - kms:*
+                Effect: Allow
+                Resource: "*"
+              - Action:
+                  - sns:Publish
+                Effect: Allow
+                Resource: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${PrefixLower}-${Env}-pipeline-topic"
+
+  PipelineKey:
+    Type: AWS::KMS::Key
+    Metadata: 
+      Comment: Required for cross account deployment from beta CodePipeline to the prod bucket
+    Condition: IsBeta
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties: 
+      Description: This key is used by the CEP beta build process to deploy builds to the prod bucket
+      KeyPolicy: 
+        Statement:
+          - Action: 
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+              - kms:GenerateDataKey
+              - kms:TagResource
+              - kms:UntagResource
+            Effect: Allow
+            Principal: 
+              AWS: 
+                - !Sub "arn:aws:iam::${ProdAccountId}:root"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/Admin"
+            Resource: "*"
+          - Action: 
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Effect: Allow
+            Principal: 
+              AWS: 
+                - !GetAtt PipelineRole.Arn
+                - !Sub "arn:aws:iam::${ProdAccountId}:root"
+                - !GetAtt CloudflareDnsRecordBuildProjectRole.Arn
+                - !GetAtt CloudflareLoadBalancerBuildProjectRole.Arn
+                - !GetAtt CloudflareLoadBalancerMonitorBuildProjectRole.Arn
+                - !GetAtt CloudflareLoadBalancerPoolBuildProjectRole.Arn
+            Resource: "*"
+      MultiRegion: true
+
+  PipelineKeyAlias:
+    Type: AWS::KMS::Alias
+    Condition: IsBeta
+    Properties:
+      AliasName: !Sub "alias/cep-${PrefixLower}-pipeline-publish-keys"
+      TargetKeyId: !Ref PipelineKey
+
+  WaitForPipelineRole:
+    Type: Custom::Delay
+    DependsOn: PipelineRole
+    Properties:
+      ServiceToken: !GetAtt DelayFunction.Arn
+      SecondsToSleep: 10
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    DependsOn: WaitForPipelineRole
+    Metadata:
+      Comment: This pipeline runs integ tests on all extensions, then drops the build into the prod account for publishing
+    Properties:
+      Name: !Sub "cep-${Env}-${PrefixLower}"
+      RoleArn: !GetAtt PipelineRole.Arn
+      ArtifactStore: !If
+        - IsBeta
+        - Type: S3
+          Location: !Ref ArtifactBucket
+          EncryptionKey:
+            Id: !Ref PipelineKey
+            Type: KMS
+        - Type: S3
+          Location: !Ref ArtifactBucket
+          EncryptionKey: !Ref AWS::NoValue
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: S3Source
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              Configuration: 
+                S3Bucket: !Ref SourceBucket
+                S3ObjectKey: "source.zip" 
+                PollForSourceChanges: true
+              OutputArtifacts:
+                - Name: extensions-source 
+        - Name: Build
+          Actions:
+            - Name: CloudflareDnsRecord
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CloudflareDnsRecordBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Cloudflare-Dns-Record"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: CloudflareLoadBalancer
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CloudflareLoadBalancerBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Cloudflare-LoadBalancer-LoadBalancer"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: CloudflareLoadBalancerMonitor
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CloudflareLoadBalancerMonitorBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Cloudflare-LoadBalancer-Monitor"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: CloudflareLoadBalancerPool
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CloudflareLoadBalancerPoolBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Cloudflare-LoadBalancer-Pool"
+                    }
+                  ]
+              RunOrder: 1
+        - !If
+          - IsBeta
+          - Name: CopyBuildToProd
+            Actions:
+              - Name: Copy
+                RoleArn: !Sub "arn:aws:iam::${ProdAccountId}:role/${PrefixLower}-registry-extensions-publish-role"
+                InputArtifacts: 
+                  - Name: extensions-source
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Provider: S3
+                  Version: 1
+                Configuration:
+                  BucketName: !Sub "cep-source-${ProdAccountId}-prod-${PrefixLower}"
+                  Extract: false
+                  ObjectKey: source.zip
+                  KMSEncryptionKeyARN: !GetAtt PipelineKey.Arn
+          - !Ref AWS::NoValue
+
+  PublishBuildBucketRole:
+    Type: AWS::IAM::Role
+    Condition: IsBeta
+    Metadata:
+      Comment: Allows the beta account to put builds into the prod bucket
+    Properties:
+      RoleName: !Sub "cep-${PrefixLower}-publish-role"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        -
+          PolicyName: put-builds
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: 
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
+
+  PipelineTopic:
+    Type: AWS::SNS::Topic
+    Metadata:
+      Comment: Topic for pipeline notifications
+    DependsOn: Pipeline
+    Properties:
+      TopicName: !Sub "${PrefixLower}-${Env}-pipeline-topic"
+      Subscription:
+        - Endpoint: !Ref NotificationEmail 
+          Protocol: email
+
+  WaitForPipeline:
+    Type: Custom::Delay
+    DependsOn: 
+      - Pipeline
+    Properties:
+      ServiceToken: !GetAtt DelayFunction.Arn
+      SecondsToSleep: 10
+
+  WaitForTopic:
+    Type: Custom::Delay
+    DependsOn: 
+      - PipelineTopic
+      - PipelineTopicPolicy
+    Properties:
+      ServiceToken: !GetAtt DelayFunction.Arn
+      SecondsToSleep: 10
+
+  PipelineTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyTopicPolicy
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - events.amazonaws.com
+          Action: sns:Publish
+          Resource: !Ref PipelineTopic
+      Topics:
+      - !Ref PipelineTopic
+
+  PipelineEventRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Allows the event rule to push to the topic
+    Properties:
+      RoleName: !Sub "cep-${Env}-${PrefixLower}-pipeline-event-role"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        -
+          PolicyName: put-events
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action: sns:Publish
+                Resource: !Ref PipelineTopic
+
+  PipelineEventRule:
+    Type: AWS::Events::Rule
+    DependsOn: WaitForTopic
+    Properties:
+      Description: Watch for pipeline success and failure
+      EventPattern: 
+        source:
+          - aws.codepipeline
+        detail-type:
+          - CodePipeline Pipeline Execution State Change
+        detail:
+          pipeline: 
+            - !Ref Pipeline
+          state:
+            - SUCCEEDED
+            - FAILED
+      Name: !Sub "cep-${PrefixLower}-${Env}-pipelines"
+      Targets:
+        - Arn: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${PrefixLower}-${Env}-pipeline-topic"
+          Id: pipeline-topic-target
+          InputTransformer:
+            InputTemplate: '"The pipeline <pipeline> from account <account> has <state> at <at>."'
+            InputPathsMap:
+              pipeline: "$.detail.pipeline"
+              state: "$.detail.state"
+              at: "$.time"
+              account: "$.account"
+
+# Prod account resources
+
+  PublishBuildBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsProd
+    Metadata:
+      Comment: Allows the beta account to drop builds into the prod account.
+    Properties:
+      Bucket: !Ref SourceBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: BetaAccountPut
+            Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub "arn:aws:iam::${BetaAccountId}:root"
+                - !GetAtt PublishCrossAccountRole.Arn
+            Action: s3:PutObject
+            Resource: 
+              - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
+              - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
+
+  PublishCrossAccountRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Metadata:
+      Comment: Assumed by codepipeline in the beta account to access the prod source bucket
+    Properties:
+      RoleName: !Sub "${PrefixLower}-registry-extensions-publish-role"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub "arn:aws:iam::${BetaAccountId}:root"
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        -
+          PolicyName: cross-account-pipeline-deploy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - s3:Get*
+                  - s3:List*
+                  - s3:Put*
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
+                  - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
+                  - !Sub "arn:aws:s3:::cep-${PrefixLower}-beta-${BetaAccountId}-artifacts"
+                  - !Sub "arn:aws:s3:::cep-${PrefixLower}-beta-${BetaAccountId}-artifacts/*"
+              - Action: 
+                  - kms:Encrypt
+                  - kms:Decrypt
+                  - kms:ReEncrypt
+                  - kms:GenerateDataKey*
+                  - kms:DescribeKey
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
+              
+# Delay Function to solve race conditions where the resource is not actually ready
+
+  DelayFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: "lambda-logs"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - "arn:aws:logs:*:*:*"
+
+  DelayFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: delay.handler
+      Timeout: 120
+      Role: !GetAtt DelayFunctionRole.Arn
+      Runtime: python3.7
+      Code: delay.py 
+      MemorySize: 1024
+
