@@ -56,6 +56,8 @@ def handler(event, context): #pylint:disable=W0613
         extension_prefix = "rollbar"
     elif repo1 == "cloudformation-snowflake-resource-providers":
         extension_prefix = "snowflake"
+    elif repo1 == "cloudformation-cloudflare-resource-providers":
+        extension_prefix = "cloudflare"
     else:
         raise Exception("Unexpected repo: " + repo)
 
