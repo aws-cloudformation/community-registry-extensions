@@ -226,10 +226,10 @@ Resources:
             Value: "placeholder-for-path-to-resource"
           - Name: PAGER_DUTY_TEAM_ID
             Type: PARAMETER_STORE
-            Value: "cep-pagerduty-team_id"
+            Value: "cep-pagerduty-team-id"
           - Name: PAGER_DUTY_USER_ID
             Type: PARAMETER_STORE
-            Value: "cep-pagerduty-user_id"
+            Value: "cep-pagerduty-user-id"
       ServiceRole: !GetAtt PagerDutyTeamsMembershipBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
