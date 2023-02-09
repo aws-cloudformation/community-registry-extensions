@@ -678,7 +678,7 @@ Resources:
                       "value": "GitHub-Repositories-Repository"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubTags
               InputArtifacts:
                 - Name: extensions-source
@@ -697,7 +697,7 @@ Resources:
                       "value": "GitHub-Git-Tag"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubOrgMember
               InputArtifacts:
                 - Name: extensions-source
@@ -716,7 +716,7 @@ Resources:
                       "value": "GitHub-Organizations-Membership"
                     }
                   ]
-              RunOrder: 4
+              RunOrder: 1
             - Name: GitHubRepoCollab
               InputArtifacts:
                 - Name: extensions-source
@@ -735,7 +735,7 @@ Resources:
                       "value": "GitHub-Repositories-Collaborator"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubRepoHook
               InputArtifacts:
                 - Name: extensions-source
@@ -754,7 +754,7 @@ Resources:
                       "value": "GitHub-Repositories-Webhook"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubTeam
               InputArtifacts:
                 - Name: extensions-source
@@ -773,7 +773,7 @@ Resources:
                       "value": "GitHub-Teams-Team"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubTeamRepoAccess
               InputArtifacts:
                 - Name: extensions-source
@@ -811,7 +811,7 @@ Resources:
                       "value": "GitHub-Teams-Membership"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 4
             - Name: GitHubRepoSecret
               InputArtifacts:
                 - Name: extensions-source
@@ -830,7 +830,7 @@ Resources:
                       "value": "GitHub-Repositories-Secret"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubOrgSecret
               InputArtifacts:
                 - Name: extensions-source
@@ -849,7 +849,7 @@ Resources:
                       "value": "GitHub-Organizations-Secret"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
         - !If
           - IsBeta
           - Name: CopyBuildToProd
