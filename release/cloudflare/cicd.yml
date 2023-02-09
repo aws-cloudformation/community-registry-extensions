@@ -66,12 +66,12 @@ Resources:
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*"
 
-  # Snowflake::Database::Database
+  # CLOUDFLARE::DNS::RECORD
 
-  SnowflakeDatabaseDatabaseBuildProjectRole:
+  CloudflareDnsRecordBuildProjectRole:
     Type: AWS::IAM::Role
     Metadata:
-      Comment: Snowflake::Database::Database build project role
+      Comment: CLOUDFLARE::DNS::RECORD build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -83,10 +83,10 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  SnowflakeDatabaseDatabaseBuildProjectPolicy:
+  CloudflareDnsRecordBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Metadata:
-      Comment: Snowflake::Database::Database build project policy
+      Comment: CLOUDFLARE::DNS::RECORD build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -100,23 +100,23 @@ Resources:
               - codebuild:StopBuildBatch
             Effect: Allow
             Resource:
-              - !GetAtt SnowflakeDatabaseDatabaseBuildProject.Arn
+              - !GetAtt CloudflareDnsRecordBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
             Resource: 
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-database-database-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-dns-record-build-project-policy"
       Roles:
-        - !Ref SnowflakeDatabaseDatabaseBuildProjectRole
+        - !Ref CloudflareDnsRecordBuildProjectRole
 
-  SnowflakeDatabaseDatabaseBuildProject:
+  CloudflareDnsRecordBuildProject:
     Type: AWS::CodeBuild::Project
     Metadata:
-      Comment: Snowflake::Database::Database build project
+      Comment: CLOUDFLARE::DNS::RECORD build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-database"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-dnsrecord"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -129,21 +129,30 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
+        - Name: DNS_NAME
+          Type: PARAMETER_STORE
+          Value: "cep-cloudflare-dnsname"
+        - Name: IP_ADDRESS
+          Type: PARAMETER_STORE
+          Value: "cep-cloudflare-ipaddress"
+        - Name: ZONE_ID
+          Type: PARAMETER_STORE
+          Value: "cep-cloudflare-zoneid"
+      ServiceRole: !GetAtt CloudflareDnsRecordBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
-        ServiceRole: !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
+        ServiceRole: !GetAtt CloudflareDnsRecordBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
 
-  # Snowflake::User::User
+      # CLOUDFLARE::LOADBALANCER::LOADBALANCER
 
-  SnowflakeUserUserBuildProjectRole:
+  CloudflareLoadBalancerBuildProjectRole:
     Type: AWS::IAM::Role
     Metadata:
-      Comment: Snowflake::User::User build project role
+      Comment: CLOUDFLARE::LOADBALANCER::LOADBALANCER build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -155,10 +164,10 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  SnowflakeUserUserBuildProjectPolicy:
+  CloudflareLoadBalancerBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Metadata:
-      Comment: Snowflake::User::User build project policy
+      Comment: CLOUDFLARE::LOADBALANCER::LOADBALANCER build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -172,23 +181,23 @@ Resources:
               - codebuild:StopBuildBatch
             Effect: Allow
             Resource:
-              - !GetAtt SnowflakeUserUserBuildProject.Arn
+              - !GetAtt CloudflareLoadBalancerBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
             Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-user-user-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-loadbalancer-build-project-policy"
       Roles:
-        - !Ref SnowflakeUserUserBuildProjectRole
+        - !Ref CloudflareLoadBalancerBuildProjectRole
 
-  SnowflakeUserUserBuildProject:
+  CloudflareLoadBalancerBuildProject:
     Type: AWS::CodeBuild::Project
     Metadata:
-      Comment: Snowflake::User::User build project
+      Comment: CLOUDFLARE::LOADBALANCER::LOADBALANCER build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-user"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-loadbalancer"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -201,21 +210,30 @@ Resources:
           - Name: RESOURCE_PATH
             Type: PLAINTEXT
             Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt SnowflakeUserUserBuildProjectRole.Arn
+          - Name: DOMAIN_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-dnsname"
+          - Name: POOL_ID
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-poolid"
+          - Name: ZONE_ID
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-zoneid"
+      ServiceRole: !GetAtt CloudflareLoadBalancerBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
-        ServiceRole: !GetAtt SnowflakeUserUserBuildProjectRole.Arn
+        ServiceRole: !GetAtt CloudflareLoadBalancerBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
 
-  # Snowflake::Role::Role
+  # CLOUDFLARE::LOADBALANCER::MONITOR
 
-  SnowflakeRoleRoleBuildProjectRole:
+  CloudflareLoadBalancerMonitorBuildProjectRole:
     Type: AWS::IAM::Role
     Metadata:
-      Comment: Snowflake::Role::Role build project role
+      Comment: CLOUDFLARE::LOADBALANCER::MONITOR build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -227,10 +245,10 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  SnowflakeRoleRoleBuildProjectPolicy:
+  CloudflareLoadBalancerMonitorBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Metadata:
-      Comment: Snowflake::Role::Role build project policy
+      Comment: CLOUDFLARE::LOADBALANCER::MONITOR build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -244,23 +262,23 @@ Resources:
               - codebuild:StopBuildBatch
             Effect: Allow
             Resource:
-              - !GetAtt SnowflakeRoleRoleBuildProject.Arn
+              - !GetAtt CloudflareLoadBalancerMonitorBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
             Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-role-role-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-loadbalancer-monitor-build-project-policy"
       Roles:
-        - !Ref SnowflakeRoleRoleBuildProjectRole
+        - !Ref CloudflareLoadBalancerMonitorBuildProjectRole
 
-  SnowflakeRoleRoleBuildProject:
+  CloudflareLoadBalancerMonitorBuildProject:
     Type: AWS::CodeBuild::Project
     Metadata:
-      Comment: Snowflake::Role::Role build project
+      Comment: CLOUDFLARE::LOADBALANCER::MONITOR build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-role"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-loadbalancermonitor"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -273,21 +291,24 @@ Resources:
           - Name: RESOURCE_PATH
             Type: PLAINTEXT
             Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt SnowflakeRoleRoleBuildProjectRole.Arn
+          - Name: ACCOUNT_ID
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-accountid"
+      ServiceRole: !GetAtt CloudflareLoadBalancerMonitorBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
-        ServiceRole: !GetAtt SnowflakeRoleRoleBuildProjectRole.Arn
+        ServiceRole: !GetAtt CloudflareLoadBalancerMonitorBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
 
-  # Snowflake::Database::Grant
+  # CLOUDFLARE::LOADBALANCER::POOL
 
-  SnowflakeDatabaseGrantBuildProjectRole:
+  CloudflareLoadBalancerPoolBuildProjectRole:
     Type: AWS::IAM::Role
     Metadata:
-      Comment: Snowflake::Database::Grant build project role
+      Comment: CLOUDFLARE::LOADBALANCER::POOL build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -299,10 +320,10 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  SnowflakeDatabaseGrantBuildProjectPolicy:
+  CloudflareLoadBalancerPoolBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Metadata:
-      Comment: Snowflake::Database::Grant build project policy
+      Comment: CLOUDFLARE::LOADBALANCER::POOL build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -316,23 +337,23 @@ Resources:
               - codebuild:StopBuildBatch
             Effect: Allow
             Resource:
-              - !GetAtt SnowflakeDatabaseGrantBuildProject.Arn
+              - !GetAtt CloudflareLoadBalancerPoolBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
             Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-database-grant-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-loadbalancer-pool-build-project-policy"
       Roles:
-        - !Ref SnowflakeDatabaseGrantBuildProjectRole
+        - !Ref CloudflareLoadBalancerPoolBuildProjectRole
 
-  SnowflakeDatabaseGrantBuildProject:
+  CloudflareLoadBalancerPoolBuildProject:
     Type: AWS::CodeBuild::Project
     Metadata:
-      Comment: Snowflake::Database::Grant build project
+      Comment: CLOUDFLARE::LOADBALANCER::POOL build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-databasegrant"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-loadbalancerpool"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -345,176 +366,25 @@ Resources:
           - Name: RESOURCE_PATH
             Type: PLAINTEXT
             Value: "placeholder-for-path-to-resource"
-          - Name: DATABASE_NAME
+          - Name: ACCOUNT_ID
             Type: PARAMETER_STORE
-            Value: "cep-snowflake-database-name"
-          - Name: ROLE_NAME
+            Value: "cep-cloudflare-accountid"
+          - Name: IP_ADDRESS
             Type: PARAMETER_STORE
-            Value: "cep-snowflake-role-name"
-      ServiceRole: !GetAtt SnowflakeDatabaseGrantBuildProjectRole.Arn
+            Value: "cep-cloudflare-ipaddress"
+          - Name: IP_ADDRESS_2
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-ipaddress2"
+          - Name: MONITOR_ID
+            Type: PARAMETER_STORE
+            Value: "cep-cloudflare-monitorid"
+      ServiceRole: !GetAtt CloudflareLoadBalancerPoolBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
-        ServiceRole: !GetAtt SnowflakeDatabaseGrantBuildProjectRole.Arn
+        ServiceRole: !GetAtt CloudflareLoadBalancerPoolBuildProjectRole.Arn
       TimeoutInMinutes: 480
-
-
-  # Snowflake::Role::Grant
-
-  SnowflakeRoleGrantBuildProjectRole:
-    Type: AWS::IAM::Role
-    Metadata:
-      Comment: Snowflake::Role::Grant build project role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-        Version: '2012-10-17'
-      ManagedPolicyArns:
-        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
-
-  SnowflakeRoleGrantBuildProjectPolicy:
-    Type: AWS::IAM::Policy
-    Metadata:
-      Comment: Snowflake::Role::Grant build project policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - codebuild:StartBuild
-              - codebuild:BatchGetBuilds
-              - codebuild:StopBuild
-              - codebuild:RetryBuild
-              - codebuild:StartBuildBatch
-              - codebuild:RetryBuildBatch
-              - codebuild:StopBuildBatch
-            Effect: Allow
-            Resource:
-              - !GetAtt SnowflakeRoleGrantBuildProject.Arn
-          - Action:
-              - secretsmanager:GetSecretValue
-            Effect: Allow
-            Resource:
-              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
-        Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-role-grant-build-project-policy"
-      Roles:
-        - !Ref SnowflakeRoleGrantBuildProjectRole
-
-  SnowflakeRoleGrantBuildProject:
-    Type: AWS::CodeBuild::Project
-    Metadata:
-      Comment: Snowflake::Role::Grant build project
-    Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-rolegrant"
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        ComputeType: BUILD_GENERAL1_LARGE
-        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: SERVICE_ROLE
-        PrivilegedMode: true
-        Type: LINUX_CONTAINER
-        EnvironmentVariables:
-          - Name: RESOURCE_PATH
-            Type: PLAINTEXT
-            Value: "placeholder-for-path-to-resource"
-          - Name: USER_NAME
-            Type: PARAMETER_STORE
-            Value: "cep-snowflake-user-name"
-          - Name: ROLE_NAME
-            Type: PARAMETER_STORE
-            Value: "cep-snowflake-role-name"
-      ServiceRole: !GetAtt SnowflakeRoleGrantBuildProjectRole.Arn
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt SnowflakeRoleGrantBuildProjectRole.Arn
-      TimeoutInMinutes: 480
-
-
-  # Snowflake::Warehouse::Grant
-
-  SnowflakeWarehouseGrantBuildProjectRole:
-    Type: AWS::IAM::Role
-    Metadata:
-      Comment: Snowflake::Warehouse::Grant build project role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-        Version: '2012-10-17'
-      ManagedPolicyArns:
-        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
-
-  SnowflakeWarehouseGrantBuildProjectPolicy:
-    Type: AWS::IAM::Policy
-    Metadata:
-      Comment: Snowflake::Warehouse::Grant build project policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - codebuild:StartBuild
-              - codebuild:BatchGetBuilds
-              - codebuild:StopBuild
-              - codebuild:RetryBuild
-              - codebuild:StartBuildBatch
-              - codebuild:RetryBuildBatch
-              - codebuild:StopBuildBatch
-            Effect: Allow
-            Resource:
-              - !GetAtt SnowflakeWarehouseGrantBuildProject.Arn
-          - Action:
-              - secretsmanager:GetSecretValue
-            Effect: Allow
-            Resource:
-              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
-        Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-warehouse-grant-build-project-policy"
-      Roles:
-        - !Ref SnowflakeWarehouseGrantBuildProjectRole
-
-  SnowflakeWarehouseGrantBuildProject:
-    Type: AWS::CodeBuild::Project
-    Metadata:
-      Comment: Snowflake::Warehouse::Grant build project
-    Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-warehousegrant"
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        ComputeType: BUILD_GENERAL1_LARGE
-        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: SERVICE_ROLE
-        PrivilegedMode: true
-        Type: LINUX_CONTAINER
-        EnvironmentVariables:
-          - Name: RESOURCE_PATH
-            Type: PLAINTEXT
-            Value: "placeholder-for-path-to-resource"
-          - Name: WAREHOUSE_NAME
-            Type: PARAMETER_STORE
-            Value: "cep-snowflake-warehouse-name"
-          - Name: ROLE_NAME
-            Type: PARAMETER_STORE
-            Value: "cep-snowflake-role-name"
-      ServiceRole: !GetAtt SnowflakeWarehouseGrantBuildProjectRole.Arn
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt SnowflakeWarehouseGrantBuildProjectRole.Arn
-      TimeoutInMinutes: 480
-
 
 
   SourceBucket:
@@ -574,12 +444,10 @@ Resources:
                   - codebuild:StopBuildBatch
                 Effect: Allow
                 Resource:
-                  - !GetAtt SnowflakeDatabaseDatabaseBuildProject.Arn
-                  - !GetAtt SnowflakeUserUserBuildProject.Arn
-                  - !GetAtt SnowflakeRoleRoleBuildProject.Arn
-                  - !GetAtt SnowflakeDatabaseGrantBuildProject.Arn
-                  - !GetAtt SnowflakeRoleGrantBuildProject.Arn
-                  - !GetAtt SnowflakeWarehouseGrantBuildProject.Arn
+                  - !GetAtt CloudflareDnsRecordBuildProject.Arn
+                  - !GetAtt CloudflareLoadBalancerBuildProject.Arn
+                  - !GetAtt CloudflareLoadBalancerMonitorBuildProject.Arn
+                  - !GetAtt CloudflareLoadBalancerPoolBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -633,12 +501,10 @@ Resources:
               AWS: 
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-                - !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
-                - !GetAtt SnowflakeUserUserBuildProjectRole.Arn
-                - !GetAtt SnowflakeRoleRoleBuildProjectRole.Arn
-                - !GetAtt SnowflakeDatabaseGrantBuildProjectRole.Arn
-                - !GetAtt SnowflakeRoleGrantBuildProjectRole.Arn
-                - !GetAtt SnowflakeWarehouseGrantBuildProjectRole.Arn
+                - !GetAtt CloudflareDnsRecordBuildProjectRole.Arn
+                - !GetAtt CloudflareLoadBalancerBuildProjectRole.Arn
+                - !GetAtt CloudflareLoadBalancerMonitorBuildProjectRole.Arn
+                - !GetAtt CloudflareLoadBalancerPoolBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -691,7 +557,7 @@ Resources:
                 - Name: extensions-source 
         - Name: Build
           Actions:
-            - Name: SnowflakeDatabaseDatabase
+            - Name: CloudflareDnsRecord
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -700,17 +566,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref SnowflakeDatabaseDatabaseBuildProject
+                ProjectName: !Ref CloudflareDnsRecordBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Snowflake-Database-Database"
+                      "value": "Cloudflare-Dns-Record"
                     }
                   ]
               RunOrder: 1
-            - Name: SnowflakeUserUser
+            - Name: CloudflareLoadBalancer
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -719,17 +585,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref SnowflakeUserUserBuildProject
+                ProjectName: !Ref CloudflareLoadBalancerBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Snowflake-User-User"
+                      "value": "Cloudflare-LoadBalancer-LoadBalancer"
                     }
                   ]
               RunOrder: 1
-            - Name: SnowflakeRoleRole
+            - Name: CloudflareLoadBalancerMonitor
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -738,17 +604,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref SnowflakeRoleRoleBuildProject
+                ProjectName: !Ref CloudflareLoadBalancerMonitorBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Snowflake-Role-Role"
+                      "value": "Cloudflare-LoadBalancer-Monitor"
                     }
                   ]
               RunOrder: 1
-            - Name: SnowflakeDatabaseGrant
+            - Name: CloudflareLoadBalancerPool
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -757,51 +623,13 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref SnowflakeDatabaseGrantBuildProject
+                ProjectName: !Ref CloudflareLoadBalancerPoolBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Snowflake-Database-Grant"
-                    }
-                  ]
-              RunOrder: 1
-            - Name: SnowflakeRoleGrant
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref SnowflakeRoleGrantBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "RESOURCE_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "Snowflake-Role-Grant"
-                    }
-                  ]
-              RunOrder: 1
-            - Name: SnowflakeWarehouseGrant
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref SnowflakeWarehouseGrantBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "RESOURCE_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "Snowflake-Warehouse-Grant"
+                      "value": "Cloudflare-LoadBalancer-Pool"
                     }
                   ]
               RunOrder: 1
