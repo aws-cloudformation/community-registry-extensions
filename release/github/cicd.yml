@@ -271,9 +271,9 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-        - Name: GITHUB_OWNER
+        - Name: GITHUB_ORG
           Type: PARAMETER_STORE
-          Value: "cep-github-owner"
+          Value: "cep-github-org"
         - Name: GITHUB_REPO
           Type: PARAMETER_STORE
           Value: "cep-github-repo"
@@ -543,8 +543,8 @@ Resources:
                   - !GetAtt GitHubTeamBuildProject.Arn
                   - !GetAtt GitHubTeamRepoAccessBuildProject.Arn
                   - !GetAtt GitHubTeamMembershipBuildProject.Arn
-                  - !GetAtt GitHubRepositoriesSecretBuildProjectRole.Arn
-                  - !GetAtt GitHubOrganizationsSecretBuildProjectRole.Arn
+                  - !GetAtt GitHubRepositoriesSecretBuildProject.Arn
+                  - !GetAtt GitHubOrganizationsSecretBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -660,7 +660,7 @@ Resources:
                 - Name: extensions-source 
         - Name: Build
           Actions:
-            - Name: GitHubRepository
+            - Name: GitHubRepo
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -678,7 +678,7 @@ Resources:
                       "value": "GitHub-Repositories-Repository"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubTags
               InputArtifacts:
                 - Name: extensions-source
@@ -697,7 +697,7 @@ Resources:
                       "value": "GitHub-Git-Tag"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubOrgMember
               InputArtifacts:
                 - Name: extensions-source
@@ -717,7 +717,7 @@ Resources:
                     }
                   ]
               RunOrder: 1
-            - Name: GitHubRepoCollaborator
+            - Name: GitHubRepoCollab
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -735,8 +735,8 @@ Resources:
                       "value": "GitHub-Repositories-Collaborator"
                     }
                   ]
-              RunOrder: 1
-            - Name: GitHubRepoWebhook
+              RunOrder: 2
+            - Name: GitHubRepoHook
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -754,7 +754,7 @@ Resources:
                       "value": "GitHub-Repositories-Webhook"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubTeam
               InputArtifacts:
                 - Name: extensions-source
@@ -773,7 +773,7 @@ Resources:
                       "value": "GitHub-Teams-Team"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubTeamRepoAccess
               InputArtifacts:
                 - Name: extensions-source
@@ -792,8 +792,8 @@ Resources:
                       "value": "GitHub-Teams-RepositoryAccess"
                     }
                   ]
-              RunOrder: 1
-            - Name: GitHubTeamMembership
+              RunOrder: 3
+            - Name: GitHubTeamMember
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -811,8 +811,8 @@ Resources:
                       "value": "GitHub-Teams-Membership"
                     }
                   ]
-              RunOrder: 1
-            - Name: GitHubRepositoriesSecret
+              RunOrder: 4
+            - Name: GitHubRepoSecret
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -831,7 +831,7 @@ Resources:
                     }
                   ]
               RunOrder: 2
-            - Name: GitHubOrganizationsSecret
+            - Name: GitHubOrgSecret
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -849,6 +849,7 @@ Resources:
                       "value": "GitHub-Organizations-Secret"
                     }
                   ]
+              RunOrder: 2
         - !If
           - IsBeta
           - Name: CopyBuildToProd
