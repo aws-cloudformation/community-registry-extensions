@@ -245,6 +245,23 @@ def test_transactions(
         ),
         (
             "Community::S3Bucket::Encryption",
+            {"Tags": [{"Key": "Key", "Value": "1"}, {"Key": "Key", "Value": "2"}]},
+            {
+                "Resources": {
+                    "ResourceName": {
+                        "Type": "Community::S3Bucket::Encryption",
+                        "Properties": {
+                            "Tags": [{"Key": "Key", "Value": 1}, {"Key": "Key", "Value": 2}]
+                        }
+                    }
+                }
+            },
+            [
+                types.Converter("Tags[*].Value", types.to_int)
+            ]
+        ),
+        (
+            "Community::S3Bucket::Encryption",
             {"test": { "nested": { "key": "3.14159"}}},
             {
                 "Resources": {

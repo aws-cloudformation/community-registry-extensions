@@ -1,12 +1,12 @@
 """
     Primary Guard hook code
 """
-from typing import Optional, MutableMapping, Any, Callable, List
+from typing import Optional, MutableMapping, Any, List, Dict, Iterator, Union
 import json
 import logging
 from dataclasses import asdict
 from types import ModuleType
-from jsonpath_rw import parse
+from jsonpath_rw import parse, DatumInContext
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from cloudformation_cli_python_lib import (
     Hook,
@@ -18,7 +18,7 @@ from cloudformation_cli_python_lib import (
     HandlerErrorCode,
 )
 import cfn_guard_rs
-from cfn_guard_rs.errors import (GuardError, ParseError, MissingValueError)
+from cfn_guard_rs.errors import GuardError, ParseError, MissingValueError
 from cfn_guard_rs_hook.types import Converter
 
 LOG = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class GuardHook(Hook):
         type_name: str,
         type_configuration: Any,
         rules: ModuleType,
-        converters: Optional[List[Converter]] = None
+        converters: Optional[List[Converter]] = None,
     ) -> None:
         super().__init__(type_name, type_configuration)
         self._handlers = {
@@ -151,7 +151,7 @@ class GuardHook(Hook):
             progress.status = OperationStatus.FAILED
             progress.errorCode = HandlerErrorCode.InternalFailure
             progress.message = str(err)
-        except Exception as err:  #pylint: disable=broad-except
+        except Exception as err:  # pylint: disable=broad-except
             # Catch all other types of errors
             LOG.error(err)
             progress.status = OperationStatus.FAILED
@@ -160,27 +160,46 @@ class GuardHook(Hook):
 
         return progress
 
-    def _get_path(self, match):
-        '''return an iterator based upon MATCH.PATH. Each item is a path component,
-    start from outer most item.'''
+    def _get_path(self, match: DatumInContext):
+        """Return an iterator based upon MATCH.PATH. Each item is a path component,
+        start from outer most item.
+
+        Args:
+            match; 
+        Returns:
+            dict: returns a value which could be a list, Dict, str, etc.
+        """
         if match.context is not None:
             for path_element in self._get_path(match.context):
                 yield path_element
             yield str(match.path)
 
-    def _update_json(self, json, path, value):
-        '''Update JSON dictionnary PATH with VALUE. Return updated JSON'''
+    def _update_json(self, obj: Dict, path: Iterator[str], value: Any) -> Any:
+        """Update JSON Schema 'path' on 'obj' with 'value'
+
+        Args:
+            obj (Dict): the object that we will look for the path in
+            path (Iterator[str]): the path that we are iterating down
+            value (Any): the value to assign the end of the path
+        Returns:
+            dict: returns a value which could be a list, Dict, str, etc.
+        """
+        first: Union[str, int]
         try:
             first = next(path)
-            # check if item is an array
-            if first.startswith('[') and first.endswith(']'):
+            # check if item is an array.  Example: [0]
+            # we validate if its an array and then we get the int value in
+            # the middle
+            if first.startswith("[") and first.endswith("]"):
                 try:
                     first = int(first[1:-1])
                 except ValueError:
                     pass
-            json[first] = self._update_json(json[first], path, value)
-            return json
+            # Update the json object with the returned valued
+            obj[first] = self._update_json(obj[first], path, value)
+            return obj
         except StopIteration:
+            # Represents that next reached the end so we return the value
             return value
 
     def _make_cloudformation(
@@ -208,12 +227,17 @@ class GuardHook(Hook):
         """
 
         for converter in self.converters:
+            # parse the JSON Path into a JSON path expression
             jsonpath_expr = parse(converter.path)
+            # find all matches for the JSON Path.  There are multiples
+            # because of * or looking inside of lists of objects
             matches = jsonpath_expr.find(props)
             for match in matches:
+                # for each converter we need to update the value as appropriate
                 value = converter.converter(match.value)
+                # Update JSON with the path from the match and new value
                 props = self._update_json(props, self._get_path(match), value)
-        
+
         return {
             "Resources": {resource_name: {"Type": resource_type, "Properties": props}}
         }

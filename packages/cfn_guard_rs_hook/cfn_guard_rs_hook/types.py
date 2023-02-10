@@ -1,21 +1,29 @@
+"""
+    Primary Guard type conversion
+"""
+from dataclasses import dataclass
 from typing import Callable, Any
 
+
+@dataclass
 class Converter():
+    """
+        Converts types using JSON Patch and a conversion function
+    """
     path: str
-    converters: Callable[[str], Any]
-
-    def __init__(self, path: str, converter: Callable[[str], Any]) -> None:
-        self.path = path
-        self.converter = converter
+    converter: Callable[[str], Any]
 
 
-def to_int(v: str) -> int:
-  return int(v)
+def to_int(value: str) -> int:
+    """ Convert string to int"""
+    return int(value)
 
 
-def to_bool(v: str) -> bool:
-  return bool(v)
+def to_bool(value: str) -> bool:
+    """ Convert string to bool"""
+    return bool(value)
 
 
-def to_float(v: str) -> float:
-  return float(v)
+def to_float(value: str) -> float:
+    """ Convert string to float"""
+    return float(value)
