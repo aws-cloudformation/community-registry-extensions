@@ -170,6 +170,32 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  GitHubRepositoriesSecretBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  GitHubOrganizationsSecretBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   GitHubRepositoryBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -196,6 +222,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubTagsBuildProject:
     Type: AWS::CodeBuild::Project
@@ -226,6 +253,61 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
+
+  GitHubRepositoriesSecretBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-repo-secret"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+        - Name: GITHUB_REPO
+          Type: PARAMETER_STORE
+          Value: "cep-github-repo"
+      ServiceRole: !GetAtt GitHubRepositoriesSecretBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+
+  GitHubOrganizationsSecretBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-org-secret"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+        - Name: GITHUB_ORG
+          Type: PARAMETER_STORE
+          Value: "cep-github-org"
+        - Name: GITHUB_REPO_ID
+          Type: PARAMETER_STORE
+          Value: "cep-github-repo-id"
+      ServiceRole: !GetAtt GitHubOrganizationsSecretBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
 
   GitHubOrgMemberBuildProject:
     Type: AWS::CodeBuild::Project
@@ -253,6 +335,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubRepoCollaboratorBuildProject:
     Type: AWS::CodeBuild::Project
@@ -283,6 +366,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubRepoWebhookBuildProject:
     Type: AWS::CodeBuild::Project
@@ -310,6 +394,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubTeamBuildProject:
     Type: AWS::CodeBuild::Project
@@ -334,6 +419,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubTeamRepoAccessBuildProject:
     Type: AWS::CodeBuild::Project
@@ -364,6 +450,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   GitHubTeamMembershipBuildProject:
     Type: AWS::CodeBuild::Project
@@ -394,6 +481,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+      TimeoutInMinutes: 480
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -455,6 +543,8 @@ Resources:
                   - !GetAtt GitHubTeamBuildProject.Arn
                   - !GetAtt GitHubTeamRepoAccessBuildProject.Arn
                   - !GetAtt GitHubTeamMembershipBuildProject.Arn
+                  - !GetAtt GitHubRepositoriesSecretBuildProject.Arn
+                  - !GetAtt GitHubOrganizationsSecretBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -516,6 +606,8 @@ Resources:
                 - !GetAtt GitHubTeamBuildProjectRole.Arn
                 - !GetAtt GitHubTeamRepoAccessBuildProjectRole.Arn
                 - !GetAtt GitHubTeamMembershipBuildProjectRole.Arn
+                - !GetAtt GitHubRepositoriesSecretBuildProjectRole.Arn
+                - !GetAtt GitHubOrganizationsSecretBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -568,7 +660,7 @@ Resources:
                 - Name: extensions-source 
         - Name: Build
           Actions:
-            - Name: GitHubRepository
+            - Name: GitHubRepo
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -586,7 +678,7 @@ Resources:
                       "value": "GitHub-Repositories-Repository"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: GitHubTags
               InputArtifacts:
                 - Name: extensions-source
@@ -624,8 +716,8 @@ Resources:
                       "value": "GitHub-Organizations-Membership"
                     }
                   ]
-              RunOrder: 2
-            - Name: GitHubRepoCollaborator
+              RunOrder: 1
+            - Name: GitHubRepoCollab
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -644,7 +736,7 @@ Resources:
                     }
                   ]
               RunOrder: 2
-            - Name: GitHubRepoWebhook
+            - Name: GitHubRepoHook
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -700,8 +792,8 @@ Resources:
                       "value": "GitHub-Teams-RepositoryAccess"
                     }
                   ]
-              RunOrder: 2
-            - Name: GitHubTeamMembership
+              RunOrder: 3
+            - Name: GitHubTeamMember
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -717,6 +809,44 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "GitHub-Teams-Membership"
+                    }
+                  ]
+              RunOrder: 4
+            - Name: GitHubRepoSecret
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubRepositoriesSecretBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Repositories-Secret"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: GitHubOrgSecret
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitHubOrganizationsSecretBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitHub-Organizations-Secret"
                     }
                   ]
               RunOrder: 2

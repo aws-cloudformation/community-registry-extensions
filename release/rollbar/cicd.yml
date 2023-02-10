@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Infrastructure for the okta registry extensions CICD pipeline
+Description: Infrastructure for the registry extensions CICD pipeline
 
 Parameters:
 
@@ -8,13 +8,29 @@ Parameters:
     Description: The environment, alpha, beta, or prod. In a sandbox these are all in one account, but the actual deployment is to three different accounts.
     AllowedValues: ["alpha", "beta", "prod"]
 
+  GitUrl:
+    Type: String
+    Description: The URL to the Git repo to clone
+
+  GitBranch:
+    Type: String
+    Description: The branch to clone
+
+  GitHubSecretArn:
+    Type: String
+    Description: The arn to the github webhook secret
+
+  Prefix:
+    Type: String
+    Description: The extension prefix, for example, AwsCommunity
+
   PrefixLower:
     Type: String
-    Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
+    Description: The extension prefix lowercase, for example, awscommunity.
 
   BetaAccountId:
     Type: String
-    Description: AccountId for the beta account, which pushes builds to the prod source bucket 
+    Description: AccountId for the beta account, which pushes builds to the prod source bucket
 
   ProdAccountId:
     Type: String
@@ -56,22 +72,18 @@ Resources:
           - Sid: BetaProdCrossAccount
             Effect: Allow
             Principal:
-              AWS: 
+              AWS:
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-            Action: 
+            Action:
               - s3:Put*
               - s3:Get*
               - s3:List*
-            Resource: 
+            Resource:
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
-              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*" 
+              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*"
 
-  # Okta::Group::Group
-
-  OktaGroupBuildProjectRole:
+  RollbarProjectsProjectBuildProjectRole:
     Type: AWS::IAM::Role
-    Metadata:
-      Comment: Okta::Group::Group build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -83,38 +95,23 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaGroupBuildProjectPolicy:
+  RollbarProjectsProjectBuildProjectPolicy:
     Type: AWS::IAM::Policy
-    Metadata:
-      Comment: Okta::Group::Group build project policy
     Properties:
       PolicyDocument:
         Statement:
           - Action:
-              - codebuild:StartBuild
-              - codebuild:BatchGetBuilds
-              - codebuild:StopBuild
-              - codebuild:RetryBuild
-              - codebuild:StartBuildBatch
-              - codebuild:RetryBuildBatch
-              - codebuild:StopBuildBatch
-            Effect: Allow
-            Resource: 
-              - !GetAtt OktaGroupBuildProject.Arn
-          - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
       PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
       Roles:
-        - !Ref OktaGroupBuildProjectRole
+        - !Ref RollbarProjectsProjectBuildProjectRole
 
-  OktaGroupBuildProject:
+  RollbarProjectsProjectBuildProject:
     Type: AWS::CodeBuild::Project
-    Metadata:
-      Comment: Okta::Group::Group build project
     Properties:
       Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group"
       Artifacts:
@@ -126,23 +123,19 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt OktaGroupBuildProjectRole.Arn
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Rollbar-Projects-Project"
+          - Name: PAGER_DUTY_SERVICEKEY
+            Type: PARAMETER_STORE
+            Value: "cep-rollbar-pagerduty-servicekey"
+      ServiceRole: !GetAtt RollbarProjectsProjectBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt OktaGroupBuildProjectRole.Arn
-      TimeoutInMinutes: 480
 
-  # Okta::Group::GroupMembership
-
-  OktaGroupMembershipBuildProjectRole:
+  RollbarNotificationsRuleBuildProjectRole:
     Type: AWS::IAM::Role
-    Metadata:
-      Comment: Okta::Group::GroupMembership build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -154,40 +147,25 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaGroupMembershipBuildProjectPolicy:
+  RollbarNotificationsRuleBuildProjectPolicy:
     Type: AWS::IAM::Policy
-    Metadata:
-      Comment: Okta::Group::GroupMembership build project policy
     Properties:
       PolicyDocument:
         Statement:
           - Action:
-              - codebuild:StartBuild
-              - codebuild:BatchGetBuilds
-              - codebuild:StopBuild
-              - codebuild:RetryBuild
-              - codebuild:StartBuildBatch
-              - codebuild:RetryBuildBatch
-              - codebuild:StopBuildBatch
-            Effect: Allow
-            Resource: 
-              - !GetAtt OktaGroupMembershipBuildProject.Arn
-          - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-group-membership-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
       Roles:
-        - !Ref OktaGroupMembershipBuildProjectRole
+        - !Ref RollbarNotificationsRuleBuildProjectRole
 
-  OktaGroupMembershipBuildProject:
+  RollbarNotificationsRuleBuildProject:
     Type: AWS::CodeBuild::Project
-    Metadata:
-      Comment: Okta::Group::GroupMembership build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group-membership"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-notificationsrule"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -197,30 +175,16 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-        - Name: GROUP_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-group-id"
-        - Name: USER_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-user-id"
-      ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Rollbar-Notifications-Rule"
+      ServiceRole: !GetAtt RollbarNotificationsRuleBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
-      TimeoutInMinutes: 480
 
-
-  # Okta::Application::Application
-
-  OktaApplicationBuildProjectRole:
+  RollbarProjectsAccessTokenBuildProjectRole:
     Type: AWS::IAM::Role
-    Metadata:
-      Comment: Okta::Application::Application build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -232,40 +196,25 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaApplicationBuildProjectPolicy:
+  RollbarProjectsAccessTokenBuildProjectPolicy:
     Type: AWS::IAM::Policy
-    Metadata:
-      Comment: Okta::Application::Application build project policy
     Properties:
       PolicyDocument:
         Statement:
           - Action:
-              - codebuild:StartBuild
-              - codebuild:BatchGetBuilds
-              - codebuild:StopBuild
-              - codebuild:RetryBuild
-              - codebuild:StartBuildBatch
-              - codebuild:RetryBuildBatch
-              - codebuild:StopBuildBatch
-            Effect: Allow
-            Resource: 
-              - !GetAtt OktaApplicationBuildProject.Arn
-          - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-application-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
       Roles:
-        - !Ref OktaApplicationBuildProjectRole
+        - !Ref RollbarProjectsAccessTokenBuildProjectRole
 
-  OktaApplicationBuildProject:
+  RollbarProjectsAccessTokenBuildProject:
     Type: AWS::CodeBuild::Project
-    Metadata:
-      Comment: Okta::Application::Application build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-application"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-accesstoken"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -275,23 +224,19 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt OktaApplicationBuildProjectRole.Arn
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Rollbar-Projects-AccessToken"
+          - Name: ACCESSTOKEN_PROJECT_ID
+            Type: PARAMETER_STORE
+            Value: "cep-rollbar-accesstoken-project-id"
+      ServiceRole: !GetAtt RollbarProjectsAccessTokenBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt OktaApplicationBuildProjectRole.Arn
-      TimeoutInMinutes: 480
 
-  # Okta::Group::GroupApplicationAssociation
-
-  OktaAppAssocBuildProjectRole:
+  RollbarTeamsMembershipBuildProjectRole:
     Type: AWS::IAM::Role
-    Metadata:
-      Comment: Okta::Group::GroupApplicationAssociation build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -303,40 +248,25 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaAppAssocBuildProjectPolicy:
+  RollbarTeamsMembershipBuildProjectPolicy:
     Type: AWS::IAM::Policy
-    Metadata:
-      Comment: Okta::Group::GroupApplicationAssociation build project policy
     Properties:
       PolicyDocument:
         Statement:
           - Action:
-              - codebuild:StartBuild
-              - codebuild:BatchGetBuilds
-              - codebuild:StopBuild
-              - codebuild:RetryBuild
-              - codebuild:StartBuildBatch
-              - codebuild:RetryBuildBatch
-              - codebuild:StopBuildBatch
-            Effect: Allow
-            Resource: 
-              - !GetAtt OktaAppAssocBuildProject.Arn
-          - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-appassoc-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
       Roles:
-        - !Ref OktaAppAssocBuildProjectRole
+        - !Ref RollbarTeamsMembershipBuildProjectRole
 
-  OktaAppAssocBuildProject:
+  RollbarTeamsMembershipBuildProject:
     Type: AWS::CodeBuild::Project
-    Metadata:
-      Comment: Okta::Group::GroupApplicationAssociation build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-appassoc"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-teamsmembership"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -346,29 +276,22 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-        - Name: GROUP_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-group-id"
-        - Name: APPLICATION_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-application-id"
-      ServiceRole: !GetAtt OktaAppAssocBuildProjectRole.Arn
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Rollbar-Teams-Membership"
+          - Name: ROLLBAR_TEAMSMEMBERSHIP_TEAM_ID
+            Type: PARAMETER_STORE
+            Value: "cep-rollbar-teamsmembership-team-id"
+          - Name: ROLLBAR_TEAMSMEMBERSHIP_MEMBER_ID
+            Type: PARAMETER_STORE
+            Value: "cep-rollbar-teamsmembership-member-id"
+      ServiceRole: !GetAtt RollbarTeamsMembershipBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt OktaAppAssocBuildProjectRole.Arn
-      TimeoutInMinutes: 480
 
-  # Okta::Policy::Policy
-
-  OktaPolicyBuildProjectRole:
+  RollbarTeamsTeamBuildProjectRole:
     Type: AWS::IAM::Role
-    Metadata:
-      Comment: Okta::Policy::Policy build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -380,40 +303,25 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaPolicyBuildProjectPolicy:
+  RollbarTeamsTeamBuildProjectPolicy:
     Type: AWS::IAM::Policy
-    Metadata:
-      Comment: Okta::Policy::Policy build project policy
     Properties:
       PolicyDocument:
         Statement:
           - Action:
-              - codebuild:StartBuild
-              - codebuild:BatchGetBuilds
-              - codebuild:StopBuild
-              - codebuild:RetryBuild
-              - codebuild:StartBuildBatch
-              - codebuild:RetryBuildBatch
-              - codebuild:StopBuildBatch
-            Effect: Allow
-            Resource: 
-              - !GetAtt OktaPolicyBuildProject.Arn
-          - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-policy-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
       Roles:
-        - !Ref OktaPolicyBuildProjectRole
+        - !Ref RollbarTeamsTeamBuildProjectRole
 
-  OktaPolicyBuildProject:
+  RollbarTeamsTeamBuildProject:
     Type: AWS::CodeBuild::Project
-    Metadata:
-      Comment: Okta::Policy::Policy build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-policy"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-teamsteam"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -423,27 +331,21 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-        - Name: GROUP_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-group-id"
-      ServiceRole: !GetAtt OktaPolicyBuildProjectRole.Arn
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Rollbar-Teams-Team"
+      ServiceRole: !GetAtt RollbarTeamsTeamBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
-      BuildBatchConfig:
-        ServiceRole: !GetAtt OktaPolicyBuildProjectRole.Arn
-      TimeoutInMinutes: 480
 
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
-      Comment: The name is important here since it gets constructed by the webhook handler and CodeBuild job to drop the build into the correct bucket. We only use a one webhook for AwsCommunity and 3rd parties like Okta.
+      Comment: The name is important here since it gets constructed by the webhook handler and CodeBuild job to drop the build into the correct bucket. We only use a one webhook for AwsCommunity and 3rd parties.
     Properties:
       BucketName: !Sub "cep-source-${AWS::AccountId}-${Env}-${PrefixLower}"
-      VersioningConfiguration: 
+      VersioningConfiguration:
         Status: Enabled
 
   PipelineRole:
@@ -458,13 +360,13 @@ Resources:
               Service: codepipeline.amazonaws.com
         Version: '2012-10-17'
       Policies:
-        - PolicyName: "inline-pipeline-policy" 
+        - PolicyName: "inline-pipeline-policy"
           PolicyDocument:
             Statement:
               - Action: "sts:AssumeRole"
                 Effect: Allow
                 Resource:
-                  - !Sub "arn:aws:iam::${ProdAccountId}:role/${PrefixLower}-registry-extensions-publish-role"
+                  - !Sub "arn:aws:iam::${ProdAccountId}:role/rollbar-registry-extensions-publish-role"
               - Action:
                   - s3:GetObject*
                   - s3:GetBucket*
@@ -488,17 +390,14 @@ Resources:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
                   - codebuild:StopBuild
-                  - codebuild:RetryBuild             
-                  - codebuild:StartBuildBatch
-                  - codebuild:RetryBuildBatch
-                  - codebuild:StopBuildBatch
+                  - codebuild:RetryBuild
                 Effect: Allow
-                Resource: 
-                  - !GetAtt OktaGroupBuildProject.Arn
-                  - !GetAtt OktaApplicationBuildProject.Arn
-                  - !GetAtt OktaAppAssocBuildProject.Arn
-                  - !GetAtt OktaPolicyBuildProject.Arn
-                  - !GetAtt OktaGroupMembershipBuildProject.Arn
+                Resource:
+                  - !GetAtt RollbarProjectsProjectBuildProject.Arn
+                  - !GetAtt RollbarNotificationsRuleBuildProject.Arn
+                  - !GetAtt RollbarProjectsAccessTokenBuildProject.Arn
+                  - !GetAtt RollbarTeamsMembershipBuildProject.Arn
+                  - !GetAtt RollbarTeamsTeamBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -510,16 +409,16 @@ Resources:
 
   PipelineKey:
     Type: AWS::KMS::Key
-    Metadata: 
+    Metadata:
       Comment: Required for cross account deployment from beta CodePipeline to the prod bucket
     Condition: IsBeta
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
-    Properties: 
+    Properties:
       Description: This key is used by the CEP beta build process to deploy builds to the prod bucket
-      KeyPolicy: 
+      KeyPolicy:
         Statement:
-          - Action: 
+          - Action:
               - kms:Create*
               - kms:Describe*
               - kms:Enable*
@@ -536,27 +435,27 @@ Resources:
               - kms:TagResource
               - kms:UntagResource
             Effect: Allow
-            Principal: 
-              AWS: 
+            Principal:
+              AWS:
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !Sub "arn:aws:iam::${AWS::AccountId}:role/Admin"
             Resource: "*"
-          - Action: 
+          - Action:
               - kms:Encrypt
               - kms:Decrypt
               - kms:ReEncrypt
               - kms:GenerateDataKey*
               - kms:DescribeKey
             Effect: Allow
-            Principal: 
-              AWS: 
+            Principal:
+              AWS:
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-                - !GetAtt OktaGroupBuildProjectRole.Arn
-                - !GetAtt OktaApplicationBuildProjectRole.Arn
-                - !GetAtt OktaAppAssocBuildProjectRole.Arn
-                - !GetAtt OktaPolicyBuildProjectRole.Arn
-                - !GetAtt OktaGroupMembershipBuildProjectRole.Arn
+                - !GetAtt RollbarProjectsProjectBuildProjectRole.Arn
+                - !GetAtt RollbarNotificationsRuleBuildProjectRole.Arn
+                - !GetAtt RollbarProjectsAccessTokenBuildProjectRole.Arn
+                - !GetAtt RollbarTeamsMembershipBuildProjectRole.Arn
+                - !GetAtt RollbarTeamsTeamBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -601,15 +500,15 @@ Resources:
                 Owner: AWS
                 Provider: S3
                 Version: 1
-              Configuration: 
+              Configuration:
                 S3Bucket: !Ref SourceBucket
-                S3ObjectKey: "source.zip" 
+                S3ObjectKey: "source.zip"
                 PollForSourceChanges: true
               OutputArtifacts:
-                - Name: extensions-source 
+                - Name: extensions-source
         - Name: Build
           Actions:
-            - Name: OktaGroup
+            - Name: RollbarProjectsProject
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -618,22 +517,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaGroupBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref RollbarProjectsProjectBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Group"
+                      "value": "Rollbar-Projects-Project"
                     }
                   ]
               RunOrder: 1
-            - Name: OktaGroupMembership
+            - Name: RollbarNotificationsRule
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -642,22 +536,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaGroupMembershipBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref RollbarNotificationsRuleBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Group-Membership"
+                      "value": "Rollbar-Notifications-Rule"
                     }
                   ]
               RunOrder: 1
-            - Name: OktaAppAssoc
+            - Name: RollbarProjectsAccessToken
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -666,22 +555,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaAppAssocBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref RollbarProjectsAccessTokenBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Group-Application-Association"
+                      "value": "Rollbar-Projects-AccessToken"
                     }
                   ]
               RunOrder: 1
-            - Name: OktaApplication
+            - Name: RollbarTeamsMembershipToken
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -690,22 +574,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaApplicationBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref RollbarTeamsMembershipBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Application"
+                      "value": "Rollbar-Teams-Membership"
                     }
                   ]
               RunOrder: 1
-            - Name: OktaPolicy
+            - Name: RollbarTeamsTeamToken
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -714,18 +593,13 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaPolicyBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref RollbarTeamsTeamBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Policy"
+                      "value": "Rollbar-Teams-Team"
                     }
                   ]
               RunOrder: 1
@@ -734,8 +608,8 @@ Resources:
           - Name: CopyBuildToProd
             Actions:
               - Name: Copy
-                RoleArn: !Sub "arn:aws:iam::${ProdAccountId}:role/${PrefixLower}-registry-extensions-publish-role"
-                InputArtifacts: 
+                RoleArn: !Sub "arn:aws:iam::${ProdAccountId}:role/rollbar-registry-extensions-publish-role"
+                InputArtifacts:
                   - Name: extensions-source
                 ActionTypeId:
                   Category: Deploy
@@ -775,7 +649,7 @@ Resources:
               -
                 Effect: Allow
                 Action: s3:PutObject
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
                   - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
 
@@ -787,12 +661,12 @@ Resources:
     Properties:
       TopicName: !Sub "${PrefixLower}-${Env}-pipeline-topic"
       Subscription:
-        - Endpoint: !Ref NotificationEmail 
+        - Endpoint: !Ref NotificationEmail
           Protocol: email
 
   WaitForPipeline:
     Type: Custom::Delay
-    DependsOn: 
+    DependsOn:
       - Pipeline
     Properties:
       ServiceToken: !GetAtt DelayFunction.Arn
@@ -800,7 +674,7 @@ Resources:
 
   WaitForTopic:
     Type: Custom::Delay
-    DependsOn: 
+    DependsOn:
       - PipelineTopic
       - PipelineTopicPolicy
     Properties:
@@ -814,14 +688,14 @@ Resources:
         Id: MyTopicPolicy
         Version: '2012-10-17'
         Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-              - events.amazonaws.com
-          Action: sns:Publish
-          Resource: !Ref PipelineTopic
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref PipelineTopic
       Topics:
-      - !Ref PipelineTopic
+        - !Ref PipelineTopic
 
   PipelineEventRole:
     Type: AWS::IAM::Role
@@ -855,13 +729,13 @@ Resources:
     DependsOn: WaitForTopic
     Properties:
       Description: Watch for pipeline success and failure
-      EventPattern: 
+      EventPattern:
         source:
           - aws.codepipeline
         detail-type:
           - CodePipeline Pipeline Execution State Change
         detail:
-          pipeline: 
+          pipeline:
             - !Ref Pipeline
           state:
             - SUCCEEDED
@@ -878,7 +752,7 @@ Resources:
               at: "$.time"
               account: "$.account"
 
-# Prod account resources
+  # Prod account resources
 
   PublishBuildBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -893,13 +767,38 @@ Resources:
           - Sid: BetaAccountPut
             Effect: Allow
             Principal:
-              AWS: 
+              AWS:
                 - !Sub "arn:aws:iam::${BetaAccountId}:root"
                 - !GetAtt PublishCrossAccountRole.Arn
             Action: s3:PutObject
-            Resource: 
+            Resource:
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
+
+  StackSetAdministrationRole:
+    Type: AWS::IAM::Role
+    Condition: IsProd
+    Properties:
+      RoleName: !Sub "${PrefixLower}-stackset-admin"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: AssumeRole-AWSCloudFormationStackSetExecutionRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole"
 
   PublishCrossAccountRole:
     Type: AWS::IAM::Role
@@ -907,7 +806,7 @@ Resources:
     Metadata:
       Comment: Assumed by codepipeline in the beta account to access the prod source bucket
     Properties:
-      RoleName: !Sub "${PrefixLower}-registry-extensions-publish-role"
+      RoleName: rollbar-registry-extensions-publish-role
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -934,17 +833,17 @@ Resources:
                   - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
                   - !Sub "arn:aws:s3:::cep-${PrefixLower}-beta-${BetaAccountId}-artifacts"
                   - !Sub "arn:aws:s3:::cep-${PrefixLower}-beta-${BetaAccountId}-artifacts/*"
-              - Action: 
+              - Action:
                   - kms:Encrypt
                   - kms:Decrypt
                   - kms:ReEncrypt
                   - kms:GenerateDataKey*
                   - kms:DescribeKey
                 Effect: Allow
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
-              
-# Delay Function to solve race conditions where the resource is not actually ready
+
+  # Delay Function to solve race conditions where the resource is not actually ready
 
   DelayFunctionRole:
     Type: AWS::IAM::Role
@@ -980,6 +879,5 @@ Resources:
       Timeout: 120
       Role: !GetAtt DelayFunctionRole.Arn
       Runtime: python3.7
-      Code: delay.py 
+      Code: delay.py
       MemorySize: 1024
-

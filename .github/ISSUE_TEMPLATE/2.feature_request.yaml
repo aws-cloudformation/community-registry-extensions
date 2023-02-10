@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an idea for an extension
+description: Suggest an idea for an extension (3rd party and custom resources, hooks, modules)
 
 body:
   - type: markdown

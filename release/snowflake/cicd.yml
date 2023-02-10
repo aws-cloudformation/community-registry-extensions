@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Infrastructure for the okta registry extensions CICD pipeline
+Description: Infrastructure for the registry extensions CICD pipeline
 
 Parameters:
 
@@ -10,7 +10,7 @@ Parameters:
 
   PrefixLower:
     Type: String
-    Description: The extension prefix lowercase, for example, awscommunity. It's either this or depend on a macro, or put more stars in policies.
+    Description: The extension prefix lowercase, for example, awscommunity.
 
   BetaAccountId:
     Type: String
@@ -64,14 +64,14 @@ Resources:
               - s3:List*
             Resource: 
               - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts"
-              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*" 
+              - !Sub "arn:aws:s3:::cep-${PrefixLower}-${Env}-${AWS::AccountId}-artifacts/*"
 
-  # Okta::Group::Group
+  # Snowflake::Database::Database
 
-  OktaGroupBuildProjectRole:
+  SnowflakeDatabaseDatabaseBuildProjectRole:
     Type: AWS::IAM::Role
     Metadata:
-      Comment: Okta::Group::Group build project role
+      Comment: Snowflake::Database::Database build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -83,10 +83,10 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaGroupBuildProjectPolicy:
+  SnowflakeDatabaseDatabaseBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Metadata:
-      Comment: Okta::Group::Group build project policy
+      Comment: Snowflake::Database::Database build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -99,24 +99,24 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
-              - !GetAtt OktaGroupBuildProject.Arn
+            Resource:
+              - !GetAtt SnowflakeDatabaseDatabaseBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
             Resource: 
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-database-database-build-project-policy"
       Roles:
-        - !Ref OktaGroupBuildProjectRole
+        - !Ref SnowflakeDatabaseDatabaseBuildProjectRole
 
-  OktaGroupBuildProject:
+  SnowflakeDatabaseDatabaseBuildProject:
     Type: AWS::CodeBuild::Project
     Metadata:
-      Comment: Okta::Group::Group build project
+      Comment: Snowflake::Database::Database build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-database"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -129,20 +129,21 @@ Resources:
         - Name: RESOURCE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt OktaGroupBuildProjectRole.Arn
+      ServiceRole: !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
-        ServiceRole: !GetAtt OktaGroupBuildProjectRole.Arn
+        ServiceRole: !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
-  # Okta::Group::GroupMembership
 
-  OktaGroupMembershipBuildProjectRole:
+  # Snowflake::User::User
+
+  SnowflakeUserUserBuildProjectRole:
     Type: AWS::IAM::Role
     Metadata:
-      Comment: Okta::Group::GroupMembership build project role
+      Comment: Snowflake::User::User build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -154,10 +155,10 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaGroupMembershipBuildProjectPolicy:
+  SnowflakeUserUserBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Metadata:
-      Comment: Okta::Group::GroupMembership build project policy
+      Comment: Snowflake::User::User build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -170,24 +171,24 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
-              - !GetAtt OktaGroupMembershipBuildProject.Arn
+            Resource:
+              - !GetAtt SnowflakeUserUserBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-group-membership-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-user-user-build-project-policy"
       Roles:
-        - !Ref OktaGroupMembershipBuildProjectRole
+        - !Ref SnowflakeUserUserBuildProjectRole
 
-  OktaGroupMembershipBuildProject:
+  SnowflakeUserUserBuildProject:
     Type: AWS::CodeBuild::Project
     Metadata:
-      Comment: Okta::Group::GroupMembership build project
+      Comment: Snowflake::User::User build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-group-membership"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-user"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -197,30 +198,24 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-        - Name: GROUP_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-group-id"
-        - Name: USER_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-user-id"
-      ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt SnowflakeUserUserBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
-        ServiceRole: !GetAtt OktaGroupMembershipBuildProjectRole.Arn
+        ServiceRole: !GetAtt SnowflakeUserUserBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
 
-  # Okta::Application::Application
+  # Snowflake::Role::Role
 
-  OktaApplicationBuildProjectRole:
+  SnowflakeRoleRoleBuildProjectRole:
     Type: AWS::IAM::Role
     Metadata:
-      Comment: Okta::Application::Application build project role
+      Comment: Snowflake::Role::Role build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -232,10 +227,10 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaApplicationBuildProjectPolicy:
+  SnowflakeRoleRoleBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Metadata:
-      Comment: Okta::Application::Application build project policy
+      Comment: Snowflake::Role::Role build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -248,24 +243,24 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
-              - !GetAtt OktaApplicationBuildProject.Arn
+            Resource:
+              - !GetAtt SnowflakeRoleRoleBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-application-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-role-role-build-project-policy"
       Roles:
-        - !Ref OktaApplicationBuildProjectRole
+        - !Ref SnowflakeRoleRoleBuildProjectRole
 
-  OktaApplicationBuildProject:
+  SnowflakeRoleRoleBuildProject:
     Type: AWS::CodeBuild::Project
     Metadata:
-      Comment: Okta::Application::Application build project
+      Comment: Snowflake::Role::Role build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-application"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-role"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -275,23 +270,24 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-      ServiceRole: !GetAtt OktaApplicationBuildProjectRole.Arn
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt SnowflakeRoleRoleBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
-        ServiceRole: !GetAtt OktaApplicationBuildProjectRole.Arn
+        ServiceRole: !GetAtt SnowflakeRoleRoleBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
-  # Okta::Group::GroupApplicationAssociation
 
-  OktaAppAssocBuildProjectRole:
+  # Snowflake::Database::Grant
+
+  SnowflakeDatabaseGrantBuildProjectRole:
     Type: AWS::IAM::Role
     Metadata:
-      Comment: Okta::Group::GroupApplicationAssociation build project role
+      Comment: Snowflake::Database::Grant build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -303,10 +299,10 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaAppAssocBuildProjectPolicy:
+  SnowflakeDatabaseGrantBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Metadata:
-      Comment: Okta::Group::GroupApplicationAssociation build project policy
+      Comment: Snowflake::Database::Grant build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -319,24 +315,24 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
-              - !GetAtt OktaAppAssocBuildProject.Arn
+            Resource:
+              - !GetAtt SnowflakeDatabaseGrantBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-appassoc-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-database-grant-build-project-policy"
       Roles:
-        - !Ref OktaAppAssocBuildProjectRole
+        - !Ref SnowflakeDatabaseGrantBuildProjectRole
 
-  OktaAppAssocBuildProject:
+  SnowflakeDatabaseGrantBuildProject:
     Type: AWS::CodeBuild::Project
     Metadata:
-      Comment: Okta::Group::GroupApplicationAssociation build project
+      Comment: Snowflake::Database::Grant build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-appassoc"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-databasegrant"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -346,29 +342,30 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-        - Name: GROUP_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-group-id"
-        - Name: APPLICATION_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-application-id"
-      ServiceRole: !GetAtt OktaAppAssocBuildProjectRole.Arn
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: DATABASE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-database-name"
+          - Name: ROLE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-role-name"
+      ServiceRole: !GetAtt SnowflakeDatabaseGrantBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
-        ServiceRole: !GetAtt OktaAppAssocBuildProjectRole.Arn
+        ServiceRole: !GetAtt SnowflakeDatabaseGrantBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
-  # Okta::Policy::Policy
 
-  OktaPolicyBuildProjectRole:
+  # Snowflake::Role::Grant
+
+  SnowflakeRoleGrantBuildProjectRole:
     Type: AWS::IAM::Role
     Metadata:
-      Comment: Okta::Policy::Policy build project role
+      Comment: Snowflake::Role::Grant build project role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -380,10 +377,10 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
-  OktaPolicyBuildProjectPolicy:
+  SnowflakeRoleGrantBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Metadata:
-      Comment: Okta::Policy::Policy build project policy
+      Comment: Snowflake::Role::Grant build project policy
     Properties:
       PolicyDocument:
         Statement:
@@ -396,24 +393,24 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
-              - !GetAtt OktaPolicyBuildProject.Arn
+            Resource:
+              - !GetAtt SnowflakeRoleGrantBuildProject.Arn
           - Action:
               - secretsmanager:GetSecretValue
             Effect: Allow
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
         Version: '2012-10-17'
-      PolicyName: !Sub "${PrefixLower}-policy-build-project-policy"
+      PolicyName: !Sub "${PrefixLower}-role-grant-build-project-policy"
       Roles:
-        - !Ref OktaPolicyBuildProjectRole
+        - !Ref SnowflakeRoleGrantBuildProjectRole
 
-  OktaPolicyBuildProject:
+  SnowflakeRoleGrantBuildProject:
     Type: AWS::CodeBuild::Project
     Metadata:
-      Comment: Okta::Policy::Policy build project
+      Comment: Snowflake::Role::Grant build project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-policy"
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-rolegrant"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -423,24 +420,107 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
         EnvironmentVariables:
-        - Name: RESOURCE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-resource"
-        - Name: GROUP_ID
-          Type: PARAMETER_STORE
-          Value: "cep-okta-group-id"
-      ServiceRole: !GetAtt OktaPolicyBuildProjectRole.Arn
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: USER_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-user-name"
+          - Name: ROLE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-role-name"
+      ServiceRole: !GetAtt SnowflakeRoleGrantBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
       BuildBatchConfig:
-        ServiceRole: !GetAtt OktaPolicyBuildProjectRole.Arn
+        ServiceRole: !GetAtt SnowflakeRoleGrantBuildProjectRole.Arn
       TimeoutInMinutes: 480
+
+
+  # Snowflake::Warehouse::Grant
+
+  SnowflakeWarehouseGrantBuildProjectRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Snowflake::Warehouse::Grant build project role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  SnowflakeWarehouseGrantBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Metadata:
+      Comment: Snowflake::Warehouse::Grant build project policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt SnowflakeWarehouseGrantBuildProject.Arn
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-warehouse-grant-build-project-policy"
+      Roles:
+        - !Ref SnowflakeWarehouseGrantBuildProjectRole
+
+  SnowflakeWarehouseGrantBuildProject:
+    Type: AWS::CodeBuild::Project
+    Metadata:
+      Comment: Snowflake::Warehouse::Grant build project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-warehousegrant"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: WAREHOUSE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-warehouse-name"
+          - Name: ROLE_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-snowflake-role-name"
+      ServiceRole: !GetAtt SnowflakeWarehouseGrantBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+      BuildBatchConfig:
+        ServiceRole: !GetAtt SnowflakeWarehouseGrantBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+
 
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
-      Comment: The name is important here since it gets constructed by the webhook handler and CodeBuild job to drop the build into the correct bucket. We only use a one webhook for AwsCommunity and 3rd parties like Okta.
+      Comment: The name is important here since it gets constructed by the webhook handler and CodeBuild job to drop the build into the correct bucket. We only use a one webhook for AwsCommunity and 3rd parties.
     Properties:
       BucketName: !Sub "cep-source-${AWS::AccountId}-${Env}-${PrefixLower}"
       VersioningConfiguration: 
@@ -458,7 +538,7 @@ Resources:
               Service: codepipeline.amazonaws.com
         Version: '2012-10-17'
       Policies:
-        - PolicyName: "inline-pipeline-policy" 
+        - PolicyName: "inline-pipeline-policy"
           PolicyDocument:
             Statement:
               - Action: "sts:AssumeRole"
@@ -488,17 +568,18 @@ Resources:
                   - codebuild:StartBuild
                   - codebuild:BatchGetBuilds
                   - codebuild:StopBuild
-                  - codebuild:RetryBuild             
+                  - codebuild:RetryBuild
                   - codebuild:StartBuildBatch
                   - codebuild:RetryBuildBatch
                   - codebuild:StopBuildBatch
                 Effect: Allow
-                Resource: 
-                  - !GetAtt OktaGroupBuildProject.Arn
-                  - !GetAtt OktaApplicationBuildProject.Arn
-                  - !GetAtt OktaAppAssocBuildProject.Arn
-                  - !GetAtt OktaPolicyBuildProject.Arn
-                  - !GetAtt OktaGroupMembershipBuildProject.Arn
+                Resource:
+                  - !GetAtt SnowflakeDatabaseDatabaseBuildProject.Arn
+                  - !GetAtt SnowflakeUserUserBuildProject.Arn
+                  - !GetAtt SnowflakeRoleRoleBuildProject.Arn
+                  - !GetAtt SnowflakeDatabaseGrantBuildProject.Arn
+                  - !GetAtt SnowflakeRoleGrantBuildProject.Arn
+                  - !GetAtt SnowflakeWarehouseGrantBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -552,11 +633,12 @@ Resources:
               AWS: 
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-                - !GetAtt OktaGroupBuildProjectRole.Arn
-                - !GetAtt OktaApplicationBuildProjectRole.Arn
-                - !GetAtt OktaAppAssocBuildProjectRole.Arn
-                - !GetAtt OktaPolicyBuildProjectRole.Arn
-                - !GetAtt OktaGroupMembershipBuildProjectRole.Arn
+                - !GetAtt SnowflakeDatabaseDatabaseBuildProjectRole.Arn
+                - !GetAtt SnowflakeUserUserBuildProjectRole.Arn
+                - !GetAtt SnowflakeRoleRoleBuildProjectRole.Arn
+                - !GetAtt SnowflakeDatabaseGrantBuildProjectRole.Arn
+                - !GetAtt SnowflakeRoleGrantBuildProjectRole.Arn
+                - !GetAtt SnowflakeWarehouseGrantBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -564,7 +646,7 @@ Resources:
     Type: AWS::KMS::Alias
     Condition: IsBeta
     Properties:
-      AliasName: !Sub "alias/cep-${PrefixLower}-pipeline-publish-key"
+      AliasName: !Sub "alias/cep-${PrefixLower}-pipeline-publish-keys"
       TargetKeyId: !Ref PipelineKey
 
   WaitForPipelineRole:
@@ -609,7 +691,7 @@ Resources:
                 - Name: extensions-source 
         - Name: Build
           Actions:
-            - Name: OktaGroup
+            - Name: SnowflakeDatabaseDatabase
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -618,22 +700,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaGroupBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref SnowflakeDatabaseDatabaseBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Group"
+                      "value": "Snowflake-Database-Database"
                     }
                   ]
               RunOrder: 1
-            - Name: OktaGroupMembership
+            - Name: SnowflakeUserUser
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -642,22 +719,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaGroupMembershipBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref SnowflakeUserUserBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Group-Membership"
+                      "value": "Snowflake-User-User"
                     }
                   ]
               RunOrder: 1
-            - Name: OktaAppAssoc
+            - Name: SnowflakeRoleRole
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -666,22 +738,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaAppAssocBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref SnowflakeRoleRoleBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Group-Application-Association"
+                      "value": "Snowflake-Role-Role"
                     }
                   ]
               RunOrder: 1
-            - Name: OktaApplication
+            - Name: SnowflakeDatabaseGrant
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -690,22 +757,17 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaApplicationBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref SnowflakeDatabaseGrantBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Application"
+                      "value": "Snowflake-Database-Grant"
                     }
                   ]
               RunOrder: 1
-            - Name: OktaPolicy
+            - Name: SnowflakeRoleGrant
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -714,18 +776,32 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref OktaPolicyBuildProject
-                # BatchEnabled: 
-                #     !If
-                #       - IsProd
-                #       - true
-                #       - false
+                ProjectName: !Ref SnowflakeRoleGrantBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Okta-Policy"
+                      "value": "Snowflake-Role-Grant"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: SnowflakeWarehouseGrant
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref SnowflakeWarehouseGrantBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Snowflake-Warehouse-Grant"
                     }
                   ]
               RunOrder: 1
