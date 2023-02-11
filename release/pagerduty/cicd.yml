@@ -235,6 +235,61 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
 
+  PagerDutySchedulesScheduleBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  PagerDutySchedulesScheduleBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      Roles:
+        - !Ref PagerDutySchedulesScheduleBuildProjectRole
+
+  PagerDutySchedulesScheduleBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-schedulesschedule"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "placeholder-for-path-to-resource"
+          - Name: PAGER_DUTY_TEAM_ID
+            Type: PARAMETER_STORE
+            Value: "cep-pagerduty-team-id"
+          - Name: PAGER_DUTY_USER_ID
+            Type: PARAMETER_STORE
+            Value: "cep-pagerduty-user-id"
+      ServiceRole: !GetAtt PagerDutySchedulesScheduleBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
   PagerDutyResponsePlaysResponsePlayBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -402,6 +457,7 @@ Resources:
                 Resource:
                   - !GetAtt PagerDutyEscalationPoliciesEscalationPolicyBuildProject.Arn
                   - !GetAtt PagerDutyResponsePlaysResponsePlayBuildProject.Arn
+                  - !GetAtt PagerDutySchedulesScheduleBuildProject.Arn
                   - !GetAtt PagerDutyTeamsMembershipBuildProject.Arn
                   - !GetAtt PagerDutyTeamsTeamBuildProject.Arn
                   - !GetAtt PagerDutyUsersUserBuildProject.Arn
@@ -461,6 +517,7 @@ Resources:
                 - !GetAtt PagerDutyTeamsTeamBuildProjectRole.Arn
                 - !GetAtt PagerDutyEscalationPoliciesEscalationPolicyBuildProjectRole.Arn
                 - !GetAtt PagerDutyResponsePlaysResponsePlayBuildProjectRole.Arn
+                - !GetAtt PagerDutySchedulesScheduleBuildProjectRole.Arn
                 - !GetAtt PagerDutyTeamsMembershipBuildProjectRole.Arn
                 - !GetAtt PagerDutyUsersUserBuildProjectRole.Arn
             Resource: "*"
@@ -588,6 +645,25 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "PagerDuty-ResponsePlays-ResponsePlay"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: PagerDutySchedulesSchedule
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref PagerDutySchedulesScheduleBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "PagerDuty-Schedules-Schedule"
                     }
                   ]
               RunOrder: 1
