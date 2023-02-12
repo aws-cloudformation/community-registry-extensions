@@ -10,6 +10,7 @@ cloudformation-cli-python-lib = "^2.1.12"
 cfn-guard-rs = "^0.2.1"
 pyyaml = "~5.4.1"
 Jinja2 = "^3.0.0"
+jsonpath-rw = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

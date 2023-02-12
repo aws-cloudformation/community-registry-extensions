@@ -10,7 +10,7 @@ from cloudformation_cli_python_lib import (
     HandlerErrorCode,
 )
 from cfn_guard_rs_hook import __version__, GuardHook
-
+from cfn_guard_rs_hook import types
 
 from .helpers import create_request
 from .fixtures import (
@@ -163,13 +163,15 @@ class TypeConfigurationObjectLockEnabled:
             ProgressEvent(
                 status=OperationStatus.FAILED,
                 errorCode=HandlerErrorCode.InvalidRequest,
-                message=("Parser Error when parsing Parsing Error Error parsing file  "
-                "at line 4 at column 1, when handling , fragment rule "
-                "S3_BUCKET_DEFAULT_LOCK_ENABLED when %s3_buckets_default_lock_enabled !empty {\n  "
-                "%s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled exists\n"
-                "  %s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled == \"\"\n  "
-                "<<\n    Violation: S3 Bucket ObjectLockEnabled must be set to true.\n    "
-                "Fix: Set the S3 property ObjectLockEnabled parameter to true.\n  >>\n}\n"),
+                message=(
+                    "Parser Error when parsing Parsing Error Error parsing file  "
+                    "at line 4 at column 1, when handling , fragment rule "
+                    "S3_BUCKET_DEFAULT_LOCK_ENABLED when %s3_buckets_default_lock_enabled !empty "
+                    "{\n  %s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled exists\n"
+                    '  %s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled == ""\n  '
+                    "<<\n    Violation: S3 Bucket ObjectLockEnabled must be set to true.\n    "
+                    "Fix: Set the S3 property ObjectLockEnabled parameter to true.\n  >>\n}\n"
+                ),
                 result=None,
                 callbackContext=None,
                 callbackDelaySeconds=0,
@@ -200,3 +202,92 @@ def test_transactions(
     )
 
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "type_name,model,expected,converters",
+    [
+        (
+            "Community::S3Bucket::Encryption",
+            {"test": {"key": "true"}},
+            {
+                "Resources": {
+                    "ResourceName": {
+                        "Type": "Community::S3Bucket::Encryption",
+                        "Properties": {
+                            "test": {
+                                "key": True
+                            }
+                        }
+                    }
+                }
+            },
+            [
+                types.Converter("test.key", types.to_bool)
+            ]
+        ),
+        (
+            "Community::S3Bucket::Encryption",
+            {"test": ["0", "1"]},
+            {
+                "Resources": {
+                    "ResourceName": {
+                        "Type": "Community::S3Bucket::Encryption",
+                        "Properties": {
+                            "test": [0, 1]
+                        }
+                    }
+                }
+            },
+            [
+                types.Converter("test[*]", types.to_int)
+            ]
+        ),
+        (
+            "Community::S3Bucket::Encryption",
+            {"Tags": [{"Key": "Key", "Value": "1"}, {"Key": "Key", "Value": "2"}]},
+            {
+                "Resources": {
+                    "ResourceName": {
+                        "Type": "Community::S3Bucket::Encryption",
+                        "Properties": {
+                            "Tags": [{"Key": "Key", "Value": 1}, {"Key": "Key", "Value": 2}]
+                        }
+                    }
+                }
+            },
+            [
+                types.Converter("Tags[*].Value", types.to_int)
+            ]
+        ),
+        (
+            "Community::S3Bucket::Encryption",
+            {"test": { "nested": { "key": "3.14159"}}},
+            {
+                "Resources": {
+                    "ResourceName": {
+                        "Type": "Community::S3Bucket::Encryption",
+                        "Properties": {
+                            "test": {
+                                "nested": {
+                                    "key": 3.14159
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            [
+                types.Converter("test.nested.key", types.to_float)
+            ]
+        ),
+    ],
+)
+def test_make_cloudformation(type_name, model, expected, converters):
+    """
+    Tests the functionality to make a CloudFormation template from the resource properties
+    """
+    hook = GuardHook(type_name, {}, rules_s3_bucket_default_lock_enabled, converters)
+
+    # pylint: disable=protected-access
+    assert hook._make_cloudformation(model, "ResourceName", type_name) == expected
