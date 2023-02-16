@@ -1,0 +1,30 @@
+{
+    "typeName": "AwsCommunity::S3::PublicAccessControlsRestricted",
+    "description": "Validates S3 Bucket is configured to block public access",
+    "sourceUrl": "https://github.com/aws-cloudformation/example-sse-hook",
+    "documentationUrl": "https://github.com/aws-cloudformation/example-sse-hook/blob/master/README.md",
+    "typeConfiguration": {
+        "properties": {},
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        },
+        "preDelete": {
+            "targetNames": [],
+            "permissions": []
+        }
+    },
+    "additionalProperties": false
+}

@@ -1,0 +1,11 @@
+{
+  "AWS::S3::Bucket": {
+    "resourceProperties": {
+      "PublicAccessBlockConfiguration": {
+        "BlockPublicAcls": "true",
+        "IgnorePublicAcls": "true",
+        "RestrictPublicBuckets": "true"
+      }
+    }
+  }
+}
