@@ -1,24 +1,26 @@
 """
     Primary Guard hook code
 """
-from typing import Optional, MutableMapping, Any, List, Dict, Iterator, Union
 import json
 import logging
 from dataclasses import asdict
 from types import ModuleType
-from jsonpath_rw import parse, DatumInContext
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from typing import Any, Dict, Iterator, List, MutableMapping, Optional, Union
+
+import cfn_guard_rs
+from cfn_guard_rs.errors import GuardError, MissingValueError, ParseError
 from cloudformation_cli_python_lib import (
-    Hook,
     BaseHookHandlerRequest,
-    ProgressEvent,
-    SessionProxy,
+    HandlerErrorCode,
+    Hook,
     HookInvocationPoint,
     OperationStatus,
-    HandlerErrorCode,
+    ProgressEvent,
+    SessionProxy,
 )
-import cfn_guard_rs
-from cfn_guard_rs.errors import GuardError, ParseError, MissingValueError
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jsonpath_rw import DatumInContext, parse
+
 from cfn_guard_rs_hook.types import Converter
 
 LOG = logging.getLogger(__name__)
@@ -165,7 +167,7 @@ class GuardHook(Hook):
         start from outer most item.
 
         Args:
-            match; 
+            match;
         Returns:
             dict: returns a value which could be a list, Dict, str, etc.
         """
