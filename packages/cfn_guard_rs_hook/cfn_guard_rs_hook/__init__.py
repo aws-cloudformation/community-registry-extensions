@@ -9,3 +9,4 @@
 __version__ = "0.1.0"
 
 from cfn_guard_rs_hook.guard_hook import GuardHook
+from cfn_guard_rs_hook.types import Converter, to_bool, to_float, to_int
