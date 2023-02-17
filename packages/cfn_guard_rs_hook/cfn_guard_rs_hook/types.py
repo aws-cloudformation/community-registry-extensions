@@ -22,19 +22,7 @@ def to_int(value: str) -> int:
 
 def to_bool(value: str) -> bool:
     """Convert string to bool"""
-    return value in [
-        "y",
-        "Y",
-        "yes",
-        "Yes",
-        "YES",
-        "true",
-        "True",
-        "TRUE",
-        "on",
-        "On",
-        "ON",
-    ]
+    return value.lower() == "true"
 
 
 def to_float(value: str) -> float:

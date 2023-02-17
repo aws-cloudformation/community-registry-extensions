@@ -14,12 +14,8 @@ from cfn_guard_rs_hook import types
         (types.to_float, "1", 1.0),
         (types.to_bool, "true", True),
         (types.to_bool, "false", False),
-        (types.to_bool, "Y", True),
-        (types.to_bool, "N", False),
-        (types.to_bool, "On", True),
-        (types.to_bool, "Off", False),
-        (types.to_bool, "YES", True),
-        (types.to_bool, "NO", False),
+        (types.to_bool, "True", True),
+        (types.to_bool, "False", False),
     ],
 )
 # pylint: disable=too-many-arguments
