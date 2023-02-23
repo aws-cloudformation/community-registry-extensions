@@ -62,6 +62,8 @@ def handler(event, context): #pylint:disable=W0613
         extension_prefix = "pagerduty"
     elif repo1 == "cloudformation-newrelic-resource-providers":
         extension_prefix = "newrelic"
+    elif repo1 == "cloudformation-gitlab-resource-providers":
+        extension_prefix = "gitlab"
     else:
         raise Exception("Unexpected repo: " + repo)
 
