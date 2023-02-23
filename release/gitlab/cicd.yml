@@ -299,6 +299,171 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
 
+  GitLabGroupsGroupBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  GitLabGroupsGroupBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      Roles:
+        - !Ref GitLabGroupsGroupBuildProjectRole
+
+  GitLabGroupsGroupBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-groupsgroup"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "GitLab-Groups-Group"
+          - Name: GITLAB_PARENT_GROUP_ID
+            Type: PARAMETER_STORE
+            Value: "cep-gitlab-parent-group-id"
+      ServiceRole: !GetAtt GitLabGroupsGroupBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  GitLabGroupsGroupAccessToGroupBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  GitLabGroupsGroupAccessToGroupBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      Roles:
+        - !Ref GitLabGroupsGroupAccessToGroupBuildProjectRole
+
+  GitLabGroupsGroupAccessToGroupBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-groupaccesstogroup"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "GitLab-Groups-GroupAccessToGroup"
+          - Name: GITLAB_SHARED_GROUP_ID
+            Type: PARAMETER_STORE
+            Value: "cep-gitlab-shared-group-id"
+          - Name: GITLAB_GROUP_ID
+            Type: PARAMETER_STORE
+            Value: "cep-gitlab-group-id"
+      ServiceRole: !GetAtt GitLabGroupsGroupAccessToGroupBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  GitLabGroupsUserMemberOfGroupBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  GitLabGroupsUserMemberOfGroupBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      Roles:
+        - !Ref GitLabGroupsUserMemberOfGroupBuildProjectRole
+
+  GitLabGroupsUserMemberOfGroupBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-groupsusermemberofgroup"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "GitLab-Groups-UserMemberOfGroup"
+          - Name: GITLAB_PARENT_GROUP_ID
+            Type: PARAMETER_STORE
+            Value: "cep-gitlab-parent-group-id"
+          - Name: GITLAB_SHARED_USER_ID
+            Type: PARAMETER_STORE
+            Value: "cep-gitlab-shared-user-id"
+          - Name: GITLAB_SHARED_USER_NAME
+            Type: PARAMETER_STORE
+            Value: "cep-gitlab-shared-user-name"
+      ServiceRole: !GetAtt GitLabGroupsUserMemberOfGroupBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -351,6 +516,9 @@ Resources:
                   - codebuild:BatchGetBuilds
                 Effect: Allow
                 Resource:
+                  - !GetAtt GitLabGroupsUserMemberOfGroupBuildProject.Arn
+                  - !GetAtt GitLabGroupsGroupAccessToGroupBuildProject.Arn
+                  - !GetAtt GitLabGroupsGroupBuildProject.Arn
                   - !GetAtt GitLabCodeTagBuildProject.Arn
                   - !GetAtt GitLabProjectsUserMemberOfProjectBuildProject.Arn
                   - !GetAtt GitLabProjectsGroupAccessToProjectBuildProject.Arn
@@ -408,6 +576,9 @@ Resources:
               AWS:
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
+                - !GetAtt GitLabGroupsUserMemberOfGroupBuildProjectRole.Arn
+                - !GetAtt GitLabGroupsGroupAccessToGroupBuildProjectRole.Arn
+                - !GetAtt GitLabGroupsGroupBuildProjectRole.Arn
                 - !GetAtt GitLabCodeTagBuildProjectRole.Arn
                 - !GetAtt GitLabProjectsUserMemberOfProjectBuildProjectRole.Arn
                 - !GetAtt GitLabProjectsGroupAccessToProjectBuildProjectRole.Arn
@@ -464,6 +635,63 @@ Resources:
                 - Name: extensions-source
         - Name: Build
           Actions:
+            - Name: GitLabGroupsUserMemberOfGroup
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitLabGroupsUserMemberOfGroupBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitLab-Groups-UserMemberOfGroup"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: GitLabGroupsGroupAccessToGroup
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitLabGroupsGroupAccessToGroupBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitLab-Groups-GroupAccessToGroup"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: GitLabGroupsGroup
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref GitLabGroupsGroupBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "GitLab-Groups-Group"
+                    }
+                  ]
+              RunOrder: 1
             - Name: GitLabCodeTag
               InputArtifacts:
                 - Name: extensions-source
