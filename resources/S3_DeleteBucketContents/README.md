@@ -33,6 +33,21 @@ Resources:
       BucketName: !Ref Bucket
 ```
 
+### Activation
+
+In order to use this resource, you will need to activate it in each account and region where you want to incorporate it into CloudFormation templates. 
+
+1. Log in to the AWS Console
+2. Got to CloudFormation and select `Public extensions` from the menu. Choose `Third party` under `Publisher`.
+3. Select `AwsCommunity::S3::DeleteBucketContents`
+
+<img src="https://github.com/aws-cloudformation/community-registry-extensions/blob/main/resources/S3_DeleteBucketContents/activation.png?raw=true" width="80%" />
+
+4. Click on the `Activate` button.
+5. On the following screen, you *must* enter an execution role ARN. It appears optional in the user interface, but it is not. Stack creation will fail if you do not create a role and enter the ARN here. The easiest way to create this role is to deploy the [resource-role-prod.yaml](./resource-role-prod.yaml) template, which creates a role with the necessary permissions. An Administrator role will not work, since it does not have the right trust policy, and is not recommended since it is not scoped down to only what is required for the resource handlers to work.
+6. Click Activate Extension
+7. Repeat this process for all other regions and accounts where you want to use the resource.
+
 ## Development
 
 Open two tabs in your terminal.
