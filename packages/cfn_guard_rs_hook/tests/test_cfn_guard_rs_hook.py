@@ -2,22 +2,23 @@
     Test cfn_guard_rs_hook
 """
 from dataclasses import dataclass
+
 import pytest
 from cloudformation_cli_python_lib import (
-    HookInvocationPoint,
-    ProgressEvent,
-    OperationStatus,
     HandlerErrorCode,
+    HookInvocationPoint,
+    OperationStatus,
+    ProgressEvent,
 )
-from cfn_guard_rs_hook import __version__, GuardHook
-from cfn_guard_rs_hook import types
 
-from .helpers import create_request
+from cfn_guard_rs_hook import GuardHook, __version__, types
+
 from .fixtures import (
-    rules_s3_bucket_public_access,
-    rules_s3_bucket_default_lock_enabled,
     rules_invalid_syntax,
+    rules_s3_bucket_default_lock_enabled,
+    rules_s3_bucket_public_access,
 )
+from .helpers import create_request
 
 
 def test_version():
@@ -214,17 +215,11 @@ def test_transactions(
                 "Resources": {
                     "ResourceName": {
                         "Type": "Community::S3Bucket::Encryption",
-                        "Properties": {
-                            "test": {
-                                "key": True
-                            }
-                        }
+                        "Properties": {"test": {"key": True}},
                     }
                 }
             },
-            [
-                types.Converter("test.key", types.to_bool)
-            ]
+            [types.Converter("test.key", types.to_bool)],
         ),
         (
             "Community::S3Bucket::Encryption",
@@ -233,15 +228,11 @@ def test_transactions(
                 "Resources": {
                     "ResourceName": {
                         "Type": "Community::S3Bucket::Encryption",
-                        "Properties": {
-                            "test": [0, 1]
-                        }
+                        "Properties": {"test": [0, 1]},
                     }
                 }
             },
-            [
-                types.Converter("test[*]", types.to_int)
-            ]
+            [types.Converter("test[*]", types.to_int)],
         ),
         (
             "Community::S3Bucket::Encryption",
@@ -251,35 +242,28 @@ def test_transactions(
                     "ResourceName": {
                         "Type": "Community::S3Bucket::Encryption",
                         "Properties": {
-                            "Tags": [{"Key": "Key", "Value": 1}, {"Key": "Key", "Value": 2}]
-                        }
+                            "Tags": [
+                                {"Key": "Key", "Value": 1},
+                                {"Key": "Key", "Value": 2},
+                            ]
+                        },
                     }
                 }
             },
-            [
-                types.Converter("Tags[*].Value", types.to_int)
-            ]
+            [types.Converter("Tags[*].Value", types.to_int)],
         ),
         (
             "Community::S3Bucket::Encryption",
-            {"test": { "nested": { "key": "3.14159"}}},
+            {"test": {"nested": {"key": "3.14159"}}},
             {
                 "Resources": {
                     "ResourceName": {
                         "Type": "Community::S3Bucket::Encryption",
-                        "Properties": {
-                            "test": {
-                                "nested": {
-                                    "key": 3.14159
-                                }
-                            }
-                        }
+                        "Properties": {"test": {"nested": {"key": 3.14159}}},
                     }
                 }
             },
-            [
-                types.Converter("test.nested.key", types.to_float)
-            ]
+            [types.Converter("test.nested.key", types.to_float)],
         ),
     ],
 )

@@ -2,18 +2,14 @@
     Helpers for testing
 """
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Mapping,
-    Optional,
-    Type,
-)
-from cloudformation_cli_python_lib.interface import BaseModel
+from typing import Any, Mapping, Optional, Type
+
 from cloudformation_cli_python_lib import (
     BaseHookHandlerRequest,
     HookContext,
     HookInvocationPoint,
 )
+from cloudformation_cli_python_lib.interface import BaseModel
 
 
 @dataclass
