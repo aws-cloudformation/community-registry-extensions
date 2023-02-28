@@ -1,12 +1,18 @@
 #!/bin/bash
 #
-# Publish a resource to all regions
+# Publish an extension to all regions
 #
-# Run this from the resource folder
+# Run this from the extension (resource/module/hook) folder
+# 
+# Usage: 
+# 
+# cd to extension directory, e.g. resources/S3_DeleteBucketContents
+#
+# ../release/publish-regions.sh RESOURCE|MODULE|HOOK
 
 regions_to_publish=(us-east-1 af-south-1 ap-east-1 ap-northeast-1 ap-northeast-2 ap-northeast-3 ap-south-1 ap-southeast-1 ap-southeast-2 ap-southeast-3 ca-central-1 eu-central-1 eu-north-1 eu-south-1 eu-west-1 eu-west-2 eu-west-3 me-central-1 me-south-1 sa-east-1 us-east-2 us-west-1 us-west-2 eu-central-2 eu-south-2 ap-south-2)
 
-# Errors:
+# Errors (known issues with a few regions that we have to skip for now):
 
 # This is a registry bug
 
@@ -22,7 +28,6 @@ regions_to_publish=(us-east-1 af-south-1 ap-east-1 ap-northeast-1 ap-northeast-2
 # An error occurred (CFNRegistryException) when calling the PublishType operation: The account 387586997764 is not verified as a publisher. Please register as publisher first
 #Publishing to eu-central-2 failed
 #Publishing to ap-south-2 failed
-
 
 # Use this to test succeed-fail locally
 #regions_to_publish=(us-east-1 us-seattle)
@@ -63,8 +68,8 @@ for region in ${regions_to_publish[@]}
 do
     echo "About to start publishing to $region"
 
-    ../../release/deregister-all.sh $region RESOURCE
-    ../../release/publish-resource.sh $region
+    ../../release/deregister-all.sh $region $EXT_TYPE
+    ../../release/publish.sh $region $EXT_TYPE
 
     if [ "$?" -eq 0 ]
     then
@@ -88,3 +93,4 @@ for f in "${failures[@]}"
 do
     echo $f
 done
+
