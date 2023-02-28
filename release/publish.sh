@@ -19,20 +19,18 @@ set -eou pipefail
 export AWS_REGION=$1
 export EXT_TYPE=$2
 
+echo "About to publish $EXT_TYPE to $AWS_REGION"
+
 TYPE_NAME=$(cat .rpdk-config | jq -r .typeName)
 
 # Create or update the setup stack
 SETUP_STACK_NAME="setup-prod-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
 if [ -f "test/setup.yml" ]
 then
-    rain deploy test/setup.yml $SETUP_STACK_NAME
+    rain deploy test/setup.yml $SETUP_STACK_NAME -y
 else
     echo "Did not find test/setup.yml, skipping setup stack"
 fi
-
-# Overwrite the role stack to fix the broken Condition.
-# test-type does not use the role we register, it re-deploys the stack
-cp resource-role-prod.yaml resource-role.yaml
 
 # For example, awscommunity-s3-deletebucketcontents
 TYPE_NAME_LOWER="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"
@@ -60,12 +58,16 @@ HANDLER_BUCKET="cep-handler-${ACCOUNT_ID}"
 # The execution role is not required by modules
 if [ "$EXT_TYPE" != "MODULE" ]
 then
+    # Overwrite the role stack to fix the broken Condition.
+    # test-type does not use the role we register, it re-deploys the stack
+    cp resource-role-prod.yaml resource-role.yaml
+
     ROLE_STACK_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')-prod-role-stack"
     echo "ROLE_STACK_NAME is $ROLE_STACK_NAME"
     echo ""
 
     # Create or update the role stack
-    rain deploy resource-role-prod.yaml $ROLE_STACK_NAME
+    rain deploy resource-role.yaml $ROLE_STACK_NAME -y
 
     echo "About to describe stack to get the role arn"
     ROLE_ARN=$(aws --no-cli-pager cloudformation --region $AWS_REGION describe-stacks --stack-name $ROLE_STACK_NAME | jq ".Stacks|.[0]|.Outputs|.[0]|.OutputValue" | sed s/\"//g)
@@ -125,6 +127,7 @@ echo ""
 
 # Modules don't have type config
 if [ "$EXT_TYPE" != "MODULE" ]
+then
     # Set the type configuration
     if [ -f "get_type_configuration.py" ]
     then
@@ -175,7 +178,7 @@ fi
 # This is mainly for sandbox accounts where it would conflict with alpha
 if [ -f "test/setup.yml" ]
 then
-    rain rm $SETUP_STACK_NAME
+    rain rm $SETUP_STACK_NAME -y
 fi
 
 if [ "$TEST_STATUS" == "FAILED" ] 

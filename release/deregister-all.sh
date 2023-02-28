@@ -12,16 +12,17 @@
 #   $2 RESOURCE|MODULE
 
 AWS_REGION=$1
+EXT_TYPE=$2
 
 TYPE_NAME=$(cat .rpdk-config | jq -r .typeName)
 
-echo "About to deregister all private versions in $AWS_REGION for $TYPE_NAME"
+echo "About to deregister all private versions in $AWS_REGION for $EXT_TYPE $TYPE_NAME"
 
 # Iterate over all versions and deregister them
-aws cloudformation --region $AWS_REGION list-type-versions --type $2 \
+aws cloudformation --region $AWS_REGION list-type-versions --type $EXT_TYPE \
     --type-name $TYPE_NAME | jq     '.TypeVersionSummaries[] | .Arn' | \
     xargs -n1 aws cloudformation --region $AWS_REGION deregister-type --arn
 
 # The above will fail for the default version
-aws cloudformation --region $AWS_REGION deregister-type --type $2 --type-name $TYPE_NAME || true
+aws cloudformation --region $AWS_REGION deregister-type --type $EXT_TYPE --type-name $TYPE_NAME || true
 
