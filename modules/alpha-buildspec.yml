@@ -24,15 +24,15 @@ phases:
       - cfn validate
       - cfn generate
       - SETUP_STACK_NAME="setup-$(echo $MODULE_PATH | sed s/modules\\///g | sed s/_/-/g)"
-      - if test -e ./test/setup.yml; then rain deploy test/setup.yml $SETUP_STACK_NAME; fi
+      - if test -e ./test/setup.yml; then rain deploy test/setup.yml $SETUP_STACK_NAME -y; fi
       - cfn submit --set-default
       - ./setup.sh
       - INTEG_STACK_NAME="integ-$(echo $MODULE_PATH | sed s/modules\\///g | sed s/_/-/g)"
-      - rain deploy test/integ.yml $INTEG_STACK_NAME 
+      - rain deploy test/integ.yml $INTEG_STACK_NAME -y
     finally:
       - cat rpdk.log
-      - if test -e ./test/setup.yml; then rain rm $SETUP_STACK_NAME; fi
-      - rain rm $INTEG_STACK_NAME
+      - if test -e ./test/setup.yml; then rain rm $SETUP_STACK_NAME -y; fi
+      - rain rm $INTEG_STACK_NAME -y
       - ./cleanup.sh
 
 

@@ -27,10 +27,10 @@ phases:
       - ../../release/deregister-all.sh us-east-1 RESOURCE
       - cfn submit --set-default
       - INTEG_STACK_NAME="integ-$(echo $ENTRY_PATH | sed s/_/-/g)"
-      - rain deploy test/integ.yml $INTEG_STACK_NAME 
+      - rain deploy test/integ.yml $INTEG_STACK_NAME -y
     finally:
       - cat rpdk.log
-      - rain rm $INTEG_STACK_NAME
+      - rain rm $INTEG_STACK_NAME -y
 
 artifacts:
   files:
