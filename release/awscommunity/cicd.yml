@@ -842,33 +842,25 @@ Resources:
                     }
                   ]
               RunOrder: 1
-            - !If
-              - IsAlpha
-              - Name: S3BucketModule
-                InputArtifacts:
-                  - Name: extensions-source
-                ActionTypeId:
-                  Category: Build
-                  Owner: AWS
-                  Provider: CodeBuild
-                  Version: 1
-                Configuration:
-                  ProjectName: !Ref S3BucketModuleBuildProject
-                  # BatchEnabled: 
-                  #   !If
-                  #     - IsProd
-                  #     - true
-                  #     - false
-                  EnvironmentVariables: |-
-                    [
-                      {
-                        "name": "MODULE_PATH",
-                        "type": "PLAINTEXT",
-                        "value": "modules/S3_Bucket"
-                      }
-                    ]
-                RunOrder: 1
-              - !Ref AWS::NoValue
+            - Name: S3BucketModule
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref S3BucketModuleBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "MODULE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "modules/S3_Bucket"
+                    }
+                  ]
+              RunOrder: 1
         - !If
           - IsBeta
           - Name: CopyBuildToProd
@@ -1258,6 +1250,10 @@ Resources:
       Timeout: 120
       Role: !GetAtt DelayFunctionRole.Arn
       Runtime: python3.7
-      Code: delay.py 
+      Code: !Rain::S3 
+        Path: ../delay.py 
+        Zip: true
+        BucketProperty: S3Bucket
+        KeyProperty: S3Key
       MemorySize: 1024
 
