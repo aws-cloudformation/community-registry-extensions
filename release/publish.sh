@@ -12,16 +12,14 @@
 # Args: 
 #
 #   $1 The region to publish to
-#   $2 The extension type: RESOURCE|MODULE|HOOK
 
 set -eou pipefail
 
 export AWS_REGION=$1
-export EXT_TYPE=$2
-
-echo "About to publish $EXT_TYPE to $AWS_REGION"
-
+EXT_TYPE=$(cat .rpdk-config | jq -r .artifact_type)
 TYPE_NAME=$(cat .rpdk-config | jq -r .typeName)
+
+echo "About to publish $EXT_TYPE $TYPE_NAME to $AWS_REGION"
 
 # Create or update the setup stack
 SETUP_STACK_NAME="setup-prod-$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')"

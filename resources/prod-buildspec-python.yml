@@ -22,6 +22,6 @@ phases:
     commands:
       - echo Entered the build phase...
       - ls -l ../../release
-      - ../../release/publish-resource-regions.sh
+      - ../../release/publish-regions.sh
     finally:
       - cat rpdk.log
