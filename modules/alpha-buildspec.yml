@@ -24,19 +24,15 @@ phases:
       - cfn validate
       - cfn generate
       - SETUP_STACK_NAME="setup-$(echo $MODULE_PATH | sed s/modules\\///g | sed s/_/-/g)"
-      - if test -e ./test/setup.yml; then aws cloudformation create-stack --stack-name $SETUP_STACK_NAME --template-body file://test/setup.yml; fi
-      - if test -e ./test/setup.yml; then aws cloudformation wait stack-create-complete --stack-name $SETUP_STACK_NAME; fi
+      - if test -e ./test/setup.yml; then rain deploy test/setup.yml $SETUP_STACK_NAME; fi
       - cfn submit --set-default
       - ./setup.sh
       - INTEG_STACK_NAME="integ-$(echo $MODULE_PATH | sed s/modules\\///g | sed s/_/-/g)"
-      - aws cloudformation create-stack --stack-name $INTEG_STACK_NAME --template-body file://test/integ.yml --capabilities CAPABILITY_AUTO_EXPAND
-      - aws cloudformation wait stack-create-complete --stack-name $INTEG_STACK_NAME
+      - rain deploy test/integ.yml $INTEG_STACK_NAME 
     finally:
       - cat rpdk.log
-      - if test -e ./test/setup.yml; then aws cloudformation delete-stack --stack-name $SETUP_STACK_NAME; fi
-      - if test -e ./test/setup.yml; then aws cloudformation wait stack-delete-complete --stack-name $SETUP_STACK_NAME; fi
-      - aws cloudformation delete-stack --stack-name $INTEG_STACK_NAME
-      - aws cloudformation wait stack-delete-complete --stack-name $INTEG_STACK_NAME
+      - if test -e ./test/setup.yml; then rain rm $SETUP_STACK_NAME; fi
+      - rain rm $INTEG_STACK_NAME
       - ./cleanup.sh
 
 
