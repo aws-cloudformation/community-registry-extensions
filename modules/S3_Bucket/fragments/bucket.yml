@@ -24,8 +24,8 @@ Resources:
             reason: "This is the log bucket"
           - id: W51
             reason: "Will be added by the consumer"
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
       BucketName: !Ref LogBucketName
       BucketEncryption:
@@ -48,8 +48,8 @@ Resources:
         rules_to_suppress:
           - id: W51
             reason: "Will be added by the consumer"
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
       BucketName: !Ref BucketName
       LoggingConfiguration:
