@@ -23,7 +23,7 @@ phases:
       - echo Entered the build phase...
       - ./setup.sh
       - ls -l ../../release
-      - ../../release/publish-module-regions.sh
+      - ../../release/publish-regions.sh
     finally:
       - cat rpdk.log
       - ./cleanup.sh
