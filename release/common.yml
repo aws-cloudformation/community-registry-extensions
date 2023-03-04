@@ -271,7 +271,11 @@ Resources:
     Type: AWS::Lambda::Function
     Condition: IsNotProd
     Properties:
-      Code: webhook.py
+      Code: !Rain::S3 
+        Path: webhook.py
+        Zip: true
+        BucketProperty: S3Bucket
+        KeyProperty: S3Key
       Role: !GetAtt WebHookHandlerRole.Arn
       Handler: webhook.handler
       Runtime: python3.7
