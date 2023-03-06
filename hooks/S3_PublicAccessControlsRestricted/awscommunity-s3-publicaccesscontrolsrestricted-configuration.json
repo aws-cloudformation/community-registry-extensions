@@ -1,0 +1,6 @@
+{
+    "properties": {},
+    "additionalProperties": false,
+    "definitions": {},
+    "typeName": "AwsCommunity::S3::PublicAccessControlsRestricted"
+}

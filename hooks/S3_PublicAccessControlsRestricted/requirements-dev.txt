@@ -1,0 +1,6 @@
+cfn-lint==0.73.1
+git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
+cloudformation-cli-python-lib==2.1.15
+cloudformation-cli-python-plugin==2.1.7
+pylint==2.15.2
+pytest==7.2.0
