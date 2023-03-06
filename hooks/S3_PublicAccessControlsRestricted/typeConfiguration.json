@@ -2,7 +2,7 @@
   "CloudFormationConfiguration": {
     "HookConfiguration": {
       "TargetStacks": "NONE",
-      "FailureMode": "WARN",
+      "FailureMode": "FAIL",
       "Properties": {}
     }
   }

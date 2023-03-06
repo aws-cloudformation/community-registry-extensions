@@ -1,39 +1,58 @@
 # AwsCommunity::S3::PublicAccessControlsRestricted
 
-Congratulations on starting development! Next steps:
+Validates any resource of type `AWS::S3::Bucket` has the public access controls restricted.
 
-1. Write the JSON schema describing your resource, `awscommunity-s3-publicaccesscontrolsrestricted.json`
-2. Implement your resource handlers in `awscommunity_s3_publicaccesscontrolsrestricted/handlers.py`
+## Configuration
 
-> Don't modify `models.py` by hand, any modifications will be overwritten when the `generate` or `package` commands are run.
+```bash
+# Create a basic type configuration json
+cat <<EOF > typeConfiguration.json
+{
+  "CloudFormationConfiguration": {
+    "HookConfiguration": {
+      "TargetStacks": "ALL",
+      "FailureMode": "FAIL",
+      "Properties": {}
+    }
+  }
+}
+EOF
 
-Implement CloudFormation resource here. Each function must always return a ProgressEvent.
-
-```python
-ProgressEvent(
-    # Required
-    # Must be one of OperationStatus.IN_PROGRESS, OperationStatus.FAILED, OperationStatus.SUCCESS
-    status=OperationStatus.IN_PROGRESS,
-    # Required on SUCCESS (except for LIST where resourceModels is required)
-    # The current resource model after the operation; instance of ResourceModel class
-    resourceModel=model,
-    resourceModels=None,
-    # Required on FAILED
-    # Customer-facing message, displayed in e.g. CloudFormation stack events
-    message="",
-    # Required on FAILED: a HandlerErrorCode
-    errorCode=HandlerErrorCode.InternalFailure,
-    # Optional
-    # Use to store any state between re-invocation via IN_PROGRESS
-    callbackContext={},
-    # Required on IN_PROGRESS
-    # The number of seconds to delay before re-invocation
-    callbackDelaySeconds=0,
-)
+# enable the hook
+aws cloudformation set-type-configuration \
+  --configuration file://typeConfiguration.json \
+  --type HOOK \
+  --type-name AwsCommunity::S3::PublicAccessControlsRestricted
 ```
 
-Failures can be passed back to CloudFormation by either raising an exception from `cloudformation_cli_python_lib.exceptions`, or setting the ProgressEvent's `status` to `OperationStatus.FAILED` and `errorCode` to one of `cloudformation_cli_python_lib.HandlerErrorCode`. There is a static helper function, `ProgressEvent.failed`, for this common case.
+## Example templates
 
-## What's with the type hints?
+The Hook will find this template to be non-compliant.
+```yaml
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  S3BucketWithNoProperties:
+    Type: 'AWS::S3::Bucket'
+  S3BucketWithNoProperties:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: False
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+```
 
-We hope they'll be useful for getting started quicker with an IDE that support type hints. Type hints are optional - if your code doesn't use them, it will still work.
+This template will be found as compliant and deploy successfully.
+```yaml
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  S3BucketCompliant:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+```
