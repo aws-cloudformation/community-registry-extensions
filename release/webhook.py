@@ -66,6 +66,8 @@ def handler(event, context): #pylint:disable=W0613
         extension_prefix = "gitlab"
     elif repo1 == "cloudformation-dynatrace-resource-providers":
         extension_prefix = "dynatrace"
+    elif repo1 == "cloudformation-databricks-resource-providers":
+        extension_prefix = "databricks"
     else:
         raise Exception("Unexpected repo: " + repo)
 
