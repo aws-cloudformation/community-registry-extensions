@@ -24,6 +24,8 @@ resource = Resource(TYPE_NAME, ResourceModel)
 test_entrypoint = resource.test_entrypoint
 
 
+
+
 @resource.handler(Action.CREATE)
 def create_handler(
     session: Optional[SessionProxy],
@@ -39,9 +41,13 @@ def create_handler(
     try:
         if model is not None:
             item = model.Item
+            # Item could be none if we are just adding a PK or PK&SK
+            # We need to empty it out for API purposes
             if item is None:
                item = {}
 
+            # Build a condition to make sure we aren't overwriting an existing record
+            # for Cfn purposes PK/SK are part of the identifier
             condition = ""
             if model.Key is not None:
                 for k, v in model.Key.items():
@@ -83,9 +89,13 @@ def update_handler(
     try:
         if model is not None:
             item = model.Item
+            # Item could be none if we are just adding a PK or PK&SK
+            # We need to empty it out for API purposes
             if item is None:
                item = {}
 
+            # Build a condition to make sure we are updating an existing record
+            # for Cfn purposes the item has to exist already to do an update
             condition = ""
             if model.Key is not None:
                 for k, v in model.Key.items():
@@ -129,6 +139,8 @@ def delete_handler(
         if model is not None:
             if isinstance(session, SessionProxy):
                 
+                # Build a condition to make sure we are deleting an existing record
+                # for Cfn purposes the item has to exist already to do a delete
                 condition = ""
                 if model.Key is not None:
                     for k, v in model.Key.items():
