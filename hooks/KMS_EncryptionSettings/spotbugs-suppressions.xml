@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <Package name="~com\.awscommunity\.kms\.encryptionsettings\.services\..*"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Package name="~com\.awscommunity\.kms\.encryptionsettings\.model\..*"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Package name="~com\.awscommunity\.kms\.encryptionsettings\.model\..*"/>
+        <Bug pattern="NM_CONFUSING"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.kms.encryptionsettings.factory.AwsKmsIntegratedServiceFactoryImpl$AwsKmsIntegratedServiceFactoryImplBuilder"/>
+        <Method name="callbackContext"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.kms.encryptionsettings.factory.AwsKmsIntegratedServiceFactoryImpl$AwsKmsIntegratedServiceFactoryImplBuilder"/>
+        <Method name="request"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.kms.encryptionsettings.factory.AwsKmsIntegratedServiceFactoryImpl$AwsKmsIntegratedServiceFactoryImplBuilder"/>
+        <Method name="typeConfiguration"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.kms.encryptionsettings.PreCreatePreUpdateHookHandlerCommonTests"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.kms.encryptionsettings.BaseHookConfiguration"/>
+        <Method name="equals"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.kms.encryptionsettings.BaseHookConfiguration"/>
+        <Method name="hashCode"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.kms.encryptionsettings.HookHandlerWrapper"/>
+        <Method name="provideHookSchemaJSONObject"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.kms.encryptionsettings.HookHandlerWrapperExecutable"/>
+        <Method name="readFileToSystemOut"/>
+        <Bug pattern="DM_DEFAULT_ENCODING"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.kms.encryptionsettings.HookHandlerWrapperExecutable"/>
+        <Method name="provideHookSchemaJSONObject"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+</FindBugsFilter>
