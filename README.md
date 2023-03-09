@@ -8,8 +8,7 @@ types](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-
 [modules](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/modules.html),
 and
 [hooks](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/hooks.html).
-Modules are authored as templates in either JSON or YAML. Resource types and
-hooks can be authored in Java, Go, Python, or Typescript, using the
+Modules are authored as templates in either JSON or YAML. Resource types can be authored in Java, Go, Python, or Typescript, using the
 [CloudFormation Command Line Interface (CFN
 CLI)](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html)
 for project setup and testing. 
