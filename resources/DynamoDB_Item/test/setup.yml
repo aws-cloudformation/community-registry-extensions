@@ -1,0 +1,20 @@
+Resources:
+  Table:
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+Outputs:
+  TableName:
+    Value: !Ref Table
+    Export:
+      Name: TableForItemTest
+
+
+
