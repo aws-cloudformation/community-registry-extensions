@@ -1,6 +1,6 @@
 {
     "typeName": "AwsCommunity::KMS::EncryptionSettings",
-    "description": "This hook for AWS CloudFormation performs policy-as-code validation of AWS KMS encryption-related, user-provided configuration settings of AWS resources that support KMS, and that are supported in this hook.  Refer to `Supported resource types and properties in this hook` in this page: https://github.com/aws-cloudformation/community-registry-extensions/blob/main/hooks/KMS_EncryptionSettings/README.md for more information.",
+    "description": "This hook performs policy-as-code validation of AWS Key Management Service (KMS) encryption-related, user-provided configuration settings.",
     "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/hooks/KMS_EncryptionSettings",
     "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/blob/main/hooks/KMS_EncryptionSettings/README.md",
     "typeConfiguration": {
