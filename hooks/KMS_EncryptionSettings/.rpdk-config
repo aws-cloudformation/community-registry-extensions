@@ -1,0 +1,28 @@
+{
+    "artifact_type": "HOOK",
+    "typeName": "AwsCommunity::KMS::EncryptionSettings",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "com.awscommunity.kms.encryptionsettings.HookHandlerWrapper::handleRequest",
+    "testEntrypoint": "com.awscommunity.kms.encryptionsettings.HookHandlerWrapper::testEntrypoint",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "artifact_type": null,
+        "endpoint_url": null,
+        "region": null,
+        "target_schemas": [],
+        "namespace": [
+            "com",
+            "awscommunity",
+            "kms",
+            "encryptionsettings"
+        ],
+        "codegen_template_path": "guided_aws",
+        "protocolVersion": "2.0.0"
+    },
+    "executableEntrypoint": "com.awscommunity.kms.encryptionsettings.HookHandlerWrapperExecutable"
+}
