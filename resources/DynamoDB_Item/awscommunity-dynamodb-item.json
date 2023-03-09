@@ -1,15 +1,15 @@
 {
   "typeName": "AwsCommunity::DynamoDB::Item",
-  "description": "This resource will create manage the lifecycle of items in a DynamoDB tableawscommunity-dynamodb-item.json",
+  "description": "This resource will manage the lifecycle of items in a DynamoDB table",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
   "definitions": {
     "MapAttribute": {
-        "patternProperties": {
-            "^[A-Za-z0-9_@./#&+-]{1,255}$": {
-              "$ref": "#/definitions/AttributeValue"
-            }
-          },
-          "additionalProperties": false
+      "patternProperties": {
+        "^[A-Za-z0-9_@./#&+-]{1,255}$": {
+          "$ref": "#/definitions/AttributeValue"
+        }
+      },
+      "additionalProperties": false
     },
     "AttributeValue": {
       "properties": {
@@ -17,11 +17,11 @@
           "type": "boolean"
         },
         "L": {
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/AttributeValue"
-            },
-            "insertionOrder": true
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AttributeValue"
+          },
+          "insertionOrder": true
         },
         "M": {
           "$ref": "#/definitions/MapAttribute"
@@ -51,14 +51,46 @@
         }
       },
       "oneOf": [
-        {"required": ["BOOL"]},
-        {"required": ["L"]},
-        {"required": ["M"]},
-        {"required": ["N"]},
-        {"required": ["NS"]},
-        {"required": ["NULL"]},
-        {"required": ["S"]},
-        {"required": ["SS"]}
+        {
+          "required": [
+            "BOOL"
+          ]
+        },
+        {
+          "required": [
+            "L"
+          ]
+        },
+        {
+          "required": [
+            "M"
+          ]
+        },
+        {
+          "required": [
+            "N"
+          ]
+        },
+        {
+          "required": [
+            "NS"
+          ]
+        },
+        {
+          "required": [
+            "NULL"
+          ]
+        },
+        {
+          "required": [
+            "S"
+          ]
+        },
+        {
+          "required": [
+            "SS"
+          ]
+        }
       ],
       "additionalProperties": false
     },
@@ -71,22 +103,22 @@
       "additionalProperties": false
     },
     "Key": {
-        "patternProperties": {
-          "^[A-Za-z0-9_@./#&+-]{1,255}$": {
-            "$ref": "#/definitions/AttributeValue"
-          }
-        },
-        "minProperties": 1,
-        "maxProperties": 2,
-        "additionalProperties": false
-      }
+      "patternProperties": {
+        "^[A-Za-z0-9_@./#&+-]{1,255}$": {
+          "$ref": "#/definitions/AttributeValue"
+        }
+      },
+      "minProperties": 1,
+      "maxProperties": 2,
+      "additionalProperties": false
+    }
   },
   "properties": {
     "Item": {
       "$ref": "#/definitions/Attribute"
     },
     "Key": {
-        "$ref": "#/definitions/Key"
+      "$ref": "#/definitions/Key"
     },
     "TableName": {
       "type": "string",
@@ -94,24 +126,45 @@
     }
   },
   "additionalProperties": false,
-  "required": ["TableName", "Pk"],
-  "primaryIdentifier": ["/properties/TableName"],
-  "createOnlyProperties": ["/properties/TableName"],
+  "required": [
+    "TableName",
+    "Pk"
+  ],
+  "primaryIdentifier": [
+    "/properties/TableName"
+  ],
+  "createOnlyProperties": [
+    "/properties/TableName"
+  ],
   "additionalIdentifiers": [
-    ["/properties/Pk"], ["/properties/Pk", "/properties/Sk"]
+    [
+      "/properties/Pk"
+    ],
+    [
+      "/properties/Pk",
+      "/properties/Sk"
+    ]
   ],
   "handlers": {
     "create": {
-      "permissions": ["dynamodb:PutItem"]
+      "permissions": [
+        "dynamodb:PutItem"
+      ]
     },
     "read": {
-      "permissions": ["dynamodb:GetItem"]
+      "permissions": [
+        "dynamodb:GetItem"
+      ]
     },
     "update": {
-      "permissions": ["dynamodb:PutItem"]
+      "permissions": [
+        "dynamodb:PutItem"
+      ]
     },
     "delete": {
-      "permissions": ["dynamodb:DeleteItem"]
+      "permissions": [
+        "dynamodb:DeleteItem"
+      ]
     }
   }
 }
