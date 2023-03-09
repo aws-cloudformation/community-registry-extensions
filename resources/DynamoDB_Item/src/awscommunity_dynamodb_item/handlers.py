@@ -1,7 +1,7 @@
 import logging
 import json
 from botocore.exceptions import ClientError
-from typing import Any, MutableMapping, Optional
+from typing import Any, MutableMapping, Optional, Tuple
 
 from cloudformation_cli_python_lib import (
     Action,
@@ -14,7 +14,7 @@ from cloudformation_cli_python_lib import (
     identifier_utils,
 )
 
-from .models import ResourceHandlerRequest, ResourceModel
+from .models import ResourceHandlerRequest, ResourceModel, _AttributeValue
 
 # Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
@@ -24,6 +24,22 @@ resource = Resource(TYPE_NAME, ResourceModel)
 test_entrypoint = resource.test_entrypoint
 
 
+def _build_condition(key: Optional[MutableMapping[str, _AttributeValue]], item: MutableMapping[str, _AttributeValue], exists: bool) -> Tuple[str, MutableMapping[str, _AttributeValue]]:
+    """ Build a condition for validating if the record should or shouldn't exist.
+        If we are doing a create it shouldn't exist.
+        If we are doing an update/delete/read it should exist
+    """
+    attribute = "attribute_exists" if exists else "attribute_not_exists"
+    
+    condition = ""
+    if key is not None:
+        for k, v in key.items():
+            item[k] = v
+            if condition != "":
+                condition = f"{condition} AND {attribute}({k})"
+            else:
+                condition = f"{attribute}({k})"
+    return (condition, item)
 
 
 @resource.handler(Action.CREATE)
@@ -40,22 +56,12 @@ def create_handler(
    
     try:
         if model is not None:
-            item = model.Item
             # Item could be none if we are just adding a PK or PK&SK
             # We need to empty it out for API purposes
+            item = model.Item
             if item is None:
                item = {}
-
-            # Build a condition to make sure we aren't overwriting an existing record
-            # for Cfn purposes PK/SK are part of the identifier
-            condition = ""
-            if model.Key is not None:
-                for k, v in model.Key.items():
-                    item[k] = v
-                    if condition != "":
-                        condition = f"{condition} AND attribute_not_exists({k})"
-                    else:
-                        condition = f"attribute_not_exists({k})"
+            condition, item = _build_condition(model.Key, item, False)
             if isinstance(session, SessionProxy):
                 client = session.client("dynamodb")
                 client.put_item(
@@ -94,16 +100,7 @@ def update_handler(
             if item is None:
                item = {}
 
-            # Build a condition to make sure we are updating an existing record
-            # for Cfn purposes the item has to exist already to do an update
-            condition = ""
-            if model.Key is not None:
-                for k, v in model.Key.items():
-                    item[k] = v
-                    if condition != "":
-                        condition = f"{condition} AND attribute_exists({k})"
-                    else:
-                        condition = f"attribute_exists({k})"
+            condition, item = _build_condition(model.Key, item, True)
             if isinstance(session, SessionProxy):
                 
                 client = session.client("dynamodb")
@@ -139,15 +136,7 @@ def delete_handler(
         if model is not None:
             if isinstance(session, SessionProxy):
                 
-                # Build a condition to make sure we are deleting an existing record
-                # for Cfn purposes the item has to exist already to do a delete
-                condition = ""
-                if model.Key is not None:
-                    for k, v in model.Key.items():
-                        if condition != "":
-                            condition = f"{condition} AND attribute_exists({k})"
-                        else:
-                            condition = f"attribute_exists({k})"
+                condition, _ = _build_condition(model.Key, {}, True)
                 client = session.client("dynamodb")
                 client.delete_item(
                     TableName=model.TableName,

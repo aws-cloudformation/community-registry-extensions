@@ -1,6 +1,6 @@
 {
   "typeName": "AwsCommunity::DynamoDB::Item",
-  "description": "An example resource schema demonstrating some basic constructs and validation rules.",
+  "description": "This resource will create manage the lifecycle of items in a DynamoDB tableawscommunity-dynamodb-item.json",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
   "definitions": {
     "MapAttribute": {
@@ -20,7 +20,8 @@
             "type": "array",
             "items": {
                 "$ref": "#/definitions/AttributeValue"
-            }
+            },
+            "insertionOrder": true
         },
         "M": {
           "$ref": "#/definitions/MapAttribute"
@@ -32,7 +33,8 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "insertionOrder": true
         },
         "NULL": {
           "type": "boolean"
@@ -44,7 +46,8 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "insertionOrder": true
         }
       },
       "oneOf": [
