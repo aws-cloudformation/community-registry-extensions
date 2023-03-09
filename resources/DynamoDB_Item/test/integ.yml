@@ -1,0 +1,29 @@
+
+Resources:
+  Table:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        [
+          { AttributeName: "pk", KeyType: HASH },
+          { AttributeName: "sk", KeyType: HASH },
+        ]
+      AttributeDefinitions:
+        [
+          { AttributeName: "pk", AttributeType: "S" },
+          { AttributeName: "sk", AttributeType: "S" },
+        ]
+  Item:
+    Type: AwsCommunity::DynamoDB::Item
+    Properties:
+      TableName: !Ref Table
+      Item:
+        title:
+          S: title
+      Key:
+        pk:
+          S: pk
+        sk:
+          S: sk
