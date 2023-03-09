@@ -111,6 +111,17 @@ https://github.com/aws-ia/cloudformation-dynatrace-resource-providers
 
 https://github.com/aws-ia/cloudformation-bigid-resource-providers
 
+### cdk-import
+
+Generates CDK constructs from external sources such as public CloudFormation Registry types and modules (L1s) as well as AWS Service Catalog product versions.
+
+https://github.com/cdklabs/cdk-import
+
+### cdk-cloudformation
+
+A collection of L1 constructs created with `cdk-import`, based on registry resource types.
+
+https://github.com/cdklabs/cdk-cloudformation
 
 ## Publishing packages
 
