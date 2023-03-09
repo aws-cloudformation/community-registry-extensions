@@ -3,6 +3,9 @@
   "Item": {
     "title": {
       "S": "one"
+    },
+    "authors": {
+      "SS": ["Me", "You"]
     }
   },
   "Key": {
