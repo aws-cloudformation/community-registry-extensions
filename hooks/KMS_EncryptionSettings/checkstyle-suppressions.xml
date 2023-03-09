@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suppressions PUBLIC
+"-//Checkstyle//DTD SuppressionFilter Configuration 1.0//EN"
+"https://checkstyle.org/dtds/suppressions_1_0.dtd">
+<suppressions>
+    <!-- Suppressions for all Java files. -->
+    <suppress checks="LineLength"
+              files=".*\.java$"/>
+
+    <!-- Suppressions for Java files not underneath `src/test/java/`. -->
+    <suppress checks=".*"
+              files="target/generated-sources/rpdk/com/awscommunity/kms/encryptionsettings/model/.*\.java$"/>
+    <suppress checks=".*"
+              files="BaseHookHandler\.java$"/>
+    <suppress checks=".*"
+              files="BaseHookConfiguration\.java$"/>
+    <suppress checks=".*"
+              files="HookHandlerWrapper\.java$"/>
+    <suppress checks=".*"
+              files="HookHandlerWrapperExecutable\.java$"/>
+    <suppress checks=".*"
+              files="TypeConfigurationModel\.java$"/>
+
+    <!-- Suppressions for Java files underneath `src/test/java/`. -->
+    <suppress checks="FileLength"
+              files="src/test/java/.*\.java$"/>
+    <suppress checks="JavadocPackage"
+              files="src/test/java/.*\.java$"/>
+    <suppress checks="JavadocVariable"
+              files="src/test/java/.*\.java$"/>
+    <suppress checks="MissingJavadocMethod"
+              files="src/test/java/.*\.java$"/>
+</suppressions>

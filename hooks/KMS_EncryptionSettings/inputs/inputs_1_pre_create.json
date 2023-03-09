@@ -1,0 +1,253 @@
+{
+    "AWS::AutoScaling::LaunchConfiguration": {
+        "resourceProperties": {
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/sdm",
+                    "Ebs": {
+                        "Encrypted": true,
+                        "VolumeSize": 1,
+                        "VolumeType": "gp3"
+                    }
+                },
+                {
+                    "DeviceName": "/dev/sdk",
+                    "Ebs": {
+                        "Encrypted": true,
+                        "VolumeSize": 1,
+                        "VolumeType": "gp3"
+                    }
+                }
+            ],
+            "ImageId": "ami-11223344",
+            "InstanceType": "a1.large"
+        }
+    },
+    "AWS::CloudTrail::Trail": {
+        "resourceProperties": {
+            "EventSelectors": [
+                {
+                    "IncludeManagementEvents": true,
+                    "ReadWriteType": "All"
+                }
+            ],
+            "IsLogging": true,
+            "KMSKeyId": "1234abcd-12ab-34cd-56ef-1234567890ab",
+            "S3BucketName": "test-bucket",
+            "TrailName": "test-trail"
+        }
+    },
+    "AWS::DynamoDB::GlobalTable": {
+        "resourceProperties": {
+            "AttributeDefinitions": [
+                {
+                    "AttributeName": "Book",
+                    "AttributeType": "S"
+                },
+                {
+                    "AttributeName": "Author",
+                    "AttributeType": "S"
+                }
+            ],
+            "BillingMode": "PAY_PER_REQUEST",
+            "KeySchema": [
+                {
+                    "AttributeName": "Book",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "Author",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Replicas": [
+                {
+                    "Region": "us-east-1",
+                    "SSESpecification": {
+                        "KMSMasterKeyID": "1234abcd-12ab-34cd-56ef-1234567890ab"
+                    },
+                    "TableClass": "STANDARD"
+                }
+            ],
+            "SSESpecification": {
+                "SSEEnabled": true,
+                "SSEType": "KMS"
+            }
+        }
+    },
+    "AWS::DynamoDB::Table": {
+        "resourceProperties": {
+            "AttributeDefinitions": [
+                {
+                    "AttributeName": "Book",
+                    "AttributeType": "S"
+                },
+                {
+                    "AttributeName": "Author",
+                    "AttributeType": "S"
+                }
+            ],
+            "KeySchema": [
+                {
+                    "AttributeName": "Book",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "Author",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "ProvisionedThroughput": {
+                "ReadCapacityUnits": 1,
+                "WriteCapacityUnits": 1
+            },
+            "SSESpecification": {
+                "KMSMasterKeyID": "1234abcd-12ab-34cd-56ef-1234567890ab",
+                "SSEEnabled": true,
+                "SSEType": "KMS"
+            }
+        }
+    },
+    "AWS::EC2::Instance": {
+        "resourceProperties": {
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/sdm",
+                    "Ebs": {
+                        "Encrypted": true,
+                        "VolumeSize": 1,
+                        "VolumeType": "gp3"
+                    }
+                },
+                {
+                    "DeviceName": "/dev/sdk",
+                    "Ebs": {
+                        "Encrypted": true,
+                        "KmsKeyId": "1234abcd-12ab-34cd-56ef-1234567890ab",
+                        "VolumeSize": 1,
+                        "VolumeType": "gp3"
+                    }
+                }
+            ],
+            "ImageId": "ami-11223344"
+        }
+    },
+    "AWS::EC2::LaunchTemplate": {
+        "resourceProperties": {
+            "LaunchTemplateData": {
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sdm",
+                        "Ebs": {
+                            "Encrypted": true,
+                            "VolumeSize": 1,
+                            "VolumeType": "gp3"
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/sdk",
+                        "Ebs": {
+                            "Encrypted": true,
+                            "KmsKeyId": "1234abcd-12ab-34cd-56ef-1234567890ab",
+                            "VolumeSize": 1,
+                            "VolumeType": "gp3"
+                        }
+                    }
+                ],
+                "DisableApiTermination": "true",
+                "ImageId": "ami-11223344",
+                "InstanceType": "t2.micro"
+            },
+            "LaunchTemplateName": "Sample"
+        }
+    },
+    "AWS::EC2::Volume": {
+        "resourceProperties": {
+            "AvailabilityZone": "us-east-1a",
+            "Encrypted": true,
+            "KmsKeyId": "1234abcd-12ab-34cd-56ef-1234567890ab",
+            "Size": "1"
+        }
+    },
+    "AWS::EFS::FileSystem": {
+        "resourceProperties": {
+            "Encrypted": true
+        }
+    },
+    "AWS::Kinesis::Stream": {
+        "resourceProperties": {
+            "ShardCount": 1,
+            "StreamEncryption": {
+                "EncryptionType": "KMS",
+                "KeyId": "alias/aws/kinesis"
+            }
+        }
+    },
+    "AWS::Logs::LogGroup": {
+        "resourceProperties": {
+            "KmsKeyId": "arn:aws:kms:us-east-1:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+        }
+    },
+    "AWS::RDS::DBCluster": {
+        "resourceProperties": {
+            "Engine": "aurora",
+            "MasterUserPassword": "testonly",
+            "MasterUsername": "testonly",
+            "StorageEncrypted": true
+        }
+    },
+    "AWS::RDS::DBInstance": {
+        "resourceProperties": {
+            "AllocatedStorage": 20,
+            "DBInstanceClass": "db.t3.micro",
+            "DBName": "testdbinstance",
+            "Engine": "MySQL",
+            "MasterUserPassword": "testonly",
+            "MasterUsername": "testonly",
+            "PubliclyAccessible": false,
+            "StorageEncrypted": true
+        }
+    },
+    "AWS::RDS::GlobalCluster": {
+        "resourceProperties": {
+            "Engine": "aurora",
+            "StorageEncrypted": true
+        }
+    },
+    "AWS::Redshift::Cluster": {
+        "resourceProperties": {
+            "ClusterType": "single-node",
+            "DBName": "testonly",
+            "Encrypted": true,
+            "MasterUserPassword": "testonly",
+            "MasterUsername": "testonly",
+            "NodeType": "dc2.large",
+            "PubliclyAccessible": false
+        }
+    },
+    "AWS::S3::Bucket": {
+        "resourceProperties": {
+            "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                    {
+                        "ServerSideEncryptionByDefault": {
+                            "KMSMasterKeyID": "1234abcd-12ab-34cd-56ef-1234567890ab",
+                            "SSEAlgorithm": "aws:kms"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "AWS::SNS::Topic": {
+        "resourceProperties": {
+            "KmsMasterKeyId": "alias/aws/sns"
+        }
+    },
+    "AWS::SQS::Queue": {
+        "resourceProperties": {
+            "KmsMasterKeyId": "alias/aws/sqs",
+            "SqsManagedSseEnabled": false
+        }
+    }
+}

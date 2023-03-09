@@ -1,0 +1,210 @@
+{
+    "AWS::AutoScaling::LaunchConfiguration": {
+        "resourceProperties": {
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/sdm",
+                    "Ebs": {
+                        "Encrypted": true,
+                        "VolumeSize": 1,
+                        "VolumeType": "gp3"
+                    }
+                },
+                {
+                    "DeviceName": "/dev/sdk",
+                    "Ebs": {
+                        "Encrypted": false,
+                        "VolumeSize": 1,
+                        "VolumeType": "gp3"
+                    }
+                }
+            ],
+            "ImageId": "ami-11223344",
+            "InstanceType": "a1.large"
+        }
+    },
+    "AWS::CloudTrail::Trail": {
+        "resourceProperties": {
+            "EventSelectors": [
+                {
+                    "IncludeManagementEvents": true,
+                    "ReadWriteType": "All"
+                }
+            ],
+            "IsLogging": true,
+            "S3BucketName": "test-bucket",
+            "TrailName": "test-trail"
+        }
+    },
+    "AWS::DynamoDB::GlobalTable": {
+        "resourceProperties": {
+            "AttributeDefinitions": [
+                {
+                    "AttributeName": "Book",
+                    "AttributeType": "S"
+                },
+                {
+                    "AttributeName": "Author",
+                    "AttributeType": "S"
+                }
+            ],
+            "BillingMode": "PAY_PER_REQUEST",
+            "KeySchema": [
+                {
+                    "AttributeName": "Book",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "Author",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Replicas": [
+                {
+                    "Region": "us-east-1",
+                    "TableClass": "STANDARD"
+                }
+            ]
+        }
+    },
+    "AWS::DynamoDB::Table": {
+        "resourceProperties": {
+            "AttributeDefinitions": [
+                {
+                    "AttributeName": "Book",
+                    "AttributeType": "S"
+                },
+                {
+                    "AttributeName": "Author",
+                    "AttributeType": "S"
+                }
+            ],
+            "KeySchema": [
+                {
+                    "AttributeName": "Book",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "Author",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "ProvisionedThroughput": {
+                "ReadCapacityUnits": 1,
+                "WriteCapacityUnits": 1
+            }
+        }
+    },
+    "AWS::EC2::Instance": {
+        "resourceProperties": {
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/sdm",
+                    "Ebs": {
+                        "Encrypted": true,
+                        "VolumeSize": 1,
+                        "VolumeType": "gp3"
+                    }
+                },
+                {
+                    "DeviceName": "/dev/sdk",
+                    "Ebs": {
+                        "Encrypted": true,
+                        "KmsKeyId": "invalid",
+                        "VolumeSize": 1,
+                        "VolumeType": "gp3"
+                    }
+                }
+            ],
+            "ImageId": "ami-11223344"
+        }
+    },
+    "AWS::EC2::LaunchTemplate": {
+        "resourceProperties": {
+            "LaunchTemplateData": {
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sdm",
+                        "Ebs": {
+                            "Encrypted": true,
+                            "VolumeSize": 1,
+                            "VolumeType": "gp3"
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/sdk",
+                        "Ebs": {
+                            "Encrypted": true,
+                            "KmsKeyId": "invalid",
+                            "VolumeSize": 1,
+                            "VolumeType": "gp3"
+                        }
+                    }
+                ],
+                "DisableApiTermination": "true",
+                "ImageId": "ami-11223344",
+                "InstanceType": "t2.micro"
+            },
+            "LaunchTemplateName": "Sample"
+        }
+    },
+    "AWS::EC2::Volume": {
+        "resourceProperties": {
+            "AvailabilityZone": "us-east-1a",
+            "Size": "1"
+        }
+    },
+    "AWS::EFS::FileSystem": {
+        "resourceProperties": {}
+    },
+    "AWS::Kinesis::Stream": {
+        "resourceProperties": {
+            "ShardCount": 1
+        }
+    },
+    "AWS::Logs::LogGroup": {
+        "resourceProperties": {}
+    },
+    "AWS::RDS::DBCluster": {
+        "resourceProperties": {
+            "Engine": "aurora",
+            "MasterUserPassword": "testonly",
+            "MasterUsername": "testonly"
+        }
+    },
+    "AWS::RDS::DBInstance": {
+        "resourceProperties": {
+            "AllocatedStorage": 20,
+            "DBInstanceClass": "db.t3.micro",
+            "DBName": "testdbinstance",
+            "Engine": "MySQL",
+            "MasterUserPassword": "testonly",
+            "MasterUsername": "testonly",
+            "PubliclyAccessible": false
+        }
+    },
+    "AWS::RDS::GlobalCluster": {
+        "resourceProperties": {
+            "Engine": "aurora"
+        }
+    },
+    "AWS::Redshift::Cluster": {
+        "resourceProperties": {
+            "ClusterType": "single-node",
+            "DBName": "testonly",
+            "MasterUserPassword": "testonly",
+            "MasterUsername": "testonly",
+            "NodeType": "dc2.large",
+            "PubliclyAccessible": false
+        }
+    },
+    "AWS::S3::Bucket": {
+        "resourceProperties": {}
+    },
+    "AWS::SNS::Topic": {
+        "resourceProperties": {}
+    },
+    "AWS::SQS::Queue": {
+        "resourceProperties": {}
+    }
+}

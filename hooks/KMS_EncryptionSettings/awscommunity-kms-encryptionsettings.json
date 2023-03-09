@@ -1,0 +1,94 @@
+{
+    "typeName": "AwsCommunity::KMS::EncryptionSettings",
+    "description": "This hook performs policy-as-code validation of AWS Key Management Service (KMS) encryption-related, user-provided configuration settings.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/hooks/KMS_EncryptionSettings",
+    "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/blob/main/hooks/KMS_EncryptionSettings/README.md",
+    "typeConfiguration": {
+        "properties": {
+            "UseGetEbsEncryptionByDefaultAsFallback": {
+                "description": "Whether or not to instruct this hook to call the `GetEbsEncryptionByDefault` API to determine if EBS encryption by default is enabled for your account in the current Region.  If EBS encryption by default is enabled for your account in the current Region, this hook does not perform additional policy-as-code validation checks for a number of resource type properties, except for certain regular expression pattern checks or for certain missing mandatory property checks.  For more information on which resource type properties use this configuration option, see `Supported resource types and properties` in this hook's documentation.  If you wish to activate this policy-as-code validation as a fallback strategy, choose `yes`; otherwise, choose `no` (default).",
+                "default": "no",
+                "type": "string",
+                "enum": [
+                    "no",
+                    "yes"
+                ]
+            },
+            "ValidateAmiBlockDeviceMappingEncryptionSettings": {
+                "description": "When you specify an Amazon Machine Image (AMI) ID for the `ImageId` property, whether to validate its BlockDeviceMapping encryption settings.  If you wish to activate this policy-as-code validation check, choose `yes`; otherwise, choose `no` (default).",
+                "default": "no",
+                "type": "string",
+                "enum": [
+                    "no",
+                    "yes"
+                ]
+            },
+            "ValidateBucketKeyEnabled": {
+                "description": "Whether to validate if the BucketKeyEnabled property for the Amazon S3 bucket resource type is set to `true`.  If you wish to activate this policy-as-code validation check, choose `yes`; otherwise, choose `no` (default).",
+                "default": "no",
+                "type": "string",
+                "enum": [
+                    "no",
+                    "yes"
+                ]
+            }
+        },
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::AutoScaling::LaunchConfiguration",
+                "AWS::CloudTrail::Trail",
+                "AWS::DynamoDB::GlobalTable",
+                "AWS::DynamoDB::Table",
+                "AWS::EC2::Instance",
+                "AWS::EC2::LaunchTemplate",
+                "AWS::EC2::Volume",
+                "AWS::EFS::FileSystem",
+                "AWS::Kinesis::Stream",
+                "AWS::Logs::LogGroup",
+                "AWS::RDS::DBCluster",
+                "AWS::RDS::DBInstance",
+                "AWS::RDS::GlobalCluster",
+                "AWS::Redshift::Cluster",
+                "AWS::S3::Bucket",
+                "AWS::SNS::Topic",
+                "AWS::SQS::Queue"
+            ],
+            "permissions": [
+                "ec2:DescribeImages",
+                "ec2:DescribeInstances",
+                "ec2:GetEbsEncryptionByDefault"
+            ]
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::AutoScaling::LaunchConfiguration",
+                "AWS::CloudTrail::Trail",
+                "AWS::DynamoDB::GlobalTable",
+                "AWS::DynamoDB::Table",
+                "AWS::EC2::Instance",
+                "AWS::EC2::LaunchTemplate",
+                "AWS::EC2::Volume",
+                "AWS::EFS::FileSystem",
+                "AWS::Kinesis::Stream",
+                "AWS::Logs::LogGroup",
+                "AWS::RDS::DBCluster",
+                "AWS::RDS::DBInstance",
+                "AWS::RDS::GlobalCluster",
+                "AWS::Redshift::Cluster",
+                "AWS::S3::Bucket",
+                "AWS::SNS::Topic",
+                "AWS::SQS::Queue"
+            ],
+            "permissions": [
+                "ec2:DescribeImages",
+                "ec2:DescribeInstances",
+                "ec2:GetEbsEncryptionByDefault"
+            ]
+        }
+    },
+    "additionalProperties": false
+}
