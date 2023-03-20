@@ -1,0 +1,248 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: This template describes AWS resources used to submit the AwsCommunity::KMS::EncryptionSettings hook to the AWS CloudFormation Registry as a private extension.
+
+Parameters:
+  Env:
+    Description: Name of the environment you plan to use.
+    Type: String
+    AllowedValues:
+      - Alpha
+      - Beta
+      - dev
+      - prod
+    Default: dev
+
+  FailureMode:
+    Description: Either fail on validation errors, or send a warning instead.
+    Type: String
+    AllowedValues:
+      - FAIL
+      - WARN
+    Default: FAIL
+
+  LogRetentionInDays:
+    Description: Retain log events for these number of days.
+    Type: String
+    AllowedValues:
+      - 1
+      - 3
+      - 5
+      - 7
+      - 14
+      - 30
+      - 60
+      - 90
+      - 120
+      - 150
+      - 180
+      - 365
+      - 400
+      - 545
+      - 731
+      - 1827
+      - 3653
+    Default: 365
+
+  SchemaHandlerPackage:
+    Description: URL for the ZIP file for the hook content you stored as an object in your Amazon S3 bucket.
+    Type: String
+
+  UseGetEbsEncryptionByDefaultAsFallback:
+    Description: Whether or not to instruct this hook to call the GetEbsEncryptionByDefault API to determine if EBS Encryption by default is enabled for your account in the current Region.
+    Type: String
+    AllowedValues:
+      - "no"
+      - "yes"
+    Default: "no"
+
+  ValidateAmiBlockDeviceMappingEncryptionSettings:
+    Description: Whether to validate the BlockDeviceMapping encryption settings of the Amazon Machine Image (AMI) ID for the ImageId property of a number of relevant resource types.
+    Type: String
+    AllowedValues:
+      - "no"
+      - "yes"
+    Default: "no"
+
+  ValidateBucketKeyEnabled:
+    Description: Whether to validate if the BucketKeyEnabled property for the Amazon S3 bucket resource type is set to true.
+    Type: String
+    AllowedValues:
+      - "no"
+      - "yes"
+    Default: "no"
+
+Resources:
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref 'AWS::AccountId'
+              StringLike:
+                aws:SourceArn: !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/hook/AwsCommunity-KMS-EncryptionSettings/*'
+            Effect: Allow
+            Principal:
+              Service:
+                - hooks.cloudformation.amazonaws.com
+                - resources.cloudformation.amazonaws.com
+        Version: "2012-10-17"
+      MaxSessionDuration: 8400
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - ec2:DescribeImages
+                  - ec2:DescribeInstances
+                  - ec2:GetEbsEncryptionByDefault
+                Effect: Allow
+                Resource: '*'
+            Version: "2012-10-17"
+          PolicyName: AwsCommunityKmsEncryptionSettingsHookPolicy
+      Tags:
+        - Key: Name
+          Value: AwsCommunityKmsEncryptionSettings-ExecutionRole
+        - Key: AppName
+          Value: AwsCommunityKmsEncryptionSettings
+        - Key: Env
+          Value: !Ref 'Env'
+
+  HookDefaultVersion:
+    Type: AWS::CloudFormation::HookDefaultVersion
+    Properties:
+      TypeName: AwsCommunity::KMS::EncryptionSettings
+      VersionId: !GetAtt HookVersion.VersionId
+
+  HookTypeConfig:
+    Type: AWS::CloudFormation::HookTypeConfig
+    DependsOn: HookDefaultVersion
+    Properties:
+      Configuration: !Sub |
+        {
+            "CloudFormationConfiguration": {
+                "HookConfiguration": {
+                    "TargetStacks": "ALL",
+                    "FailureMode": "${FailureMode}",
+                    "Properties": {
+                        "UseGetEbsEncryptionByDefaultAsFallback": "${UseGetEbsEncryptionByDefaultAsFallback}",
+                        "ValidateAmiBlockDeviceMappingEncryptionSettings": "${ValidateAmiBlockDeviceMappingEncryptionSettings}",
+                        "ValidateBucketKeyEnabled": "${ValidateBucketKeyEnabled}"
+                    }
+                }
+            }
+        }
+      TypeArn: !GetAtt HookVersion.TypeArn
+
+  HookVersion:
+    Type: AWS::CloudFormation::HookVersion
+    Properties:
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      LoggingConfig:
+        LogGroupName: !Ref 'LogGroup'
+        LogRoleArn: !GetAtt LogAndMetricsDeliveryRole.Arn
+      SchemaHandlerPackage: !Ref 'SchemaHandlerPackage'
+      TypeName: AwsCommunity::KMS::EncryptionSettings
+
+  LogAndMetricsDeliveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref 'AWS::AccountId'
+            Effect: Allow
+            Principal:
+              Service:
+                - resources.cloudformation.amazonaws.com
+                - hooks.cloudformation.amazonaws.com
+        Version: "2012-10-17"
+      MaxSessionDuration: 43200
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - cloudwatch:ListMetrics
+                  - cloudwatch:PutMetricData
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: '*'
+            Version: "2012-10-17"
+          PolicyName: LogAndMetricsDeliveryRole
+      Tags:
+        - Key: Name
+          Value: AwsCommunityKmsEncryptionSettings-LogAndMetricsDeliveryRole
+        - Key: AppName
+          Value: AwsCommunityKmsEncryptionSettings
+        - Key: Env
+          Value: !Ref 'Env'
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      KmsKeyId: !GetAtt LogGroupKmsKey.Arn
+      LogGroupName: AwsCommunityKmsEncryptionSettingsHook
+      RetentionInDays: !Ref 'LogRetentionInDays'
+      Tags:
+        - Key: Name
+          Value: AwsCommunityKmsEncryptionSettings-LogGroup
+        - Key: AppName
+          Value: AwsCommunityKmsEncryptionSettings
+        - Key: Env
+          Value: !Ref 'Env'
+
+  LogGroupKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      KeyPolicy:
+        Id: key-default-1
+        Statement:
+          - Action: kms:*
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Resource: '*'
+            Sid: Enable IAM User Permissions
+          - Action:
+              - kms:Decrypt*
+              - kms:Describe*
+              - kms:Encrypt*
+              - kms:GenerateDataKey*
+              - kms:ReEncrypt*
+            Condition:
+              ArnEquals:
+                kms:EncryptionContext:aws:logs:arn: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:AwsCommunityKmsEncryptionSettingsHook'
+            Effect: Allow
+            Principal:
+              Service: !Sub 'logs.${AWS::Region}.amazonaws.com'
+            Resource: '*'
+        Version: "2012-10-17"
+      Tags:
+        - Key: Name
+          Value: AwsCommunityKmsEncryptionSettings-LogGroupKmsKey
+        - Key: AppName
+          Value: AwsCommunityKmsEncryptionSettings
+        - Key: Env
+          Value: !Ref 'Env'
+
+  LogGroupKmsKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/AwsCommunityKmsEncryptionSettingsHookLogs
+      TargetKeyId: !Ref 'LogGroupKmsKey'
+
+Outputs:
+  HookVersionId:
+    Description: The ID of the hook version you submitted to the registry.
+    Value: !GetAtt HookVersion.VersionId
