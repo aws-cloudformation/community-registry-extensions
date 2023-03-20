@@ -37,7 +37,7 @@ jobs:
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@v3
       - name: 'Pip Audit'
-        uses: pypa/gh-action-pip-audit@v1.0.5
+        uses: pypa/gh-action-pip-audit@v1.0.6
         with:
           inputs: ${{ matrix.files }}
 
