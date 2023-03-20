@@ -1,4 +1,4 @@
 cloudformation-cli-python-lib>=2.1.9
 Jinja2==3.1.2
 cfn_guard_rs>=0.1.0
-/project/cfn_guard_rs_hook-0.1.0-py3-none-any.whl
+cfn_guard_rs_hook>=0.1.0
