@@ -143,6 +143,13 @@ Resources:
       MemorySize: 256
       Role: !GetAtt CloudTrailTrailEmptyIntegS3PrefixCleanupLambdaFunctionExecutionRole.Arn
       Runtime: python3.9
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
       Timeout: 30
 
   CloudTrailTrailEmptyIntegS3PrefixCleanupLambdaFunctionExecutionRole:
@@ -184,6 +191,13 @@ Resources:
                   - !Sub '${CloudTrailTrailS3Bucket.Arn}/AWSLogs/'
             Version: "2012-10-17"
           PolicyName: CloudTrailTrailEmptyIntegS3PrefixCleanupLambdaFunctionExecutionRole
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
 
   CloudTrailTrailEmptyIntegS3PrefixCleanupLogsLogGroup:
     Type: AWS::Logs::LogGroup

@@ -7,6 +7,7 @@
     - [UseGetEbsEncryptionByDefaultAsFallback](#UseGetEbsEncryptionByDefaultAsFallback)
     - [ValidateAmiBlockDeviceMappingEncryptionSettings](#ValidateAmiBlockDeviceMappingEncryptionSettings)
     - [ValidateBucketKeyEnabled](#ValidateBucketKeyEnabled)
+- [Hook registry submission with StackSets](#Hook-registry-submission-with-StackSets)
 - [Example templates](#Example-templates)
 - [Tests](#Tests)
     - [Unit tests](#Unit-tests)
@@ -105,7 +106,7 @@ To get started, follow the steps shown next:
 
 - Install [Apache Maven](https://maven.apache.org/install.html), that you'll need to build this hook that uses Java.  You'll also need to install the JDK 8 or JDK 11; for more information, see [Prerequisites for developing hooks](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/hooks-walkthrough-java.html#prerequisites-developing-hooks-java).
 - Install the [CloudFormation CLI](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html).
-- Run the following commands to build and [submit](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-cli-submit.html) it as a private extension to the CloudFormation registry in the AWS region(s) of your choice (this example shows the `us-east-1` region):
+- Run the following commands to build and [submit](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-cli-submit.html) it as a private extension to the CloudFormation registry in the AWS region(s) of your choice.  The following example uses the `us-east-1` region; you will need to make a separate `cfn submit` registry submission for each region you want to use (alternatively, see [Hook registry submission with StackSets](#Hook-registry-submission-with-StackSets) to submit the hook as a private extension to the registry in multiple regions with one operation):
 
 ```shell
 cfn generate && mvn clean verify && cfn submit --set-default --region us-east-1
@@ -189,6 +190,39 @@ When you specify an [Amazon Machine Image](https://docs.aws.amazon.com/AWSEC2/la
 
 ### ValidateBucketKeyEnabled
 Whether to validate if the `BucketKeyEnabled` [property](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-serversideencryptionrule.html#cfn-s3-bucket-serversideencryptionrule-bucketkeyenabled) for the Amazon S3 bucket resource type is set to `true`.  If you wish to activate this policy-as-code validation check, choose `yes`; otherwise, choose `no` (default).
+
+## Hook registry submission with StackSets
+This section will guide you through the process of submitting the hook to the registry as a private extension using [AWS CloudFormation StackSets](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/what-is-cfnstacksets.html), to multiple regions with one operation.
+
+To get started, use the command below to build and package the hook in an `awscommunity-kms-encryptionsettings.zip` ZIP archive:
+
+```shell
+mvn clean verify && cfn submit --dry-run
+```
+
+Upload the ZIP archive to a bucket you own; later on, you'll need to reference the object URL of this ZIP file you uploaded, so make a note of it.
+
+Following steps assume you'll choose to use the [self-managed permissions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-getting-started-create.html) to operate with StackSets.  To get started, prepare your account by following [Prerequisites for stack set operations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html): follow steps in [Set up basic permissions for stack set operations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html#stacksets-prereqs-accountsetup), and create both the `AWSCloudFormationStackSetAdministrationRole` and `AWSCloudFormationStackSetExecutionRole` resources in your account.
+
+Once ready, you'll use the AWS CloudFormation [console](https://console.aws.amazon.com/cloudformation/) to [Create a stack set](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-getting-started-create.html), for which you'll choose to use self-managed permissions:
+
+- In the CloudFormation console, choose **StackSets**.
+- Choose **Create StackSet**.
+- In the **Choose a template** page, choose **Self-service permissions**.
+- Specify the admin **IAM role name** you created earlier: `AWSCloudFormationStackSetAdministrationRole`.
+- Specify the **IAM execution role name** you created earlier: `AWSCloudFormationStackSetExecutionRole`.
+- Go to the **Prerequisite - Prepare template** section.
+- Choose **Template is ready**.
+- Specify the template to use in the **Specify template** section: choose to upload the `templates/private-registry-submit.yaml` template; alternatively, first upload the template to a bucket you own, and then provide the Amazon S3 template URL.  **Note that by using this template you'll also create a KMS key for each region you'll choose**, and use each key with [Amazon CloudWatch Logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html) log group resources that the template describes: whilst you are not required to use KMS with log group resources, the template describes a key for such resources so that the `AwsCommunity::KMS::EncryptionSettings` hook will find them to be compliant (this hook encompasses log groups) as you update the stack set in the future.
+- Choose **Next**.
+- In **Specify StackSet details**, specify the StackSet name and description.
+- In **Parameters**, specify values you need.  In `SchemaHandlerPackage` parameter, specify the object URL of the ZIP archive you uploaded earlier.  Choose **Next**.
+- In **Execution configuration**, choose the **Active** managed execution.  Choose **Next**.
+- In **Accounts**, specify your [AWS account ID](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-identifiers.html#FindAccountId) in **Account numbers**.
+- In the **Regions** section, specify the regions you need.
+- In **Deployment options**, choose **Parallel** for **Region Concurrency**.  Choose **Next**.
+- In the **Review** page, review your choices, and select **I acknowledge that AWS CloudFormation might create IAM resources**.
+- Choose **Submit** to start the StackSet creation process.
 
 ## Example templates
 Templates in this section are marked as:
