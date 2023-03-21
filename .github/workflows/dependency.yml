@@ -31,6 +31,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
+      - name: Install pip-audit on non-Windows
+        run: |
+          pip install pip-audit==2.5.0
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@v3
       - name: 'Pip Audit'
