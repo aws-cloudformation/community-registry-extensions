@@ -222,7 +222,7 @@ Resources:
       ServiceRole: !GetAtt FastlyServicesDomainBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   FastlyServicesBackendBuildProject:
     Type: AWS::CodeBuild::Project
@@ -249,7 +249,7 @@ Resources:
       ServiceRole: !GetAtt FastlyServicesBackendBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   FastlyServicesHealthcheckBuildProject:
     Type: AWS::CodeBuild::Project
@@ -276,7 +276,7 @@ Resources:
       ServiceRole: !GetAtt FastlyServicesHealthcheckBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   FastlyServicesServiceBuildProject:
     Type: AWS::CodeBuild::Project
@@ -297,7 +297,7 @@ Resources:
       ServiceRole: !GetAtt FastlyServicesServiceBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   FastlyDictionaryDictionaryBuildProject:
     Type: AWS::CodeBuild::Project
@@ -324,7 +324,7 @@ Resources:
       ServiceRole: !GetAtt FastlyDictionaryDictionaryBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   FastlyDictionaryDictionaryItemBuildProject:
     Type: AWS::CodeBuild::Project
@@ -348,10 +348,13 @@ Resources:
         - Name: FASTLY_VERSION_ID
           Type: PARAMETER_STORE
           Value: "cep-fastly-version-id"
+        - Name: FASTLY_DICTIONARY_ID
+          Type: PARAMETER_STORE
+          Value: "cep-fastly-dictionary-id"
       ServiceRole: !GetAtt FastlyDictionaryDictionaryItemBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   FastlyLoggingS3BuildProject:
     Type: AWS::CodeBuild::Project
@@ -378,7 +381,7 @@ Resources:
       ServiceRole: !GetAtt FastlyLoggingS3BuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   FastlyLoggingSplunkBuildProject:
     Type: AWS::CodeBuild::Project
@@ -405,7 +408,128 @@ Resources:
       ServiceRole: !GetAtt FastlyLoggingSplunkBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec-typescript.yml"
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+
+  FastlyTlsCertificateBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
+
+  FastlyTlsCertificateBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-tls-certificate"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Fastly-Tls-Certificate"
+          - Name: FASTLY_TLS_CERTIFICATE
+            Type: PARAMETER_STORE
+            Value: "cep-fastly-tls-certificate"
+      ServiceRole: !GetAtt FastlyTlsCertificateBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  FastlyTlsDomainBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
+
+  FastlyTlsDomainBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-tls-domain"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Fastly-Tls-Domain"
+          - Name: FASTLY_TLS_CERT_ID
+            Type: PARAMETER_STORE
+            Value: "cep-fastly-tls-cert-id"
+          - Name: FASTLY_TLS_DOMAIN_ID
+            Type: PARAMETER_STORE
+            Value: "cep-fastly-tls-domain-id"
+          - Name: FASTLY_TLS_CONFIG_ID
+            Type: PARAMETER_STORE
+            Value: "cep-fastly-tls-config-id"
+      ServiceRole: !GetAtt FastlyTlsDomainBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  FastlyTlsPrivateKeysBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
+
+  FastlyTlsPrivateKeysBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-tls-privatekeys"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Fastly-Tls-PrivateKeys"
+          - Name: FASTLY_PRIVATE_KEY
+            Type: PARAMETER_STORE
+            Value: "cep-fastly-tls-privatekey"
+      ServiceRole: !GetAtt FastlyTlsPrivateKeysBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
 
   SourceBucket:
     Type: AWS::S3::Bucket
@@ -467,6 +591,9 @@ Resources:
                   - !GetAtt FastlyDictionaryDictionaryItemBuildProject.Arn
                   - !GetAtt FastlyLoggingS3BuildProject.Arn
                   - !GetAtt FastlyLoggingSplunkBuildProject.Arn
+                  - !GetAtt FastlyTlsCertificateBuildProject.Arn
+                  - !GetAtt FastlyTlsDomainBuildProject.Arn
+                  - !GetAtt FastlyTlsPrivateKeysBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -528,6 +655,9 @@ Resources:
                 - !GetAtt FastlyDictionaryDictionaryItemBuildProjectRole.Arn
                 - !GetAtt FastlyLoggingS3BuildProjectRole.Arn
                 - !GetAtt FastlyLoggingSplunkBuildProjectRole.Arn
+                - !GetAtt FastlyTlsCertificateBuildProjectRole.Arn
+                - !GetAtt FastlyTlsPrivateKeysBuildProjectRole.Arn
+                - !GetAtt FastlyTlsDomainBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -729,6 +859,63 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "Fastly-Logging-Splunk"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: FastlyTlsCertificate
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref FastlyTlsCertificateBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Fastly-Tls-Certificate"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: FastlyTlsDomain
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref FastlyTlsDomainBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Fastly-Tls-Domain"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: FastlyTlsPrivateKeys
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref FastlyTlsPrivateKeysBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Fastly-Tls-PrivateKeys"
                     }
                   ]
               RunOrder: 1
