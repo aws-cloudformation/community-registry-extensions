@@ -33,7 +33,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Install pip-audit on non-Windows
         run: |
-          pip install pip-audit==2.4.13
+          pip install "pip-audit>=2.5.3"
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@v3
       - name: 'Pip Audit'
