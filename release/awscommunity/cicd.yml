@@ -152,6 +152,19 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  CloudFrontS3WebsiteModuleBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
   
   ResourceIamPasswordPolicyRole:
     Type: AWS::IAM::Role
@@ -363,8 +376,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt S3BucketNotificationBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
   IamPasswordPolicyBuildProject:
@@ -387,8 +398,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt ResourceIamPasswordPolicyRole.Arn
       TimeoutInMinutes: 480
 
   CloudFrontWebAclAssociationBuildProject:
@@ -411,8 +420,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
   S3DeleteBucketContentsBuildProject:
@@ -435,8 +442,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
   S3BucketVersioningEnabledBuildProject:
@@ -459,8 +464,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
   CloudFrontLoggingEnabledBuildProject:
@@ -483,8 +486,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
   S3BucketModuleBuildProject:
@@ -507,8 +508,28 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "modules/${Env}-buildspec.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt S3BucketModuleBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+  CloudFrontS3WebsiteModuleBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-cloudfront-s3-module"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: MODULE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-module"
+      ServiceRole: !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "modules/${Env}-buildspec.yml"
       TimeoutInMinutes: 480
 
   AlternateContactBuildProjectRole:
@@ -571,8 +592,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt AlternateContactBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
   SourceBucket:
@@ -643,6 +662,7 @@ Resources:
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
               - !GetAtt S3BucketModuleBuildProject.Arn
+              - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
               - !GetAtt AlternateContactBuildProject.Arn
           - Action:
               - kms:*
@@ -760,11 +780,6 @@ Resources:
                   Version: 1
                 Configuration:
                   ProjectName: !Ref S3BucketNotificationBuildProject
-                  # BatchEnabled: 
-                  #   !If
-                  #     - IsProd
-                  #     - true
-                  #     - false
                   EnvironmentVariables: |-
                     [
                       {
@@ -852,6 +867,25 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref S3BucketModuleBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "MODULE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "modules/S3_Bucket"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: CloudFrontS3Website
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref CloudFrontS3WebsiteModuleBuildProject
                 EnvironmentVariables: |-
                   [
                     {
