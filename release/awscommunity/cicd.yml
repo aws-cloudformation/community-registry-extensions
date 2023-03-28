@@ -891,7 +891,7 @@ Resources:
                     {
                       "name": "MODULE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "modules/S3_Bucket"
+                      "value": "modules/CloudFront_S3Website"
                     }
                   ]
               RunOrder: 1
