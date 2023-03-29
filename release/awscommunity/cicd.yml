@@ -262,6 +262,30 @@ Resources:
       Roles:
         - !Ref S3DeleteBucketContentsBuildProjectRole
 
+  CloudFrontS3WebsiteBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: cloudfront:CreateOriginAccessControl
+            Effect: Allow
+            Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:origin-access-control/*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
+        Version: '2012-10-17'
+      PolicyName: cloudfront-s3-website-build-project-policy
+      Roles:
+        - !Ref CloudFrontS3WebsiteModuleBuildProjectRole
+
   CloudFrontWebAclAssociationBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:

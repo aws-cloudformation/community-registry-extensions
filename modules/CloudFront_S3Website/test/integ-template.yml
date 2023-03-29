@@ -2,7 +2,7 @@ Resources:
   TestSite:
     Type: AwsCommunity::CloudFront::S3Website::MODULE
     Properties:
-      Alias: test
+      Alias: cep.ezbeard.people.aws.dev
       AcmCertificateArn: ACM_CERTIFICATE_ARN
       HostedZoneId: HOSTED_ZONE_ID
 
