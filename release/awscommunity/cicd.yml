@@ -267,9 +267,15 @@ Resources:
     Properties:
       PolicyDocument:
         Statement:
-          - Action: cloudfront:CreateOriginAccessControl
+          - Action: cloudfront:*
             Effect: Allow
-            Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:origin-access-control/*"
+            Resource: "*"
+          - Action: acm:*
+            Effect: Allow
+            Resource: "*"
+          - Action: s3:*
+            Effect: Allow
+            Resource: "*"
           - Action:
               - codebuild:StartBuild
               - codebuild:BatchGetBuilds
