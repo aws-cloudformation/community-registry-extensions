@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - echo Entered the install phase...
+      - echo About to build $HOOK_PATH
+      - export PATH="/usr/local/bin:$PATH"
+      - /usr/local/bin/dockerd-entrypoint.sh
+      - cat /var/log/docker.log
+      - ENTRY_PATH=$(python scripts/entry.py $HOOK_PATH/.rpdk-config)
+      - echo ENTRY_PATH is $ENTRY_PATH
+      - TYPE_NAME=$(python scripts/type_name.py $HOOK_PATH/.rpdk-config)
+      - echo TYPE_NAME is $TYPE_NAME
+      - cd $HOOK_PATH
+      - pwd
+      - ls
+      - aws --version
+  build:
+    commands:
+      - echo Entered the build phase...
+      - ls -l ../../release
+      - ../../release/publish-regions.sh
+    finally:
+      - cat rpdk.log

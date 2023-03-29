@@ -56,16 +56,17 @@ HANDLER_BUCKET="cep-handler-${ACCOUNT_ID}"
 # The execution role is not required by modules
 if [ "$EXT_TYPE" != "MODULE" ]
 then
+    EXT_TYPE_LOWER = "$EXT_TYPE" | tr '[:upper:]' '[:lower:]'
     # Overwrite the role stack to fix the broken Condition.
     # test-type does not use the role we register, it re-deploys the stack
-    cp resource-role-prod.yaml resource-role.yaml
+    cp $EXT_TYPE_LOWER-role-prod.yaml $EXT_TYPE_LOWER-role.yaml
 
-    ROLE_STACK_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr '[:upper:]' '[:lower:]')-prod-role-stack"
+    ROLE_STACK_NAME="$(echo $EXT_TYPE_LOWER | sed s/::/-/g)-prod-role-stack"
     echo "ROLE_STACK_NAME is $ROLE_STACK_NAME"
     echo ""
 
     # Create or update the role stack
-    rain deploy resource-role.yaml $ROLE_STACK_NAME -y
+    rain deploy $EXT_TYPE_LOWER-role.yaml $ROLE_STACK_NAME -y
 
     echo "About to describe stack to get the role arn"
     ROLE_ARN=$(aws --no-cli-pager cloudformation --region $AWS_REGION describe-stacks --stack-name $ROLE_STACK_NAME | jq ".Stacks|.[0]|.Outputs|.[0]|.OutputValue" | sed s/\"//g)
