@@ -861,6 +861,25 @@ Resources:
                     }
                   ]
               RunOrder: 1
+            - Name: S3BucketVersioningEnabled
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/S3_BucketVersioningEnabled"
+                    }
+                  ]
+              RunOrder: 1
         - !If
           - IsBeta
           - Name: CopyBuildToProd
@@ -880,26 +899,6 @@ Resources:
                   ObjectKey: source.zip
                   KMSEncryptionKeyARN: !GetAtt PipelineKey.Arn
           - !Ref AWS::NoValue
-                #            - Name: S3BucketVersioningEnabled
-                #              InputArtifacts:
-                #                - Name: extensions-source
-                #              ActionTypeId:
-                #                Category: Build
-                #                Owner: AWS
-                #                Provider: CodeBuild
-                #                Version: 1
-                #              Configuration:
-                #                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
-                #                BatchEnabled: true
-                #                EnvironmentVariables: |-
-                #                  [
-                #                    {
-                #                      "name": "HOOK_PATH",
-                #                      "type": "PLAINTEXT",
-                #                      "value": "hooks/S3_BucketVersioningEnabled"
-                #                    }
-                #                  ]
-                #              RunOrder: 1
                 #            - Name: CloudFrontLoggingEnabled
                 #              InputArtifacts:
                 #                - Name: extensions-source
