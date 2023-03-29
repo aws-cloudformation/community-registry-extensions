@@ -526,6 +526,12 @@ Resources:
         - Name: MODULE_PATH
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-module"
+        - Name: ACM_CERTIFICATE_ARN
+          Type: PARAMETER_STORE
+          Value: "cep-acm-certificate-arn"
+        - Name: HOSTED_ZONE_ID
+          Type: PARAMETER_STORE
+          Value: "cep-hosted-zone-id"
       ServiceRole: !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
