@@ -29,7 +29,7 @@ phases:
       - cfn submit --dry-run
       - nohup sam local start-lambda &
       - sleep 10
-      - cfn test
+      - cfn test --region $AWS_REGION # Region added: https://github.com/aws-cloudformation/cloudformation-cli/issues/625
     finally:
       - cat rpdk.log
 
