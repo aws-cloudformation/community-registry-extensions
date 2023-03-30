@@ -88,6 +88,32 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  S3PublicAccessControlsRestrictedBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  HookEC2SecurityGroupRestrictedSSHBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   CloudFrontLoggingEnabledBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -426,6 +452,21 @@ Resources:
       Roles:
         - !Ref ResourceIamPasswordPolicyRole
 
+  HookEC2SecurityGroupRestrictedSSHBuildProjectRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ec2:*VPC*
+              - ec2:*SecurityGroup*
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: SecurityGroupPermissions
+      Roles:
+        - !Ref HookEC2SecurityGroupRestrictedSSHBuildProjectRole
+
   S3BucketNotificationBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -556,6 +597,54 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
+      TimeoutInMinutes: 480
+
+  S3PublicAccessControlsRestrictedBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-s3-publicaccesscontrolsrestricted"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-hook"
+      ServiceRole: !GetAtt S3PublicAccessControlsRestrictedBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
+      TimeoutInMinutes: 480
+
+  HookEC2SecurityGroupRestrictedSSHBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-ec2-securitygrouprestrictedssh"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-hook"
+      ServiceRole: !GetAtt HookEC2SecurityGroupRestrictedSSHBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
+      # BuildBatchConfig:
+      #   ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
   CloudFrontLoggingEnabledBuildProject:
@@ -754,10 +843,12 @@ Resources:
               - codebuild:StopBuildBatch
             Effect: Allow
             Resource: 
+              - !GetAtt HookEC2SecurityGroupRestrictedSSHBuildProject.Arn
               - !GetAtt S3BucketNotificationBuildProject.Arn
               - !GetAtt S3DeleteBucketContentsBuildProject.Arn
               - !GetAtt DynamoDBItemBuildProject.Arn
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
+              - !GetAtt S3PublicAccessControlsRestrictedBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
               - !GetAtt S3BucketModuleBuildProject.Arn
@@ -816,10 +907,12 @@ Resources:
               AWS: 
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
+                - !GetAtt HookEC2SecurityGroupRestrictedSSHBuildProjectRole.Arn
                 - !GetAtt S3BucketNotificationBuildProjectRole.Arn
                 - !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
                 - !GetAtt DynamoDBItemBuildProjectRole.Arn
                 - !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
+                - !GetAtt S3PublicAccessControlsRestrictedBuildProjectRole.Arn
                 - !GetAtt AlternateContactBuildProjectRole.Arn
                 - !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
@@ -1014,6 +1107,63 @@ Resources:
                     }
                   ]
               RunOrder: 1
+            - Name: S3BucketVersioningEnabled
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/S3_BucketVersioningEnabled"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: HookEC2SecurityGroupRestrictedSSH
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref HookEC2SecurityGroupRestrictedSSHBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/EC2_SecurityGroupRestrictedSSH"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: HookS3PublicAccessControlsRestricted
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref S3PublicAccessControlsRestrictedBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/S3_PublicAccessControlsRestricted"
+                    }
+                  ]
+              RunOrder: 3
         - !If
           - IsBeta
           - Name: CopyBuildToProd
@@ -1033,26 +1183,6 @@ Resources:
                   ObjectKey: source.zip
                   KMSEncryptionKeyARN: !GetAtt PipelineKey.Arn
           - !Ref AWS::NoValue
-                #            - Name: S3BucketVersioningEnabled
-                #              InputArtifacts:
-                #                - Name: extensions-source
-                #              ActionTypeId:
-                #                Category: Build
-                #                Owner: AWS
-                #                Provider: CodeBuild
-                #                Version: 1
-                #              Configuration:
-                #                ProjectName: !Ref S3BucketVersioningEnabledBuildProject
-                #                BatchEnabled: true
-                #                EnvironmentVariables: |-
-                #                  [
-                #                    {
-                #                      "name": "HOOK_PATH",
-                #                      "type": "PLAINTEXT",
-                #                      "value": "hooks/S3_BucketVersioningEnabled"
-                #                    }
-                #                  ]
-                #              RunOrder: 1
                 #            - Name: CloudFrontLoggingEnabled
                 #              InputArtifacts:
                 #                - Name: extensions-source
