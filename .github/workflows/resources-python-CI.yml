@@ -1,0 +1,40 @@
+name: resources-python-CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "resources/DynamoDB_Item/**"
+  pull_request:
+    paths:
+      - "resources/DynamoDB_Item/**"
+jobs:
+  linux:
+    strategy:
+      matrix:
+        resource:
+          - DynamoDB_Item
+        include:
+          - resource: DynamoDB_Item
+            python_version: "3.9"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./resources/${{ matrix.resource }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python_version }}
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip3 install pylint
+      - name: Run Test
+        run: |
+          pylint --rcfile ../../config/.pylintrc src/${{ matrix.resource }}/*.py
+          pytest src
+          
