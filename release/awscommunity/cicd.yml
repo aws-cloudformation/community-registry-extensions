@@ -127,6 +127,19 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  DynamoDBItemBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   CloudFrontWebAclAssociationBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -262,6 +275,30 @@ Resources:
       Roles:
         - !Ref S3DeleteBucketContentsBuildProjectRole
 
+  DynamoDBItemBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: dynamodb:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt DynamoDBItemBuildProject.Arn
+        Version: '2012-10-17'
+      PolicyName: dynamodb-item-build-project-policy
+      Roles:
+        - !Ref DynamoDBItemBuildProjectRole
+
   CloudFrontS3WebsiteBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -274,6 +311,9 @@ Resources:
             Effect: Allow
             Resource: "*"
           - Action: s3:*
+            Effect: Allow
+            Resource: "*"
+          - Action: route53:*
             Effect: Allow
             Resource: "*"
           - Action:
@@ -455,7 +495,7 @@ Resources:
   S3DeleteBucketContentsBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub "${PrefixLower}-${Env}-s3-deletebucketcontents"
+      Name: !Sub "${PrefixLower}-${Env}-s3-delete-bucket-contents"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -469,6 +509,28 @@ Resources:
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
       ServiceRole: !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+      TimeoutInMinutes: 480
+
+  DynamoDBItemBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-dynamodb-item"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt DynamoDBItemBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
@@ -694,6 +756,7 @@ Resources:
             Resource: 
               - !GetAtt S3BucketNotificationBuildProject.Arn
               - !GetAtt S3DeleteBucketContentsBuildProject.Arn
+              - !GetAtt DynamoDBItemBuildProject.Arn
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
@@ -755,6 +818,7 @@ Resources:
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !GetAtt S3BucketNotificationBuildProjectRole.Arn
                 - !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
+                - !GetAtt DynamoDBItemBuildProjectRole.Arn
                 - !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
                 - !GetAtt AlternateContactBuildProjectRole.Arn
                 - !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
@@ -866,6 +930,25 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "resources/S3_DeleteBucketContents"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: DynamoDBItem
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref DynamoDBItemBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/DynamoDB_Item"
                     }
                   ]
               RunOrder: 1

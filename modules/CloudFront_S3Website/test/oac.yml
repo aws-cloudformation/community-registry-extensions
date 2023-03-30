@@ -1,0 +1,10 @@
+Resources:
+  OacTest:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties: 
+      OriginAccessControlConfig: 
+        Description: "OAC for testing deletion policy"
+        Name: testingabc 
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
