@@ -2,22 +2,11 @@
 import sys
 from dataclasses import dataclass
 from inspect import getmembers, isclass
-from typing import (
-    AbstractSet,
-    Any,
-    Generic,
-    Mapping,
-    MutableMapping,
-    Optional,
-    Sequence,
-    Type,
-    TypeVar,
-)
+from typing import (AbstractSet, Any, Generic, Mapping, MutableMapping,
+                    Optional, Sequence, Type, TypeVar)
 
 from cloudformation_cli_python_lib.interface import (
-    BaseModel,
-    BaseResourceHandlerRequest,
-)
+    BaseModel, BaseResourceHandlerRequest)
 from cloudformation_cli_python_lib.recast import recast_object
 from cloudformation_cli_python_lib.utils import deserialize_list
 
@@ -100,7 +89,6 @@ _AttributeValue = AttributeValue
 
 @dataclass
 class TypeConfigurationModel(BaseModel):
-
     @classmethod
     def _deserialize(
         cls: Type["_TypeConfigurationModel"],
@@ -108,11 +96,8 @@ class TypeConfigurationModel(BaseModel):
     ) -> Optional["_TypeConfigurationModel"]:
         if not json_data:
             return None
-        return cls(
-        )
+        return cls()
 
 
 # work around possible type aliasing issues when variable has same name as a model
 _TypeConfigurationModel = TypeConfigurationModel
-
-
