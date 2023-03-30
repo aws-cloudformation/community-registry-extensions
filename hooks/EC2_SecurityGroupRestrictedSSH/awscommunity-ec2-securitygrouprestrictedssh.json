@@ -1,0 +1,32 @@
+{
+    "typeName": "AwsCommunity::EC2::SecurityGroupRestrictedSSH",
+    "description": "Restrict SSH traffic from 0.0.0.0/0",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/hooks/EC2_SecurityGroupRestrictedSSH",
+    "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/blob/master/hooks/EC2_SecurityGroupRestrictedSSH/README.md",
+    "typeConfiguration": {
+        "properties": {},
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::EC2::SecurityGroup",
+                "AWS::EC2::SecurityGroupIngress"
+            ],
+            "permissions": []
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::EC2::SecurityGroup",
+                "AWS::EC2::SecurityGroupIngress"
+            ],
+            "permissions": []
+        },
+        "preDelete": {
+            "targetNames": [],
+            "permissions": []
+        }
+    },
+    "additionalProperties": false
+}
