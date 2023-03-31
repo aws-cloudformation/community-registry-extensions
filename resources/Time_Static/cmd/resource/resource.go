@@ -5,19 +5,51 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/aws-cloudformation/cloudformation-cli-go-plugin/cfn/handler"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/google/uuid"
 )
+
+func buildSsmParameterString(model *Model) string {
+	resourceType := "AwsCommunity::Time::Static"
+	resourceTypeSplits := strings.Split(resourceType, "::")
+	return fmt.Sprintf("/CloudFormation/%s/%s/%s/%s", resourceTypeSplits[0], resourceTypeSplits[1], resourceTypeSplits[2], *model.Id)
+}
 
 // Create handles the Create event from the Cloudformation service.
 func Create(req handler.Request, _ *Model, currentModel *Model) (handler.ProgressEvent, error) {
 
-	now := timeToString(time.Now())
-	currentModel.Id = &now
+	if currentModel.Time == nil {
+		now := timeToString(time.Now())
+		currentModel.Time = &now
+	}
+	id := uuid.New().String()
+	currentModel.Id = &id
 
 	timeToModel(currentModel)
+
+	ssmParameter := buildSsmParameterString(currentModel)
+	svc := ssm.New(req.Session)
+	_, err := svc.PutParameter(&ssm.PutParameterInput{
+		Name:      &ssmParameter,
+		Value:     &id,
+		Overwrite: aws.Bool(false),
+		Tier:      aws.String("Standard"),
+		Type:      aws.String("String"),
+	})
+	if err != nil {
+		return handler.ProgressEvent{
+			OperationStatus:  handler.Failed,
+			Message:          err.Error(),
+			HandlerErrorCode: cloudformation.HandlerErrorCodeAlreadyExists,
+			ResourceModel:    nil,
+		}, nil
+	}
 
 	response := handler.ProgressEvent{
 		OperationStatus: handler.Success,
@@ -33,6 +65,20 @@ func Create(req handler.Request, _ *Model, currentModel *Model) (handler.Progres
 func Read(req handler.Request, prevModel *Model, currentModel *Model) (handler.ProgressEvent, error) {
 
 	logModel("Read Current Model: ", currentModel)
+
+	ssmParameter := buildSsmParameterString(currentModel)
+
+	svc := ssm.New(req.Session)
+	_, err := svc.GetParameter(&ssm.GetParameterInput{
+		Name: &ssmParameter,
+	})
+	if err != nil {
+		return handler.ProgressEvent{
+			OperationStatus:  handler.Failed,
+			HandlerErrorCode: cloudformation.HandlerErrorCodeNotFound,
+			Message:          "Resource not found",
+		}, nil
+	}
 
 	if currentModel.Id == nil {
 		fmt.Println("Resource not found")
@@ -67,6 +113,20 @@ func Update(req handler.Request, prevModel *Model, currentModel *Model) (handler
 		}, nil
 	}
 
+	ssmParameter := buildSsmParameterString(currentModel)
+
+	svc := ssm.New(req.Session)
+	_, err := svc.GetParameter(&ssm.GetParameterInput{
+		Name: &ssmParameter,
+	})
+	if err != nil {
+		return handler.ProgressEvent{
+			OperationStatus:  handler.Failed,
+			HandlerErrorCode: cloudformation.HandlerErrorCodeNotFound,
+			Message:          "Resource not found",
+		}, nil
+	}
+
 	timeToModel(currentModel)
 
 	response := handler.ProgressEvent{
@@ -85,6 +145,20 @@ func Delete(req handler.Request, prevModel *Model, currentModel *Model) (handler
 	logModel("Delete Current Model: ", currentModel)
 
 	if currentModel.Id == nil {
+		return handler.ProgressEvent{
+			OperationStatus:  handler.Failed,
+			HandlerErrorCode: cloudformation.HandlerErrorCodeNotFound,
+			Message:          "Resource not found",
+		}, nil
+	}
+
+	ssmParameter := buildSsmParameterString(currentModel)
+
+	svc := ssm.New(req.Session)
+	_, err := svc.DeleteParameter(&ssm.DeleteParameterInput{
+		Name: &ssmParameter,
+	})
+	if err != nil {
 		return handler.ProgressEvent{
 			OperationStatus:  handler.Failed,
 			HandlerErrorCode: cloudformation.HandlerErrorCodeNotFound,
@@ -119,12 +193,12 @@ func timeToString(t time.Time) string {
 
 func timeToModel(m *Model) error {
 
-	t, err := time.Parse(time.RFC3339, *m.Id)
+	t, err := time.Parse(time.RFC3339, *m.Time)
 	if err != nil {
 		return err
 	}
 
-	id := t.Format(time.RFC3339)
+	utc := t.Format(time.RFC3339)
 	day := fmt.Sprintf("%02d", t.Day())
 	hour := fmt.Sprintf("%02d", t.Hour())
 	minute := fmt.Sprintf("%02d", t.Minute())
@@ -133,7 +207,7 @@ func timeToModel(m *Model) error {
 	unix := fmt.Sprintf("%02d", int(t.Unix()))
 	year := fmt.Sprintf("%02d", t.Year())
 
-	m.Id = &id
+	m.Utc = &utc
 	m.Day = &day
 	m.Hour = &hour
 	m.Minute = &minute

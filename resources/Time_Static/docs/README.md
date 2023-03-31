@@ -12,6 +12,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AwsCommunity::Time::Static",
     "Properties" : {
+        "<a href="#time" title="Time">Time</a>" : <i>String</i>,
     }
 }
 </pre>
@@ -21,9 +22,22 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AwsCommunity::Time::Static
 Properties:
+    <a href="#time" title="Time">Time</a>: <i>String</i>
 </pre>
 
 ## Properties
+
+#### Time
+
+Optional parameter to represent the time or default is now.
+
+_Required_: No
+
+_Type_: String
+
+_Pattern_: <code>^\d{4}-[0-1][0-3]-[0-3]\d{1}T[0-2]\d{1}:[0-5]\d{1}:[0-5]\d{1}Z$</code>
+
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 ## Return Values
 
@@ -38,6 +52,10 @@ The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of
 For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
 
 #### Id
+
+Id is a unique identifier that is auto generated.
+
+#### Utc
 
 UTC returns the time in UTC format.
 
