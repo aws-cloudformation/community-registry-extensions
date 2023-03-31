@@ -41,7 +41,10 @@ first be activated using the instructions
 |[AwsCommunity::S3::BucketNotification](./resources/S3_BucketNotification)|Resource|Alpha|Configure bucket notifications|
 |[AwsCommunity::S3::DeleteBucketContents](./resources/S3_DeleteBucketContents)|Resource|Alpha|Delete all objects in a bucket|
 |[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Alpha|Validate that an AWS::S3::Bucket has versioning enabled|
+|[AwsCommunity::S3::PublicAccessControlsRestricted](./hooks/S3_PublicAccessControlsRestricted)|Hook|Alpha|Validates any resource of type `AWS::S3::Bucket` has the public access controls restricted|
 |[AwsCommunity::CloudFront::LoggingEnabled](./hooks/CloudFront_LoggingEnabled)|Hook|Alpha|Validate that a CloudFront distribution has logging enabled|
+|[AwsCommunity::DynamoDB::Item](./resources/DynamoDB_Item)|Resource|Alpha|Manage the lifecycle of items in a DynamoDB table|
+|[AwsCommunity::Account::AlternateContact](./resources/Account_AlternateContact)|Resource|Alpha|An alternate contact attached to an Amazon Web Services account|
 
 ## Contributing
 
