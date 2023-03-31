@@ -5,10 +5,11 @@ Resources:
     UpdateReplacePolicy: Delete
     Type: AWS::DynamoDB::Table
     Properties:
+      BillingMode: PAY_PER_REQUEST
       KeySchema:
         [
           { AttributeName: "pk", KeyType: HASH },
-          { AttributeName: "sk", KeyType: HASH },
+          { AttributeName: "sk", KeyType: RANGE },
         ]
       AttributeDefinitions:
         [
@@ -22,8 +23,10 @@ Resources:
       Item:
         title:
           S: title
-      Key:
-        pk:
-          S: pk
-        sk:
-          S: sk
+      Keys:
+        - AttributeName: "pk"
+          AttributeType: "S"
+          AttributeValue: "foo"
+        - AttributeName: "sk"
+          AttributeType: "S"
+          AttributeValue: "bar"
