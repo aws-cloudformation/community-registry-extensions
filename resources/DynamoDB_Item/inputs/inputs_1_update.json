@@ -5,9 +5,12 @@
       "S": "one"
     }
   },
-  "Key": {
-    "pk": {
-      "S": "one"
+  "Keys": [
+    {
+      "AttributeName": "pk",
+      "AttributeType": "S",
+      "AttributeValue": "foo"
     }
-  }
+  ],
+  "CompositeKey": "foo"
 }
