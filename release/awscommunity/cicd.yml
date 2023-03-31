@@ -166,6 +166,19 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  TimeStaticBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   CloudFrontWebAclAssociationBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -361,6 +374,34 @@ Resources:
       PolicyName: cloudfront-s3-website-build-project-policy
       Roles:
         - !Ref CloudFrontS3WebsiteModuleBuildProjectRole
+
+  TimeStaticBuildProjectRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - dynamodb:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt TimeStaticBuildProject.Arn
+        Version: '2012-10-17'
+      PolicyName: delete-bucket-contents-build-project-policy
+      Roles:
+        - !Ref TimeStaticBuildProjectRole
 
   CloudFrontWebAclAssociationBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -579,6 +620,28 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+      TimeoutInMinutes: 480
+
+  TimeStaticBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-time-static"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt TimeStaticBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec-go.yml"
       TimeoutInMinutes: 480
 
   S3BucketVersioningEnabledBuildProject:
@@ -852,6 +915,7 @@ Resources:
               - !GetAtt DynamoDBItemBuildProject.Arn
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
               - !GetAtt S3PublicAccessControlsRestrictedBuildProject.Arn
+              - !GetAtt TimeStaticBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
               - !GetAtt S3BucketModuleBuildProject.Arn
@@ -916,6 +980,7 @@ Resources:
                 - !GetAtt DynamoDBItemBuildProjectRole.Arn
                 - !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
                 - !GetAtt S3PublicAccessControlsRestrictedBuildProjectRole.Arn
+                - !GetAtt TimeStaticBuildProjectRole.Arn
                 - !GetAtt AlternateContactBuildProjectRole.Arn
                 - !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
@@ -1034,12 +1099,41 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref DynamoDBItemBuildProject
+                # BatchEnabled: 
+                #   !If
+                #     - IsProd
+                #     - true
+                #     - false
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "resources/DynamoDB_Item"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: TimeStatic
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref TimeStaticBuildProject
+                # BatchEnabled: 
+                #   !If
+                #     - IsProd
+                #     - true
+                #     - false
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/Time_Static"
                     }
                   ]
               RunOrder: 1
