@@ -100,16 +100,27 @@
           "$ref": "#/definitions/AttributeValue"
         }
       },
+      "type": "object",
       "additionalProperties": false
     },
     "Key": {
-      "patternProperties": {
-        "^[A-Za-z0-9_@./#&+-]{1,255}$": {
-          "$ref": "#/definitions/AttributeValue"
+      "properties": {
+        "AttributeName": {
+          "type": "string"
+        },
+        "AttributeType": {
+          "type": "string"
+        },
+        "AttributeValue": {
+          "type": "string"
         }
       },
-      "minProperties": 1,
-      "maxProperties": 2,
+      "required": [
+        "AttributeName",
+        "AttributeType",
+        "AttributeValue"
+      ],
+      "type": "object",
       "additionalProperties": false
     }
   },
@@ -117,33 +128,37 @@
     "Item": {
       "$ref": "#/definitions/Attribute"
     },
-    "Key": {
-      "$ref": "#/definitions/Key"
+    "Keys": {
+      "items": {
+        "$ref": "#/definitions/Key"
+      },
+      "insertionOrder": true,
+      "type": "array"
     },
     "TableName": {
       "type": "string",
       "description": "The table to put the item into"
+    },
+    "CompositeKey": {
+      "type": "string",
+      "description": "Composite Key is a combination of the partition and sort key values"
     }
   },
   "additionalProperties": false,
   "required": [
     "TableName",
-    "Pk"
+    "Keys"
+  ],
+  "readOnlyProperties": [
+    "/properties/CompositeKey"
   ],
   "primaryIdentifier": [
-    "/properties/TableName"
+    "/properties/TableName",
+    "/properties/CompositeKey"
   ],
   "createOnlyProperties": [
-    "/properties/TableName"
-  ],
-  "additionalIdentifiers": [
-    [
-      "/properties/Pk"
-    ],
-    [
-      "/properties/Pk",
-      "/properties/Sk"
-    ]
+    "/properties/TableName",
+    "/properties/Key"
   ],
   "handlers": {
     "create": {

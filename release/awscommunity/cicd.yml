@@ -306,7 +306,11 @@ Resources:
     Properties:
       PolicyDocument:
         Statement:
-          - Action: dynamodb:*
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - dynamodb:*
             Effect: Allow
             Resource: "*"
           - Action:
@@ -619,8 +623,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
   HookEC2SecurityGroupRestrictedSSHBuildProject:
@@ -643,8 +645,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "hooks/${Env}-buildspec-python.yml"
-      # BuildBatchConfig:
-      #   ServiceRole: !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
       TimeoutInMinutes: 480
 
   CloudFrontLoggingEnabledBuildProject:
@@ -1012,11 +1012,6 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref S3DeleteBucketContentsBuildProject
-                # BatchEnabled: 
-                #   !If
-                #     - IsProd
-                #     - true
-                #     - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -1055,11 +1050,6 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref AlternateContactBuildProject
-                # BatchEnabled: 
-                #   !If
-                #     - IsProd
-                #     - true
-                #     - false
                 EnvironmentVariables: |-
                   [
                     {

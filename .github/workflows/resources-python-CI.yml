@@ -18,6 +18,7 @@ jobs:
         include:
           - resource: DynamoDB_Item
             python_version: "3.9"
+            folder_name: awscommunity_dynamodb_item
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,10 +32,14 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          if [[ -f requirements-dev.txt ]]
+          then
+            pip install -r requirements-dev.txt
+          fi
           pip3 install pylint
+          pip3 install pytest
       - name: Run Test
         run: |
-          pylint --rcfile ../../config/.pylintrc src/${{ matrix.resource }}/*.py
+          pylint --rcfile ../../config/.pylintrc src/${{ matrix.folder_name }}/*.py
           pytest src
           

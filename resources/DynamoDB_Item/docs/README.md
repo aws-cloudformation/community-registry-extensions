@@ -1,6 +1,6 @@
 # AwsCommunity::DynamoDB::Item
 
-An example resource schema demonstrating some basic constructs and validation rules.
+This resource will manage the lifecycle of items in a DynamoDB table
 
 ## Syntax
 
@@ -13,8 +13,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Type" : "AwsCommunity::DynamoDB::Item",
     "Properties" : {
         "<a href="#item" title="Item">Item</a>" : <i><a href="item.md">Item</a></i>,
-        "<a href="#key" title="Key">Key</a>" : <i><a href="key.md">Key</a></i>,
-        "<a href="#tablename" title="TableName">TableName</a>" : <i>String</i>
+        "<a href="#keys" title="Keys">Keys</a>" : <i>[ <a href="key.md">Key</a>, ... ]</i>,
+        "<a href="#tablename" title="TableName">TableName</a>" : <i>String</i>,
     }
 }
 </pre>
@@ -25,7 +25,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 Type: AwsCommunity::DynamoDB::Item
 Properties:
     <a href="#item" title="Item">Item</a>: <i><a href="item.md">Item</a></i>
-    <a href="#key" title="Key">Key</a>: <i><a href="key.md">Key</a></i>
+    <a href="#keys" title="Keys">Keys</a>: <i>
+      - <a href="key.md">Key</a></i>
     <a href="#tablename" title="TableName">TableName</a>: <i>String</i>
 </pre>
 
@@ -39,11 +40,11 @@ _Type_: <a href="item.md">Item</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### Key
+#### Keys
 
-_Required_: No
+_Required_: Yes
 
-_Type_: <a href="key.md">Key</a>
+_Type_: List of <a href="key.md">Key</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -59,6 +60,13 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 ## Return Values
 
-### Ref
+### Fn::GetAtt
 
-When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the TableName.
+The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of this type. The following are the available attributes and sample return values.
+
+For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
+
+#### CompositeKey
+
+Composite Key is a combination of the partition and sort key values
+

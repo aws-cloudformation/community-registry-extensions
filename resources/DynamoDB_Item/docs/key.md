@@ -8,21 +8,41 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 
 <pre>
 {
-    "<a href="#^[a-za-z0-9_@./#&+-]{1,255}$" title="^[A-Za-z0-9_@./#&+-]{1,255}$">^[A-Za-z0-9_@./#&+-]{1,255}$</a>" : <i><a href="attributevalue.md">AttributeValue</a></i>
+    "<a href="#attributename" title="AttributeName">AttributeName</a>" : <i>String</i>,
+    "<a href="#attributetype" title="AttributeType">AttributeType</a>" : <i>String</i>,
+    "<a href="#attributevalue" title="AttributeValue">AttributeValue</a>" : <i><a href="attributevalue.md">AttributeValue</a></i>
 }
 </pre>
 
 ### YAML
 
 <pre>
-<a href="#^[a-za-z0-9_@./#&+-]{1,255}$" title="^[A-Za-z0-9_@./#&+-]{1,255}$">^[A-Za-z0-9_@./#&+-]{1,255}$</a>: <i><a href="attributevalue.md">AttributeValue</a></i>
+<a href="#attributename" title="AttributeName">AttributeName</a>: <i>String</i>
+<a href="#attributetype" title="AttributeType">AttributeType</a>: <i>String</i>
+<a href="#attributevalue" title="AttributeValue">AttributeValue</a>: <i><a href="attributevalue.md">AttributeValue</a></i>
 </pre>
 
 ## Properties
 
-#### \^[A-Za-z0-9_@./#&+-]{1,255}$
+#### AttributeName
 
-_Required_: No
+_Required_: Yes
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### AttributeType
+
+_Required_: Yes
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### AttributeValue
+
+_Required_: Yes
 
 _Type_: <a href="attributevalue.md">AttributeValue</a>
 
