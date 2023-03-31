@@ -1,14 +1,26 @@
 # DO NOT modify this file by hand, changes will be overwritten
-import sys
 from dataclasses import dataclass
-from inspect import getmembers, isclass
-from typing import (AbstractSet, Any, Generic, Mapping, MutableMapping,
-                    Optional, Sequence, Type, TypeVar)
 
 from cloudformation_cli_python_lib.interface import (
-    BaseModel, BaseResourceHandlerRequest)
+    BaseModel,
+    BaseResourceHandlerRequest,
+)
 from cloudformation_cli_python_lib.recast import recast_object
 from cloudformation_cli_python_lib.utils import deserialize_list
+
+import sys
+from inspect import getmembers, isclass
+from typing import (
+    AbstractSet,
+    Any,
+    Generic,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+)
 
 T = TypeVar("T")
 
@@ -30,8 +42,9 @@ class ResourceHandlerRequest(BaseResourceHandlerRequest):
 @dataclass
 class ResourceModel(BaseModel):
     Item: Optional[MutableMapping[str, "_AttributeValue"]]
-    Key: Optional[MutableMapping[str, "_AttributeValue"]]
+    Keys: Optional[Sequence["_Key"]]
     TableName: Optional[str]
+    CompositeKey: Optional[str]
 
     @classmethod
     def _deserialize(
@@ -44,8 +57,9 @@ class ResourceModel(BaseModel):
         recast_object(cls, json_data, dataclasses)
         return cls(
             Item=json_data.get("Item"),
-            Key=json_data.get("Key"),
+            Keys=deserialize_list(json_data.get("Keys"), Key),
             TableName=json_data.get("TableName"),
+            CompositeKey=json_data.get("CompositeKey"),
         )
 
 
@@ -85,6 +99,30 @@ class AttributeValue(BaseModel):
 
 # work around possible type aliasing issues when variable has same name as a model
 _AttributeValue = AttributeValue
+
+
+@dataclass
+class Key(BaseModel):
+    AttributeName: Optional[str]
+    AttributeType: Optional[str]
+    AttributeValue: Optional[str]
+
+    @classmethod
+    def _deserialize(
+        cls: Type["_Key"],
+        json_data: Optional[Mapping[str, Any]],
+    ) -> Optional["_Key"]:
+        if not json_data:
+            return None
+        return cls(
+            AttributeName=json_data.get("AttributeName"),
+            AttributeType=json_data.get("AttributeType"),
+            AttributeValue=json_data.get("AttributeValue"),
+        )
+
+
+# work around possible type aliasing issues when variable has same name as a model
+_Key = Key
 
 
 @dataclass

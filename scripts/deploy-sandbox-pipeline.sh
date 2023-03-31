@@ -21,7 +21,7 @@ export IMAGE_REPO="cep-cicd"
 aws --profile $PROFILE --region $AWS_REGION ecr describe-repositories --repository-names $IMAGE_REPO || \
     aws --profile $PROFILE --region $AWS_REGION ecr create-repository --repository-name $IMAGE_REPO
 
-./deploy-build-image.sh $AWS_ACCOUNT $PROFILE
+./deploy-build-image.sh $AWS_ACCOUNT $PROFILE $AWS_REGION
 
 export CEP_ENV=alpha
 export GIT_BRANCH=main
