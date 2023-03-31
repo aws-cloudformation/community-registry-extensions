@@ -16,9 +16,10 @@ Resources:
             Item:
                 title:
                     S: Workshop 101
-            Key:
-                pk:
-                    S: wks101
+            Keys:
+            - AttributeName: pk
+              AttributeType: S
+              AttributeValue: value
 ```
 
 ## Development

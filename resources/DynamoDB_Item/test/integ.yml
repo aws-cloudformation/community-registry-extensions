@@ -9,7 +9,7 @@ Resources:
       KeySchema:
         [
           { AttributeName: "pk", KeyType: HASH },
-          { AttributeName: "sk", KeyType: HASH },
+          { AttributeName: "sk", KeyType: RANGE },
         ]
       AttributeDefinitions:
         [
@@ -23,7 +23,7 @@ Resources:
       Item:
         title:
           S: title
-      Key:
+      Keys:
         - AttributeName: "pk"
           AttributeType: "S"
           AttributeValue: "foo"
