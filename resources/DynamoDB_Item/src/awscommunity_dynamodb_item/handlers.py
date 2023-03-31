@@ -202,6 +202,7 @@ def read_handler(
     model = request.desiredResourceState
     output_model: ResourceModel
 
+    #pylint: disable=too-many-nested-blocks
     try:
         if model is not None:
             if isinstance(session, SessionProxy):
