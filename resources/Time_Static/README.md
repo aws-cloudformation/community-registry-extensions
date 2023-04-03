@@ -1,6 +1,6 @@
 # AwsCommunity::Time::Static
 
-Creates a static time with the following properties:
+Creates a static time based resource.
 
 ## Example
 
@@ -51,3 +51,8 @@ In another tab, run cfn test:
 cd resources/Time_Static
 cfn test -- -k "contract_create_delete or contract_create_create or contract_create_read or contract_check_asserts_work"
 ```
+
+## Notes
+
+### SSM Parameter
+To keep track of a resource that is a time we use a SSM parameter. We store a key in the SSM parameter store at `/CloudFormation/AwsCommunity/Time/Static/unique-identifier` to identify and keep track of the resource state.

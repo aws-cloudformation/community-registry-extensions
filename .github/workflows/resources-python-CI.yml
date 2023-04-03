@@ -5,20 +5,28 @@ on:
     branches:
       - main
     paths:
+      - ".github/workflows/resources-python-CI.yml"
+      - "resources/CloudFront_WebACLAssociation/**"
       - "resources/DynamoDB_Item/**"
   pull_request:
     paths:
+      - ".github/workflows/resources-python-CI.yml"
+      - "resources/CloudFront_WebACLAssociation/**"
       - "resources/DynamoDB_Item/**"
 jobs:
   linux:
     strategy:
       matrix:
         resource:
+          - CloudFront_WebACLAssociation
           - DynamoDB_Item
         include:
           - resource: DynamoDB_Item
             python_version: "3.9"
             folder_name: awscommunity_dynamodb_item
+          - resource: CloudFront_WebACLAssociation
+            python_version: "3.7"
+            folder_name: awscommunity_cloudfront_webaclassociation
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -42,4 +50,3 @@ jobs:
         run: |
           pylint --rcfile ../../config/.pylintrc src/${{ matrix.folder_name }}/*.py
           pytest src
-          
