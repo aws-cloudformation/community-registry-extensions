@@ -1,4 +1,5 @@
-
+local/
 .venv
 rpdk.log*
 /awscommunity-cloudfront-s3website-module.zip
+test/integ.yml
