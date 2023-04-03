@@ -1,13 +1,57 @@
 # AwsCommunity::Time::Sleep
 
-Congratulations on starting development!
+Put a sleep into your CloudFormation templates.
 
-Next steps:
+## Example
 
-1. Populate the JSON schema describing your resource, `awscommunity-time-sleep.json`
-2. The RPDK will automatically generate the correct resource model from the
-   schema whenever the project is built via Make.
-   You can also do this manually with the following command: `cfn-cli generate`
-3. Implement your resource handlers by adding code to provision your resources in your resource handler's methods.
+```yaml
+Resources:
+   Instance:
+      Type: AWS::EC2::Instance
+      ...
+   Sleep:
+      Type: AwsCommunity::Time::Sleep
+      Properties:
+         Seconds: 10
+         SleepOnCreate: true
+         SleepOnUpdate: true
+         SleepOnDelete: true
+         AfterResources:
+         # will sleep any time the instance ID changes
+         - !Ref Instance
+```
 
-Please don't modify files `model.go and main.go`, as they will be automatically overwritten.
+## Properties
+The following properties you can use in a `GetAtt`
+
+| Attribute  | Type | Description |
+| ------------- | ------------- | ------------- |
+| **Seconds**  | integer  | The number of seconds to sleep.
+| **SleepOnCreate**  | boolean  | If you want to sleep on creation. (default=true)
+| **SleepOnUpdate** | boolean  | If you want to sleep on update. (default=true)
+| **SleepOnDelete** | boolean  | If you want to sleep on delete. (default=true)
+| **AfterResources** | array of strings  | A list of strings that represent when we want to do a sleep on update
+
+## Attributes
+None
+
+## Development
+
+Open two tabs in your terminal.
+
+Run SAM 
+```sh
+sam local start-lambda
+```
+
+In another tab, run cfn test:
+
+```sh
+cd resources/Time_Sleep
+cfn test"
+```
+
+## Notes
+
+### SSM Parameter
+To keep track of a resource that is a time we use a SSM parameter. We store a key in the SSM parameter store at `/CloudFormation/AwsCommunity/Time/Sleep/unique-identifier` to identify and keep track of the resource state.

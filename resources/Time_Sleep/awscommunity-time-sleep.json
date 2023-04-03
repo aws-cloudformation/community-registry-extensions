@@ -29,12 +29,13 @@
             "type": "boolean",
             "default": true
         },
-        "AfterResource": {
+        "AfterResources": {
             "description": "A value to represent when a sleep should occur. Any time this is updated this resource will sleep.",
             "type": "array",
             "items": {
                 "type": "string"
-            }
+            },
+            "insertionOrder": true
         }
     },
     "additionalProperties": false,
