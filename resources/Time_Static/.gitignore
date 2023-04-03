@@ -14,5 +14,6 @@ vender/
 
 # contains credentials
 sam-tests/
+.hypothesis/
 
 /awscommunity-time-static.zip
