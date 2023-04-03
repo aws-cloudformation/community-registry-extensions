@@ -713,6 +713,9 @@ Resources:
         - Name: HOSTED_ZONE_ID
           Type: PARAMETER_STORE
           Value: "cep-hosted-zone-id"
+        - Name: ALIAS
+          Type: PARAMETER_STORE
+          Value: "cep-cloudfront-s3-alias"
       ServiceRole: !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
