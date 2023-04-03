@@ -8,7 +8,7 @@ phases:
       - echo Entered the install phase...
       - echo About to build $RESOURCE_PATH
       - export PATH="/usr/local/bin:$PATH"
-      - ENTRY_PATH=$(python scripts/entry.py $RESOURCE_PATH/.rpdk-config)
+      - ENTRY_PATH=$(python scripts/resourceName.py $RESOURCE_PATH/.rpdk-config)
       - /usr/local/bin/dockerd-entrypoint.sh
       - cat /var/log/docker.log
       - echo ENTRY_PATH is $ENTRY_PATH
