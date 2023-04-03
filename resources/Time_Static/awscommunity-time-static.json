@@ -4,6 +4,15 @@
   "sourceUrl": "https://github.com/aws-cloudformation/awscommunity-registry-extensions/resources/Time_Static.git",
   "properties": {
     "Id": {
+      "description": "Id is a unique identifier that is auto generated.",
+      "type": "string"
+    },
+    "Time": {
+      "description": "Optional parameter to represent the time or default is now.",
+      "type": "string",
+      "pattern": "^\\d{4}-[0-1][0-3]-[0-3]\\d{1}T[0-2]\\d{1}:[0-5]\\d{1}:[0-5]\\d{1}Z$"
+    },
+    "Utc": {
       "description": "UTC returns the time in UTC format.",
       "type": "string"
     },
@@ -40,6 +49,7 @@
   "required": [],
   "readOnlyProperties": [
     "/properties/Id",
+    "/properties/Utc",
     "/properties/Day",
     "/properties/Hour",
     "/properties/Minute",
@@ -48,16 +58,27 @@
     "/properties/Unix",
     "/properties/Year"
   ],
-  "primaryIdentifier": ["/properties/Id"],
+  "createOnlyProperties": [
+    "/properties/Time"
+  ],
+  "primaryIdentifier": [
+    "/properties/Id"
+  ],
   "handlers": {
     "create": {
-      "permissions": []
+      "permissions": [
+        "ssm:PutParameter"
+      ]
     },
     "read": {
-      "permissions": []
+      "permissions": [
+        "ssm:GetParameter"
+      ]
     },
     "delete": {
-      "permissions": []
+      "permissions": [
+        "ssm:DeleteParameter"
+      ]
     }
   }
 }
