@@ -13,7 +13,10 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Type" : "AwsCommunity::Time::Sleep",
     "Properties" : {
         "<a href="#seconds" title="Seconds">Seconds</a>" : <i>Integer</i>,
-        "<a href="#sleepson" title="SleepsOn">SleepsOn</a>" : <i>String</i>
+        "<a href="#sleeponcreate" title="SleepOnCreate">SleepOnCreate</a>" : <i>Boolean</i>,
+        "<a href="#sleeponupdate" title="SleepOnUpdate">SleepOnUpdate</a>" : <i>Boolean</i>,
+        "<a href="#sleepondelete" title="SleepOnDelete">SleepOnDelete</a>" : <i>Boolean</i>,
+        "<a href="#afterresource" title="AfterResource">AfterResource</a>" : <i>[ String, ... ]</i>
     }
 }
 </pre>
@@ -24,7 +27,11 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 Type: AwsCommunity::Time::Sleep
 Properties:
     <a href="#seconds" title="Seconds">Seconds</a>: <i>Integer</i>
-    <a href="#sleepson" title="SleepsOn">SleepsOn</a>: <i>String</i>
+    <a href="#sleeponcreate" title="SleepOnCreate">SleepOnCreate</a>: <i>Boolean</i>
+    <a href="#sleeponupdate" title="SleepOnUpdate">SleepOnUpdate</a>: <i>Boolean</i>
+    <a href="#sleepondelete" title="SleepOnDelete">SleepOnDelete</a>: <i>Boolean</i>
+    <a href="#afterresource" title="AfterResource">AfterResource</a>: <i>
+      - String</i>
 </pre>
 
 ## Properties
@@ -39,13 +46,43 @@ _Type_: Integer
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### SleepsOn
+#### SleepOnCreate
+
+If we should sleep on a create.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SleepOnUpdate
+
+If we should sleep on an update.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SleepOnDelete
+
+If we should sleep on a delete.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### AfterResource
 
 A value to represent when a sleep should occur. Any time this is updated this resource will sleep.
 
 _Required_: No
 
-_Type_: String
+_Type_: List of String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

@@ -14,9 +14,27 @@
             "exclusiveMinimum": 0,
             "exclusiveMaximum": 600
         },
-        "SleepsOn": {
+        "SleepOnCreate": {
+            "description": "If we should sleep on a create.",
+            "type": "boolean",
+            "default": true
+        },
+        "SleepOnUpdate": {
+            "description": "If we should sleep on an update.",
+            "type": "boolean",
+            "default": true
+        },
+        "SleepOnDelete": {
+            "description": "If we should sleep on a delete.",
+            "type": "boolean",
+            "default": true
+        },
+        "AfterResource": {
             "description": "A value to represent when a sleep should occur. Any time this is updated this resource will sleep.",
-            "type": "string"
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     },
     "additionalProperties": false,

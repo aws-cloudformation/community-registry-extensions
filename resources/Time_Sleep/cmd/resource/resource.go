@@ -44,7 +44,9 @@ func Create(req handler.Request, _ *Model, currentModel *Model) (handler.Progres
 		}, nil
 	}
 
-	time.Sleep(time.Duration(*currentModel.Seconds * int(time.Second)))
+	if currentModel.SleepOnCreate == nil || *currentModel.SleepOnCreate {
+		time.Sleep(time.Duration(*currentModel.Seconds * int(time.Second)))
+	}
 
 	response := handler.ProgressEvent{
 		OperationStatus: handler.Success,
@@ -97,6 +99,9 @@ func Update(req handler.Request, prevModel *Model, currentModel *Model) (handler
 		}, nil
 	}
 
+	if currentModel.SleepOnUpdate == nil || *currentModel.SleepOnUpdate {
+		time.Sleep(time.Duration(*currentModel.Seconds * int(time.Second)))
+	}
 	time.Sleep(time.Duration(*currentModel.Seconds * int(time.Second)))
 
 	response := handler.ProgressEvent{
@@ -123,6 +128,10 @@ func Delete(req handler.Request, prevModel *Model, currentModel *Model) (handler
 			HandlerErrorCode: cloudformation.HandlerErrorCodeNotFound,
 			Message:          "Resource not found",
 		}, nil
+	}
+
+	if currentModel.SleepOnDelete == nil || *currentModel.SleepOnDelete {
+		time.Sleep(time.Duration(*currentModel.Seconds * int(time.Second)))
 	}
 
 	response := handler.ProgressEvent{
