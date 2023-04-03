@@ -1,0 +1,21 @@
+{
+    "artifact_type": "RESOURCE",
+    "typeName": "AwsCommunity::Time::Sleep",
+    "language": "go",
+    "runtime": "go1.x",
+    "entrypoint": "handler",
+    "testEntrypoint": "handler",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "artifact_type": null,
+        "endpoint_url": null,
+        "region": null,
+        "target_schemas": [],
+        "import_path": "github.com/aws-cloudformation/awscommunity-registry-extensions/resources/Time_Sleep",
+        "protocolVersion": "2.0.0"
+    }
+}

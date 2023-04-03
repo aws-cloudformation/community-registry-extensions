@@ -1,0 +1,54 @@
+{
+    "typeName": "AwsCommunity::Time::Sleep",
+    "description": "An example resource schema demonstrating some basic constructs and validation rules.",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {},
+    "properties": {
+        "Id": {
+            "description": "Id is a unique identifier that is auto generated.",
+            "type": "string"
+        },
+        "Seconds": {
+            "description": "The number of seconds to sleep for.",
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "exclusiveMaximum": 600
+        },
+        "SleepsOn": {
+            "description": "A value to represent when a sleep should occur. Any time this is updated this resource will sleep.",
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "Seconds"
+    ],
+    "readOnlyProperties": [
+        "/properties/Id"
+    ],
+    "primaryIdentifier": [
+        "/properties/Id"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "ssm:PutParameter"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "ssm:GetParameter"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "ssm:PutParameter"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "ssm:DeleteParameter"
+            ]
+        }
+    }
+}
