@@ -398,6 +398,12 @@ Resources:
             Effect: Allow
             Resource: 
               - !GetAtt TimeStaticBuildProject.Arn
+          - Action:
+              - ssm:DeleteParameter
+              - ssm:GetParameter
+              - ssm:PutParameter
+            Effect: Allow
+            Resource: "*"
         Version: '2012-10-17'
       PolicyName: delete-bucket-contents-build-project-policy
       Roles:
