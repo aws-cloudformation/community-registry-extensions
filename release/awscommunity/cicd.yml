@@ -990,6 +990,8 @@ Resources:
                 - !GetAtt AlternateContactBuildProjectRole.Arn
                 - !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
+                - !GetAtt S3BucketModuleBuildProjectRole.Arn
+                - !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
