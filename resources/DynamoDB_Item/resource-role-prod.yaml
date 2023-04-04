@@ -26,6 +26,7 @@ Resources:
                 - "dynamodb:DeleteItem"
                 - "dynamodb:GetItem"
                 - "dynamodb:PutItem"
+                - "cloudformation:ListExports"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
