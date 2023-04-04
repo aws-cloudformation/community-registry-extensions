@@ -56,12 +56,13 @@ HANDLER_BUCKET="cep-handler-${ACCOUNT_ID}"
 # The execution role is not required by modules
 if [ "$EXT_TYPE" != "MODULE" ]
 then
-    EXT_TYPE_LOWER = "$EXT_TYPE" | tr '[:upper:]' '[:lower:]'
+    EXT_TYPE_LOWER="$(echo $EXT_TYPE | tr '[:upper:]' '[:lower:]')"
+    echo "EXT_TYPE_LOWER is $EXT_TYPE_LOWER"
     # Overwrite the role stack to fix the broken Condition.
     # test-type does not use the role we register, it re-deploys the stack
     cp $EXT_TYPE_LOWER-role-prod.yaml $EXT_TYPE_LOWER-role.yaml
 
-    ROLE_STACK_NAME="$(echo $EXT_TYPE_LOWER | sed s/::/-/g)-prod-role-stack"
+    ROLE_STACK_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr ‘[:upper:]’ ‘[:lower:]’)-prod-role-stack"
     echo "ROLE_STACK_NAME is $ROLE_STACK_NAME"
     echo ""
 
