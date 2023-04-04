@@ -16,7 +16,7 @@ Resources:
          SleepOnCreate: true
          SleepOnUpdate: true
          SleepOnDelete: true
-         AfterResources:
+         Triggers:
          # will sleep any time the instance ID changes
          - !Ref Instance
 ```
@@ -30,7 +30,7 @@ The following properties you can use in a `GetAtt`
 | **SleepOnCreate**  | boolean  | If you want to sleep on creation. (default=true)
 | **SleepOnUpdate** | boolean  | If you want to sleep on update. (default=true)
 | **SleepOnDelete** | boolean  | If you want to sleep on delete. (default=true)
-| **AfterResources** | array of strings  | A list of strings that represent when we want to do a sleep on update
+| **Triggers** | array of strings  | A list of strings that represent when we want to do a sleep on update
 
 ## Attributes
 None

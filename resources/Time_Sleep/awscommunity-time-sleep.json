@@ -29,7 +29,7 @@
             "type": "boolean",
             "default": true
         },
-        "AfterResources": {
+        "Triggers": {
             "description": "A value to represent when a sleep should occur. Any time this is updated this resource will sleep.",
             "type": "array",
             "items": {
