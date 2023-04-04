@@ -1,0 +1,7 @@
+Resources:
+  Time:
+    Type: AwsCommunity::Time::Offset
+    Properties:
+      Time: "2023-03-31T18:51:56Z"
+      OffsetDays: 1
+

@@ -1,0 +1,147 @@
+{
+    "typeName": "AwsCommunity::Time::Offset",
+    "description": "Creates a time based resource with an offset from the provided time or now.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions.git",
+    "definitions": {},
+    "properties": {
+        "Id": {
+            "description": "Id is a unique identifier that is auto generated.",
+            "type": "string"
+        },
+        "Time": {
+            "description": "Optional parameter to represent the time or default is now.",
+            "type": "string",
+            "pattern": "^\\d{4}-[0-1][0-3]-[0-3]\\d{1}T[0-2]\\d{1}:[0-5]\\d{1}:[0-5]\\d{1}Z$"
+        },
+        "OffsetDays": {
+            "description": "Number of days to offset the base timestamp.",
+            "type": "integer"
+        },
+        "OffsetHours": {
+            "description": "Number of hours to offset the base timestamp.",
+            "type": "integer"
+        },
+        "OffsetMinutes": {
+            "description": "Number of minutes to offset the base timestamp.",
+            "type": "integer"
+        },
+        "OffsetMonths": {
+            "description": "Number of months to offset the base timestamp.",
+            "type": "integer"
+        },
+        "OffsetSeconds": {
+            "description": "Number of seconds to offset the base timestamp.",
+            "type": "integer"
+        },
+        "OffsetYears": {
+            "description": "Number of years to offset the base timestamp.",
+            "type": "integer"
+        },
+        "Utc": {
+            "description": "UTC returns the time in UTC format.",
+            "type": "string"
+        },
+        "Day": {
+            "description": "Day returns the day of the month.",
+            "type": "string"
+        },
+        "Hour": {
+            "description": "Hour returns the hour within the day, in the range [0, 23].",
+            "type": "string"
+        },
+        "Minute": {
+            "description": "Minute returns the minute offset within the hour, in the range [0, 59].",
+            "type": "string"
+        },
+        "Month": {
+            "description": "Month returns the month of the year.",
+            "type": "string"
+        },
+        "Second": {
+            "description": "Second returns the second offset within the minute, in the range [0, 59].",
+            "type": "string"
+        },
+        "Unix": {
+            "description": "Unix returns a Unix time, the number of seconds elapsed since January 1, 1970 UTC.",
+            "type": "string"
+        },
+        "Year": {
+            "description": "Year returns the year.",
+            "type": "string"
+        },
+        "Triggers": {
+            "description": "A value to represent when an update to the time should occur.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "insertionOrder": true
+        }
+    },
+    "additionalProperties": false,
+    "anyOf": [
+        {
+            "required": ["OffsetDays"]
+        },
+        {
+            "required": ["OffsetHours"]
+        },
+        {
+            "required": ["OffsetMinutes"]
+        },
+        {
+            "required": ["OffsetMonths"]
+        },
+        {
+            "required": ["OffsetSeconds"]
+        },
+        {
+            "required": ["OffsetYears"]
+        }
+    ],
+    "readOnlyProperties": [
+        "/properties/Id",
+        "/properties/Utc",
+        "/properties/Day",
+        "/properties/Hour",
+        "/properties/Minute",
+        "/properties/Month",
+        "/properties/Second",
+        "/properties/Unix",
+        "/properties/Year"
+    ],
+    "createOnlyProperties": [
+        "/properties/Time",
+        "/properties/OffsetDays",
+        "/properties/OffsetHours",
+        "/properties/OffsetMinutes",
+        "/properties/OffsetMonths",
+        "/properties/OffsetSeconds",
+        "/properties/OffsetYears"
+      ],
+    "primaryIdentifier": [
+        "/properties/Id"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "ssm:PutParameter"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "ssm:DeleteParameter"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "ssm:GetParameter"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "ssm:GetParameter"
+            ]
+        }
+    }
+}
