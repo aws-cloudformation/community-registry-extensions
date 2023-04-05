@@ -21,7 +21,7 @@ Resources:
                   Ref: AWS::AccountId
               StringLike:
                 aws:SourceArn:
-                  Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/resource/AwsCommunity-Time-Static/*
+                  Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/resource/AwsCommunity-Time-Sleep/*
       Path: "/"
       Policies:
         - PolicyName: ResourceTypePolicy
@@ -33,7 +33,7 @@ Resources:
                 - "ssm:DeleteParameter"
                 - "ssm:GetParameter"
                 - "ssm:PutParameter"
-                Resource: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/CloudFormation/AwsCommunity/Time/Static/*"
+                Resource: "*"
 Outputs:
   ExecutionRoleArn:
     Value:
