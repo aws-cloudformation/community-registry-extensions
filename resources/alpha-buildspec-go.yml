@@ -8,12 +8,12 @@ phases:
       - echo Entered the install phase...
       - echo About to build $RESOURCE_PATH
       - export PATH="/usr/local/bin:$PATH"
-      - ENTRY_PATH=$(python scripts/resourceName.py $RESOURCE_PATH/.rpdk-config)
+      - TYPE_NAME=$(python scripts/type_name.py $RESOURCE_PATH/.rpdk-config)
+      - TYPE_CLEAN_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr ‘[:upper:]’ ‘[:lower:]’)"
       - /usr/local/bin/dockerd-entrypoint.sh
       - cat /var/log/docker.log
-      - echo ENTRY_PATH is $ENTRY_PATH
-      - BUILD_FILE_NAME=$(cat ENTRY_PATH | sed s/_/-/g)
-      - BUILD_FILE_NAME="${BUILD_FILE_NAME}.zip"
+      - echo TYPE_CLEAN_NAME is $TYPE_CLEAN_NAME
+      - BUILD_FILE_NAME="${TYPE_CLEAN_NAME}.zip"
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-go-plugin.git@master
       - cd $RESOURCE_PATH
       - ls /usr/local/bin
@@ -27,7 +27,7 @@ phases:
       - echo Entered the build phase...
       - cfn validate
       - cfn generate
-      - SETUP_STACK_NAME="setup-$(echo $ENTRY_PATH | sed s/_/-/g)"
+      - SETUP_STACK_NAME="setup-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
       - rain deploy test/setup.yml $SETUP_STACK_NAME -y
       - make
       - ls -ltra

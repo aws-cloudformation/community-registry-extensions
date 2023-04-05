@@ -192,6 +192,19 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  TimeOffsetBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   CloudFrontWebAclAssociationBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -456,6 +469,40 @@ Resources:
       Roles:
         - !Ref TimeSleepBuildProjectRole
 
+  TimeOffsetBuildProjectRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:GetRole
+              - dynamodb:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource: 
+              - !GetAtt TimeOffsetBuildProject.Arn
+          - Action:
+              - ssm:DeleteParameter
+              - ssm:GetParameter
+              - ssm:PutParameter
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: delete-bucket-contents-build-project-policy
+      Roles:
+        - !Ref TimeOffsetBuildProjectRole
+
   CloudFrontWebAclAssociationBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -714,6 +761,28 @@ Resources:
           Type: PLAINTEXT
           Value: "placeholder-for-path-to-resource"
       ServiceRole: !GetAtt TimeSleepBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec-go.yml"
+      TimeoutInMinutes: 480
+
+  TimeOffsetBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-time-offset"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt TimeOffsetBuildProjectRole.Arn
       Source:
         Type: CODEPIPELINE
         BuildSpec: !Sub "resources/${Env}-buildspec-go.yml"
@@ -992,6 +1061,7 @@ Resources:
               - !GetAtt S3PublicAccessControlsRestrictedBuildProject.Arn
               - !GetAtt TimeStaticBuildProject.Arn
               - !GetAtt TimeSleepBuildProject.Arn
+              - !GetAtt TimeOffsetBuildProject.Arn
               - !GetAtt CloudFrontLoggingEnabledBuildProject.Arn
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
               - !GetAtt S3BucketModuleBuildProject.Arn
@@ -1058,6 +1128,7 @@ Resources:
                 - !GetAtt S3PublicAccessControlsRestrictedBuildProjectRole.Arn
                 - !GetAtt TimeStaticBuildProjectRole.Arn
                 - !GetAtt TimeSleepBuildProjectRole.Arn
+                - !GetAtt TimeOffsetBuildProjectRole.Arn
                 - !GetAtt AlternateContactBuildProjectRole.Arn
                 - !GetAtt CloudFrontLoggingEnabledBuildProjectRole.Arn
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
@@ -1237,6 +1308,30 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "resources/Time_Sleep"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: TimeOffset
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref TimeOffsetBuildProject
+                # BatchEnabled: 
+                #   !If
+                #     - IsProd
+                #     - true
+                #     - false
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/Time_Offset"
                     }
                   ]
               RunOrder: 1
