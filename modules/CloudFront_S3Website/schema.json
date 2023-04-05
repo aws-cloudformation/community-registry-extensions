@@ -36,6 +36,22 @@
                         "Description"
                     ],
                     "description": "The Route53 HostedZoneId to use for certificates and registering the website DNS Name"
+                },
+                "AcmCertificateArn": {
+                    "type": "object",
+                    "properties": {
+                        "Type": {
+                            "type": "string"
+                        },
+                        "Description": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "Type",
+                        "Description"
+                    ],
+                    "description": "The ARN for the ACM Certificate to use"
                 }
             }
         },
