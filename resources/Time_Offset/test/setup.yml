@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation exports'
+ 
+Conditions:
+  HasNot: !Equals [ 'true', 'false' ]
+ 
+# dummy (null) resource, never created
+Resources:
+  NullResource:
+    Type: 'AWS::CloudFormation::CustomResource'
+    Condition: HasNot
+    Properties:
+      ServiceToken: "null"
