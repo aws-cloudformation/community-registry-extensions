@@ -54,4 +54,4 @@ cfn test"
 ## Notes
 
 ### SSM Parameter
-To keep track of a resource that is a time we use a SSM parameter. We store a key in the SSM parameter store at `/CloudFormation/AwsCommunity/Time/Sleep/unique-identifier` to identify and keep track of the resource state.
+Since this extension does not represent an actual resource, we have to create a Systems Manager Parameter Store entry to track its state for the purposes of satisfying the CloudFormation registry contract. We store a key in parameter store at `/CloudFormation/AwsCommunity/Time/Offset/unique-identifier`.
