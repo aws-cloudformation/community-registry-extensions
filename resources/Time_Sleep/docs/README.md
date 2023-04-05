@@ -1,6 +1,6 @@
 # AwsCommunity::Time::Sleep
 
-An example resource schema demonstrating some basic constructs and validation rules.
+Sleep a provided number of seconds between create, update, or delete operations.
 
 ## Syntax
 

@@ -1,7 +1,7 @@
 {
     "typeName": "AwsCommunity::Time::Sleep",
-    "description": "An example resource schema demonstrating some basic constructs and validation rules.",
-    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "description": "Sleep a provided number of seconds between create, update, or delete operations.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions.git",
     "definitions": {},
     "properties": {
         "Id": {

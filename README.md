@@ -38,13 +38,20 @@ first be activated using the instructions
 
 |Name|Type|Version|Description|
 |----|----|-------|-----------|
-|[AwsCommunity::S3::BucketNotification](./resources/S3_BucketNotification)|Resource|Alpha|Configure bucket notifications|
-|[AwsCommunity::S3::DeleteBucketContents](./resources/S3_DeleteBucketContents)|Resource|Alpha|Delete all objects in a bucket|
-|[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Alpha|Validate that an AWS::S3::Bucket has versioning enabled|
-|[AwsCommunity::S3::PublicAccessControlsRestricted](./hooks/S3_PublicAccessControlsRestricted)|Hook|Alpha|Validates any resource of type `AWS::S3::Bucket` has the public access controls restricted|
+|[AwsCommunity::Account::AlternateContact](./resources/Account_AlternateContact)|Resource|Prod|An alternate contact attached to an Amazon Web Services account|
+|[AwsCommunity::EC2::SecurityGroupRestrictedSSH](./hooks/EC2_SecurityGroupRestrictedSSH)|Hook|Prod|Restrict SSH traffic from 0.0.0.0/0|
 |[AwsCommunity::CloudFront::LoggingEnabled](./hooks/CloudFront_LoggingEnabled)|Hook|Alpha|Validate that a CloudFront distribution has logging enabled|
-|[AwsCommunity::DynamoDB::Item](./resources/DynamoDB_Item)|Resource|Alpha|Manage the lifecycle of items in a DynamoDB table|
-|[AwsCommunity::Account::AlternateContact](./resources/Account_AlternateContact)|Resource|Alpha|An alternate contact attached to an Amazon Web Services account|
+|[AwsCommunity::CloudFront::S3Website::MODULE](./modules/CloudFront_S3Website/)|Module|Prod|CloudFront backed by an S3 bucket with Route53 integration|
+|[AwsCommunity::DynamoDB::Item](./resources/DynamoDB_Item)|Resource|Prod|Manage the lifecycle of items in a DynamoDB table|
+|[AwsCommunity::S3::Bucket::MODULE](./modules/S3_Bucket/)|Module|Prod|Create a standard S3 bucket|
+|[AwsCommunity::S3::BucketNotification](./resources/S3_BucketNotification)|Resource|Alpha|Configure bucket notifications|
+|[AwsCommunity::S3::BucketAccessControlsRestricted](./hooks/S3_PublicAccessControlsRestricted)|Hook|Prod|Validate that an AWS::S3::Bucket has versioning enabled|
+|[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Prod|Validates S3 Bucket is configured to block public access|
+|[AwsCommunity::S3::DeleteBucketContents](./resources/S3_DeleteBucketContents)|Resource|Prod|Delete all objects in a bucket|
+|[AwsCommunity::Time::Offset](./resources/DynamoDB_Item)|Resource|Prod|Creates a time based resource with an offset from the provided time or now|
+|[AwsCommunity::Time::Static](./resources/DynamoDB_Item)|Resource|Prod|Creates a static time stamp|
+|[AwsCommunity::Time::Sleep](./resources/DynamoDB_Item)|Resource|Prod|Sleep a provided number of seconds between create, update, or delete operations.|
+
 
 ## Contributing
 
