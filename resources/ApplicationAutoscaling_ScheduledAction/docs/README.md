@@ -1,6 +1,6 @@
 # AwsCommunity::ApplicationAutoscaling::ScheduledAction
 
-Application Autoscaling Scheduled Action.
+Resource to create a Application Autoscaling Scheduled Action. Can be used with any resource that uses AWS Application Autoscaling Dimensions.
 
 ## Syntax
 
@@ -53,6 +53,8 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### ResourceId
 
+Must be a valid resource as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId
+
 _Required_: Yes
 
 _Type_: String
@@ -67,8 +69,6 @@ _Required_: Yes
 
 _Type_: String
 
-_Allowed Values_: <code>ecs:service:DesiredCount</code> | <code>ec2:spot-fleet-request:TargetCapacity</code> | <code>elasticmapreduce:instancegroup:InstanceCount</code> | <code>appstream:fleet:DesiredCapacity</code> | <code>dynamodb:table:ReadCapacityUnits</code> | <code>dynamodb:table:WriteCapacityUnits</code> | <code>dynamodb:index:ReadCapacityUnits</code> | <code>dynamodb:index:WriteCapacityUnits</code> | <code>rds:cluster:ReadReplicaCount</code> | <code>sagemaker:variant:DesiredInstanceCount</code> | <code>custom-resource:ResourceType:Property</code> | <code>comprehend:document-classifier-endpoint:DesiredInferenceUnits</code> | <code>comprehend:entity-recognizer-endpoint:DesiredInferenceUnits</code> | <code>lambda:function:ProvisionedConcurrency</code> | <code>cassandra:table:ReadCapacityUnits</code> | <code>cassandra:table:WriteCapacityUnits</code> | <code>kafka:broker-storage:VolumeSize</code> | <code>elasticache:replication-group:NodeGroups</code> | <code>elasticache:replication-group:Replicas</code> | <code>neptune:cluster:ReadReplicaCount</code>
-
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### ScalableTargetAction
@@ -81,6 +81,8 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### Schedule
 
+Must be a valid schedule as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId
+
 _Required_: Yes
 
 _Type_: String
@@ -90,6 +92,8 @@ _Pattern_: <code>[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF\r\n\t]*</c
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### ScheduledActionName
+
+Must be a valid action name as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId
 
 _Required_: Yes
 
@@ -105,8 +109,6 @@ _Required_: Yes
 
 _Type_: String
 
-_Allowed Values_: <code>ecs</code> | <code>elasticmapreduce</code> | <code>ec2</code> | <code>appstream</code> | <code>dynamodb</code> | <code>rds</code> | <code>sagemaker</code> | <code>custom-resource</code> | <code>comprehend</code> | <code>lambda</code> | <code>cassandra</code> | <code>kafka</code> | <code>elasticache</code> | <code>neptune</code>
-
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### StartTime
@@ -118,6 +120,8 @@ _Type_: String
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### Timezone
+
+Must be a valid timestamp as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId
 
 _Required_: No
 
