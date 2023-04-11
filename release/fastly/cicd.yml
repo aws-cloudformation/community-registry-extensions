@@ -180,7 +180,7 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
-        - !Ref FastlyParameterPolicy
+        - !Ref FastlyParameterPolicy       
 
   FastlyLoggingSplunkBuildProjectRole:
     Type: AWS::IAM::Role
@@ -195,7 +195,6 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
         - !Ref FastlyParameterPolicy
-
 
   FastlyServicesDomainBuildProject:
     Type: AWS::CodeBuild::Project
