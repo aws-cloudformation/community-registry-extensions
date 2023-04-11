@@ -65,7 +65,9 @@ class ResourceModel(BaseModel):
             EndTime=json_data.get("EndTime"),
             ResourceId=json_data.get("ResourceId"),
             ScalableDimension=json_data.get("ScalableDimension"),
-            ScalableTargetAction=ScalableTargetAction._deserialize(json_data.get("ScalableTargetAction")),
+            ScalableTargetAction=ScalableTargetAction._deserialize(
+                json_data.get("ScalableTargetAction")
+            ),
             Schedule=json_data.get("Schedule"),
             ScheduledActionName=json_data.get("ScheduledActionName"),
             ServiceNamespace=json_data.get("ServiceNamespace"),
@@ -103,7 +105,6 @@ _ScalableTargetAction = ScalableTargetAction
 
 @dataclass
 class TypeConfigurationModel(BaseModel):
-
     @classmethod
     def _deserialize(
         cls: Type["_TypeConfigurationModel"],
@@ -111,11 +112,8 @@ class TypeConfigurationModel(BaseModel):
     ) -> Optional["_TypeConfigurationModel"]:
         if not json_data:
             return None
-        return cls(
-        )
+        return cls()
 
 
 # work around possible type aliasing issues when variable has same name as a model
 _TypeConfigurationModel = TypeConfigurationModel
-
-
