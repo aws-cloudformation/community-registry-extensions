@@ -124,3 +124,4 @@ ENV/
 *portal.sso.GetRoleCredentials*.json
 tests/
 use-cases/
+awscommunity-applicationautoscaling-scheduledaction.zip

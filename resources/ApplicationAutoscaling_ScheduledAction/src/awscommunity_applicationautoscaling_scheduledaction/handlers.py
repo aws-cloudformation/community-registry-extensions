@@ -57,17 +57,18 @@ def define_scalable_target_action(model) -> dict:
         target_action["MinCapacity"] = int(model.ScalableTargetAction.MinCapacity)
     if model.ScalableTargetAction.MaxCapacity:
         target_action["MaxCapacity"] = int(model.ScalableTargetAction.MaxCapacity)
-    try:
-        if model.EndTime and isinstance(model.EndTime, str):
-            action["EndTime"] = parser.parse(model.EndTime).isoformat()
-    except ParserError as error:
-        LOG.exception(error)
-        LOG.error("EndTime")
+        try:
+            if model.EndTime and isinstance(model.EndTime, str):
+                action["EndTime"] = parser.parse(model.EndTime).isoformat()
+        except ParserError as error:
+            LOG.exception(error)
+            LOG.error("EndTime")
     try:
         if model.StartTime and isinstance(model.StartTime, str):
             action["StartTime"] = parser.parse(model.StartTime).isoformat()
     except ParserError as error:
         LOG.exception(error)
+        raise ValueError()
     if model.Timezone:
         action["Timezone"] = model.Timezone
     action["ScalableTargetAction"] = target_action

@@ -1,7 +1,7 @@
 {
   "typeName": "AwsCommunity::ApplicationAutoscaling::ScheduledAction",
-  "description": "Application Autoscaling Scheduled Action.",
-  "sourceUrl": "https://github.com/johnpreston/awscommunity-applicationautoscaling-scheduledaction",
+  "description": "Resource to create a Application Autoscaling Scheduled Action. Can be used with any resource that uses AWS Application Autoscaling Dimensions.",
+  "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "EndTime": {
@@ -9,7 +9,8 @@
     },
     "ResourceId": {
       "type": "string",
-      "pattern": "[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+      "pattern": "[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*",
+      "description": "Must be a valid resource as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId"
     },
     "ScalableDimension": {
       "type": "string",
@@ -64,11 +65,13 @@
     },
     "Schedule": {
       "type": "string",
-      "pattern": "[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+      "pattern": "[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*",
+      "description": "Must be a valid schedule as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId"
     },
     "ScheduledActionName": {
       "type": "string",
-      "pattern": "(?!((^[ ]+.*)|(.*([\\u0000-\\u001f]|[\\u007f-\\u009f]|[:/|])+.*)|(.*[ ]+$))).+"
+      "pattern": "(?!((^[ ]+.*)|(.*([\\u0000-\\u001f]|[\\u007f-\\u009f]|[:/|])+.*)|(.*[ ]+$))).+",
+      "description": "Must be a valid action name as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId"
     },
     "ServiceNamespace": {
       "type": "string",
@@ -95,7 +98,8 @@
     "Timezone": {
       "type": "string",
       "default": "UTC",
-      "pattern": "[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+      "pattern": "[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*",
+      "description": "Must be a valid timestamp as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId"
     },
     "ScheduledActionARN": {
       "type": "string"
