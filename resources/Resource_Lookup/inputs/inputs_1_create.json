@@ -1,0 +1,8 @@
+{
+    "JmesPathQuery": "Tags[?Key=='Owner'&&Value=='contract-test-only-test-team']",
+    "ResourceLookupRoleArn": "{{ResourceLookupRoleArn}}",
+    "Tags": {
+        "Environment": "DEV"
+    },
+    "TypeName": "AWS::EC2::VPC"
+}

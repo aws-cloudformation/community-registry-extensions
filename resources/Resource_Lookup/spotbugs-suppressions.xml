@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.CallbackContext"/>
+        <Method name="getIdentifiersBuffer"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.CallbackContext"/>
+        <Method name="setIdentifiersBuffer"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.ResourceModel"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.ResourceModel$ResourceModelBuilder"/>
+        <Method name="tags"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.HandlerWrapper"/>
+        <Method name="provideResourceSchemaJSONObject"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.HandlerWrapperExecutable"/>
+        <Method name="provideResourceSchemaJSONObject"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.HandlerWrapperExecutable"/>
+        <Method name="readFileToSystemOut"/>
+        <Bug pattern="DM_DEFAULT_ENCODING"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.CreateHandlerTest"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.CreateHandlerResourceLookupTest"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.CreateHandlerStabilizeTest"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.ReadHandlerTest"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.DeleteHandlerTest"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.UpdateHandlerTest"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.ListHandlerTest"/>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.TagHelperTest"/>
+        <Method name="getCombineTagsStackLevelAndResourceLevelBothNull"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.LookupHelperTest"/>
+        <Method name="isIdentifiersBufferNullOrEmptyBufferNull"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.LookupHelperTest"/>
+        <Method name="isIdentifiersBufferNotEmptyBufferNull"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.LookupHelperTest"/>
+        <Method name="isNextTokenNotEmptyAndIdentifiersBufferNullOrEmptyNextTokenNullAndBufferNull"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.LookupHelperTest"/>
+        <Method name="isNextTokenNotEmptyAndIdentifiersBufferNullOrEmptyNextTokenEmptyAndBufferNull"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.LookupHelperTest"/>
+        <Method name="isNextTokenNotEmptyAndIdentifiersBufferNullOrEmptyNextTokenNotEmptyAndBufferNull"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="com.awscommunity.resource.lookup.LookupHelperTest"/>
+        <Method name="isNextTokenNotEmptyAndIdentifiersBufferNullOrEmptyNextTokenNullAndBufferNotEmpty"/>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    </Match>
+</FindBugsFilter>

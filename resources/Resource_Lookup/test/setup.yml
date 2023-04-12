@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: This example CloudFormation template creates an IAM role assumed by CloudFormation to perform resource lookup operations on your behalf.
+
+Parameters:
+  Env:
+    Description: Name of the environment you plan to use.
+    Type: String
+    AllowedValues:
+      - Alpha
+      - Beta
+      - dev
+      - prod
+    Default: dev
+
+Resources:
+  ResourceLookupRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/ReadOnlyAccess'
+      Path: /
+      Tags:
+        - Key: Name
+          Value: AwsCommunityResourceLookup-LookupRole
+        - Key: AppName
+          Value: AwsCommunityResourceLookup
+        - Key: Env
+          Value: !Ref 'Env'
+
+Outputs:
+  ResourceLookupRoleArn:
+    Value: !GetAtt ResourceLookupRole.Arn
+    Export:
+      Name: ResourceLookupRoleArn

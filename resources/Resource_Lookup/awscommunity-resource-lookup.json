@@ -1,0 +1,115 @@
+{
+    "typeName": "AwsCommunity::Resource::Lookup",
+    "description": "Performs a search for a resource of a given type, such as `AWS::EC2::VPC`, in your AWS account -and current region if you are using a regional AWS service- based on a query you specify.  If only one match is found, this resource returns the primary identifier of the resource, that you can then consume by referencing it in your template with the `Fn::GetAtt` intrinsic function.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/resources/Resource_Lookup",
+    "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/blob/main/resources/Resource_Lookup/README.md",
+    "properties": {
+        "TypeName": {
+            "description": "The resource type name you wish to use for the lookup operation.",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}$"
+        },
+        "JmesPathQuery": {
+            "description": "A query, in JMESPath (https://jmespath.org/) format, to perform the lookup; example: Tags[?Key==`Owner`&&Value==`contract-test-only-test-team`]",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+        },
+        "ResourceLookupRoleArn": {
+            "description": "The Amazon Resource Name (ARN) of the IAM role you wish to use for performing resource lookup operations in your AWS account on your behalf; for example: arn:aws:iam::111122223333:role/my-example-role.",
+            "type": "string",
+            "pattern": "arn:aws(-[a-z]+)*:iam::[0-9]{12}:role\\/[\\w+=,.@-]{1,64}"
+        },
+        "ResourceModel": {
+            "description": "The model of the resource you're using: this additional information is required if you're using a resource type shown in the `Resources that require additional information` page (https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers).  Specify the required properties using the JSON format; for example, to specify `LoadBalancerArn` and its ARN value for `AWS::ElasticLoadBalancingV2::Listener` (that you specify in the `TypeName` property), use: {\"LoadBalancerArn\": \"REPLACE_WITH_YOUR_LOAD_BALANCER_ARN\"}.",
+            "type": "string",
+            "pattern": "[\\s\\S]*"
+        },
+        "Tags": {
+            "type": "object",
+            "description": "Optional key-value pairs object to associate to the AWS Systems Manager Parameter Store parameter resource, that this resource type uses to persist the lookup result.",
+            "patternProperties": {
+                "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+       "ResourceLookupId": {
+           "description": "The ID of the resource lookup action you are performing.",
+           "type": "string"
+        },
+        "ResourceIdentifier": {
+            "description": "The resource identifier.",
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "JmesPathQuery",
+        "ResourceLookupRoleArn",
+        "TypeName"
+    ],
+    "readOnlyProperties": [
+        "/properties/ResourceIdentifier",
+        "/properties/ResourceLookupId"
+    ],
+    "writeOnlyProperties": [
+        "/properties/JmesPathQuery",
+        "/properties/ResourceLookupRoleArn",
+        "/properties/ResourceModel"
+    ],
+    "primaryIdentifier": [
+        "/properties/ResourceLookupId"
+    ],
+    "createOnlyProperties": [
+        "/properties/JmesPathQuery",
+        "/properties/ResourceLookupRoleArn",
+        "/properties/ResourceModel",
+        "/properties/TypeName"
+    ],
+    "tagging": {
+        "taggable": true,
+        "tagOnCreate": true,
+        "tagUpdatable": true,
+        "cloudFormationSystemTags": false,
+        "tagProperty": "/properties/Tags"
+    },
+    "handlers": {
+        "create": {
+            "permissions": [
+                "cloudformation:GetResource",
+                "cloudformation:ListResources",
+                "iam:PassRole",
+                "ssm:AddTagsToResource",
+                "ssm:GetParameter",
+                "ssm:PutParameter"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "ssm:AddTagsToResource",
+                "ssm:AddTagsToResource",
+                "ssm:GetParameter",
+                "ssm:RemoveTagsFromResource"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "ssm:GetParameter",
+                "ssm:GetParameters",
+                "ssm:ListTagsForResource"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "ssm:DeleteParameter"
+            ]
+        },
+        "list": {
+            "permissions": [
+                "ssm:DescribeParameters"
+            ]
+        }
+    }
+}

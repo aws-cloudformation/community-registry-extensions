@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: This template describes an example resource type for an AWS::EC2::VPC resource lookup operation.
+
+Parameters:
+  Env:
+    Description: Name of the environment you plan to use.
+    Type: String
+    AllowedValues:
+      - Alpha
+      - Beta
+      - dev
+      - prod
+    Default: dev
+
+  JmesPathQuery:
+    Description: Specify the query, in JMESPath format, that you wish to run to filter results.
+    Type: String
+    Default: Tags[?Key == 'Owner' && Value == 'contract-test-only-test-team']
+    MinLength: 1
+
+  ResourceLookupRoleArn:
+    Description: The IAM role to use for resource lookup operations.
+    Type: String
+    AllowedPattern: arn:aws(-[a-z]+)*:iam::[0-9]{12}:role\/[\w+=,.@-]{1,64}
+
+  ResourceModel:
+    Description: 'The model of the resource you''re using: this additional information is needed if you''re using a resource shown here: https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers .'
+    Type: String
+    Default: ""
+    AllowedPattern: '[\s\S]*'
+
+  TypeName:
+    Description: Specify the type name you wish to use for the lookup operation.
+    Type: String
+    Default: AWS::EC2::VPC
+    AllowedPattern: ^[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}$
+
+Conditions:
+  ResourceModelEmpty: !Equals
+    - !Ref 'ResourceModel'
+    - ""
+
+Resources:
+  ResourceLookup:
+    Type: AwsCommunity::Resource::Lookup
+    Properties:
+      JmesPathQuery: !Ref 'JmesPathQuery'
+      ResourceLookupRoleArn: !Ref 'ResourceLookupRoleArn'
+      ResourceModel: !If
+        - ResourceModelEmpty
+        - !Ref 'AWS::NoValue'
+        - !Ref 'ResourceModel'
+      Tags:
+        AppName: TestOnlyApp
+        Env: !Ref 'Env'
+        Name: TestOnly
+      TypeName: !Ref 'TypeName'
+
+Outputs:
+  ResourceIdentifier:
+    Description: The resource identifier result of the lookup operation.
+    Value: !GetAtt ResourceLookup.ResourceIdentifier
+
+  ResourceLookupId:
+    Description: The ID of the resource lookup operation.
+    Value: !Ref 'ResourceLookup'

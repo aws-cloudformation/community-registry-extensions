@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suppressions PUBLIC
+"-//Checkstyle//DTD SuppressionFilter Configuration 1.0//EN"
+"https://checkstyle.org/dtds/suppressions_1_0.dtd">
+<suppressions>
+    <!-- Suppressions for all Java files. -->
+    <suppress checks="LineLength"
+              files=".*\.java$"/>
+
+    <!-- Suppressions for Java files not underneath `src/test/java/`. -->
+    <suppress checks=".*"
+              files="target/generated-sources/rpdk/com/awscommunity/resource/lookup/.*\.java$"/>
+    <suppress checks=".*"
+              files="BaseHandler\.java$"/>
+    <suppress checks=".*"
+              files="BaseConfiguration\.java$"/>
+    <suppress checks=".*"
+              files="HandlerWrapper\.java$"/>
+    <suppress checks=".*"
+              files="HandlerWrapperExecutable\.java$"/>
+    <suppress checks=".*"
+              files="TypeConfigurationModel\.java$"/>
+
+    <!-- Suppressions for Java files underneath `src/test/java/`. -->
+    <suppress checks="DesignForExtension"
+              files="src/test/java/.*\.java$"/>
+    <suppress checks="FileLength"
+              files="src/test/java/.*\.java$"/>
+    <suppress checks="JavadocPackage"
+              files="src/test/java/.*\.java$"/>
+    <suppress checks="JavadocVariable"
+              files="src/test/java/.*\.java$"/>
+    <suppress checks="MagicNumber"
+              files="src/test/java/.*\.java$"/>
+    <suppress checks="MissingJavadocMethod"
+              files="src/test/java/.*\.java$"/>
+</suppressions>

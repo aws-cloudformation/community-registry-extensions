@@ -1,0 +1,28 @@
+{
+    "artifact_type": "RESOURCE",
+    "typeName": "AwsCommunity::Resource::Lookup",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "com.awscommunity.resource.lookup.HandlerWrapper::handleRequest",
+    "testEntrypoint": "com.awscommunity.resource.lookup.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "artifact_type": null,
+        "endpoint_url": null,
+        "region": null,
+        "target_schemas": [],
+        "namespace": [
+            "com",
+            "awscommunity",
+            "resource",
+            "lookup"
+        ],
+        "codegen_template_path": "guided_aws",
+        "protocolVersion": "2.0.0"
+    },
+    "executableEntrypoint": "com.awscommunity.resource.lookup.HandlerWrapperExecutable"
+}
