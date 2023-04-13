@@ -7,6 +7,7 @@
         - [Using the AWS resource and property types reference](#Using-the-AWS-resource-and-property-types-reference)
         - [Using the AWS CLI and AWS Cloud Control API](#Using-the-AWS-CLI-and-AWS-Cloud-Control-API)
         - [The ResourceModel property](#The-ResourceModel-property)
+        - [The LookupSerialNumber property](#The-LookupSerialNumber-property)
     - [Usage walkthrough](#Usage-walkthrough)
     - [Cleanup](#Cleanup)
 - [Resource type registry submission with StackSets](#Resource-type-registry-submission-with-StackSets)
@@ -51,10 +52,16 @@ Parameters:
     Default: Tags[?Key == 'Owner' && Value == 'contract-test-only-test-team']
     MinLength: "1"
 
+  LookupSerialNumber:
+    Description: Optional, numeric integer value (such as `1`, `2`), that you can specify to induce a new search on e.g., stack updates without modifying the value for `JmesPathQuery`.
+    Type: String
+    Default: "1"
+    AllowedPattern: ^[0-9]*$
+
   ResourceLookupRoleArn:
     Description: The ARN of the IAM role to use for resource lookup operations.
     Type: String
-    AllowedPattern: arn:aws(-[a-z]+)*:iam::[0-9]{12}:role\/[\w+=,.@-]{1,64}
+    AllowedPattern: ^arn:aws(-[a-z]+)*:iam::[0-9]{12}:role\/[\w+=,.@-]{1,64}$
 
   TypeName:
     Description: Specify the type name you wish to use for the lookup operation.
@@ -67,6 +74,7 @@ Resources:
     Type: AwsCommunity::Resource::Lookup
     Properties:
       JmesPathQuery: !Ref 'JmesPathQuery'
+      LookupSerialNumber: !Ref 'LookupSerialNumber'
       ResourceLookupRoleArn: !Ref 'ResourceLookupRoleArn'
       TypeName: !Ref 'TypeName'
       Tags:
@@ -187,6 +195,9 @@ The `ResourceModel` property for the `AwsCommunity::Resource::Lookup` resource t
 ```
 {"LoadBalancerArn": "REPLACE_WITH_YOUR_LOAD_BALANCER_ARN"}
 ```
+
+#### The LookupSerialNumber property
+The `LookupSerialNumber` property for the `AwsCommunity::Resource::Lookup` resource type is an optional, numeric integer value (such as `1`, `2`), that you can specify to induce a new search on e.g., stack updates without modifying the value for `JmesPathQuery`.  Specify a value that is different from the previous one to induce the update; note that either adding this property to the resource if not present before an update, or removing it if previously added to the resource, will yield the same effect of changing the property value and will induce an update.
 
 ### Usage walkthrough
 This section assumes you are using this resource type to submit it as a private extension to the CloudFormation registry, in the AWS region(s) of your choice.  To get started, follow the steps shown next:

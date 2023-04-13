@@ -19,11 +19,17 @@ Parameters:
     Default: Tags[?Key == 'Owner' && Value == 'contract-test-only-test-team-beta']
     MinLength: 1
 
+  LookupSerialNumber:
+    Description: Optional, numeric integer value (such as `1`, `2`), that you can specify to induce a new search on e.g., stack updates without modifying the value for `JmesPathQuery`.  Specify a value that is different from the previous one to induce the update; note that either adding this property to the resource if not present before an update, or removing it if previously added to the resource, will yield the same effect of changing the property value and will induce an update.
+    Type: String
+    Default: "1"
+    AllowedPattern: ^[0-9]*$
+
   ResourceModel:
     Description: 'The model of the resource you''re using: this additional information is needed if you''re using a resource shown here: https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers .'
     Type: String
     Default: ""
-    AllowedPattern: '[\s\S]*'
+    AllowedPattern: ^[\s\S]*$
 
   TypeName:
     Description: Specify the type name you wish to use for the lookup operation.
@@ -42,6 +48,7 @@ Resources:
     DependsOn: TestVpc
     Properties:
       JmesPathQuery: !Ref 'JmesPathQuery'
+      LookupSerialNumber: !Ref 'LookupSerialNumber'
       ResourceLookupRoleArn: !GetAtt ResourceLookupRole.Arn
       ResourceModel: !If
         - ResourceModelEmpty

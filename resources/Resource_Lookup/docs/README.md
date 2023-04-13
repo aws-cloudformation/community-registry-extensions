@@ -16,6 +16,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#jmespathquery" title="JmesPathQuery">JmesPathQuery</a>" : <i>String</i>,
         "<a href="#resourcelookuprolearn" title="ResourceLookupRoleArn">ResourceLookupRoleArn</a>" : <i>String</i>,
         "<a href="#resourcemodel" title="ResourceModel">ResourceModel</a>" : <i>String</i>,
+        "<a href="#lookupserialnumber" title="LookupSerialNumber">LookupSerialNumber</a>" : <i>String</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i><a href="tags.md">Tags</a></i>,
     }
 }
@@ -30,6 +31,7 @@ Properties:
     <a href="#jmespathquery" title="JmesPathQuery">JmesPathQuery</a>: <i>String</i>
     <a href="#resourcelookuprolearn" title="ResourceLookupRoleArn">ResourceLookupRoleArn</a>: <i>String</i>
     <a href="#resourcemodel" title="ResourceModel">ResourceModel</a>: <i>String</i>
+    <a href="#lookupserialnumber" title="LookupSerialNumber">LookupSerialNumber</a>: <i>String</i>
     <a href="#tags" title="Tags">Tags</a>: <i><a href="tags.md">Tags</a></i>
 </pre>
 
@@ -49,7 +51,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### JmesPathQuery
 
-A query, in JMESPath (https://jmespath.org/) format, to perform the lookup; example: Tags[?Key==`Owner`&&Value==`contract-test-only-test-team`]
+A query, in JMESPath (https://jmespath.org/) format, to perform the resource lookup (example: Tags[?Key==`Owner`&&Value==`contract-test-only-test-team`]).  When you specify a new value on resource updates (for example, when you update the stack that describes this resource), a new lookup will be performed.
 
 _Required_: Yes
 
@@ -69,7 +71,7 @@ _Required_: Yes
 
 _Type_: String
 
-_Pattern_: <code>arn:aws(-[a-z]+)*:iam::[0-9]{12}:role\/[\w+=,.@-]{1,64}</code>
+_Pattern_: <code>^arn:aws(-[a-z]+)*:iam::[0-9]{12}:role\/[\w+=,.@-]{1,64}$</code>
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
@@ -81,7 +83,19 @@ _Required_: No
 
 _Type_: String
 
-_Pattern_: <code>[\s\S]*</code>
+_Pattern_: <code>^[\s\S]*$</code>
+
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### LookupSerialNumber
+
+Optional, numeric integer value (such as `1`, `2`), that you can specify to induce a new search on e.g., stack updates without modifying the value for `JmesPathQuery`.  Specify a value that is different from the previous one to induce the update; note that either adding this property to the resource if not present before an update, or removing it if previously added to the resource, will yield the same effect of changing the property value and will induce an update.
+
+_Required_: No
+
+_Type_: String
+
+_Pattern_: <code>^[0-9]*$</code>
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 

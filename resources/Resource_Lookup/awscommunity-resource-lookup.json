@@ -10,7 +10,7 @@
             "pattern": "^[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}$"
         },
         "JmesPathQuery": {
-            "description": "A query, in JMESPath (https://jmespath.org/) format, to perform the lookup; example: Tags[?Key==`Owner`&&Value==`contract-test-only-test-team`]",
+            "description": "A query, in JMESPath (https://jmespath.org/) format, to perform the resource lookup (example: Tags[?Key==`Owner`&&Value==`contract-test-only-test-team`]).  When you specify a new value on resource updates (for example, when you update the stack that describes this resource), a new lookup will be performed.",
             "type": "string",
             "minLength": 1,
             "maxLength": 4096
@@ -18,12 +18,17 @@
         "ResourceLookupRoleArn": {
             "description": "The Amazon Resource Name (ARN) of the IAM role you wish to use for performing resource lookup operations in your AWS account on your behalf; for example: arn:aws:iam::111122223333:role/my-example-role.",
             "type": "string",
-            "pattern": "arn:aws(-[a-z]+)*:iam::[0-9]{12}:role\\/[\\w+=,.@-]{1,64}"
+            "pattern": "^arn:aws(-[a-z]+)*:iam::[0-9]{12}:role\\/[\\w+=,.@-]{1,64}$"
         },
         "ResourceModel": {
             "description": "The model of the resource you're using: this additional information is required if you're using a resource type shown in the `Resources that require additional information` page (https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers).  Specify the required properties using the JSON format; for example, to specify `LoadBalancerArn` and its ARN value for `AWS::ElasticLoadBalancingV2::Listener` (that you specify in the `TypeName` property), use: {\"LoadBalancerArn\": \"REPLACE_WITH_YOUR_LOAD_BALANCER_ARN\"}.",
             "type": "string",
-            "pattern": "[\\s\\S]*"
+            "pattern": "^[\\s\\S]*$"
+        },
+        "LookupSerialNumber": {
+            "description": "Optional, numeric integer value (such as `1`, `2`), that you can specify to induce a new search on e.g., stack updates without modifying the value for `JmesPathQuery`.  Specify a value that is different from the previous one to induce the update; note that either adding this property to the resource if not present before an update, or removing it if previously added to the resource, will yield the same effect of changing the property value and will induce an update.",
+            "type": "string",
+            "pattern": "^[0-9]*$"
         },
         "Tags": {
             "type": "object",
@@ -57,7 +62,8 @@
     "writeOnlyProperties": [
         "/properties/JmesPathQuery",
         "/properties/ResourceLookupRoleArn",
-        "/properties/ResourceModel"
+        "/properties/ResourceModel",
+        "/properties/LookupSerialNumber"
     ],
     "primaryIdentifier": [
         "/properties/ResourceLookupId"
@@ -66,7 +72,8 @@
         "/properties/JmesPathQuery",
         "/properties/ResourceLookupRoleArn",
         "/properties/ResourceModel",
-        "/properties/TypeName"
+        "/properties/TypeName",
+        "/properties/LookupSerialNumber"
     ],
     "tagging": {
         "taggable": true,
