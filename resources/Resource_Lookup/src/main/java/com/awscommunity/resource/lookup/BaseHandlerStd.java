@@ -14,7 +14,14 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     /**
-     * Defines a method to handle requests.
+     * Defines a common request handler entry point method used by handler classes
+     * (such as `CreateHandler`, et cetera) that extend this class. Note the
+     * `callbackContext`, the `ProxyClient` for the `SsmClient`, and the
+     * `ProxyClient` for the `CloudControlClient`, that are initialized on first
+     * use, and reused across handler invocations. Note also the
+     * `AmazonWebServicesClientProxy` object, that you'll need as part of making AWS
+     * API calls: for more information, see `Permissions and authorization`:
+     * https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-faq.html#resource-type-faq-permissions
      *
      * @param proxy
      *            {@link AmazonWebServicesClientProxy}
@@ -36,7 +43,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
 
     /**
-     * Defines a method to handle requests.
+     * Defines a method to handle requests; handler classes (such as
+     * `CreateHandler`, et cetera) that extend this class must override and
+     * implement this method as the entry point of their handler calls.
      *
      * @param proxy
      *            {@link AmazonWebServicesClientProxy}

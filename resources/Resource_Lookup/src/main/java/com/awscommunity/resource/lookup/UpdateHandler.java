@@ -67,6 +67,9 @@ public class UpdateHandler extends BaseHandlerStd {
         final Map<String, String> combinedTagsToRemove = TagHelper.generateTagsToRemove(previousCombinedTags,
                 combinedTags);
 
+        // Using a Progress Chain to perform operations shown next; see:
+        // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
+        // for more information.
         return ProgressEvent.progress(requestModel, callbackContext)
 
                 .then(progress ->

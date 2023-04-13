@@ -1,6 +1,6 @@
 # AwsCommunity::Resource::Lookup Tags
 
-Optional key-value pairs object to associate to the AWS Systems Manager Parameter Store parameter resource, that this resource type uses to persist the lookup result.
+Optional key-value pairs object (such as, `Env: Dev`, `Name: Test`) to associate to the AWS Systems Manager Parameter Store parameter resource, that the implementation of this resource type creates in your account to persist the lookup result.
 
 ## Syntax
 

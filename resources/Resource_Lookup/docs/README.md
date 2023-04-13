@@ -1,6 +1,6 @@
 # AwsCommunity::Resource::Lookup
 
-Performs a search for a resource of a given type, such as `AWS::EC2::VPC`, in your AWS account -and current region if you are using a regional AWS service- based on a query you specify.  If only one match is found, this resource returns the primary identifier of the resource, that you can then consume by referencing it in your template with the `Fn::GetAtt` intrinsic function.
+This resource uses the `ListResources` and `GetResource` actions of AWS Cloud Control API to perform a lookup of a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account -and current region if you are using a regional AWS service- based on a query you specify.  If only one match is found, this resource returns the primary identifier of the resource (in the `AWS::EC2::VPC` example, the ID of the VPC), that you can then consume by referencing it in your template with the `Fn::GetAtt` intrinsic function.  Note: as this resource type uses Cloud Control API, you can specify resource type search targets -like `AWS::EC2::VPC`- that are supported by Cloud Control API; for more information, see `Determining if a resource type supports Cloud Control API`: https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-types.html#resource-types-determine-support .
 
 ## Syntax
 
@@ -101,7 +101,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### Tags
 
-Optional key-value pairs object to associate to the AWS Systems Manager Parameter Store parameter resource, that this resource type uses to persist the lookup result.
+Optional key-value pairs object (such as, `Env: Dev`, `Name: Test`) to associate to the AWS Systems Manager Parameter Store parameter resource, that the implementation of this resource type creates in your account to persist the lookup result.
 
 _Required_: No
 
@@ -127,5 +127,5 @@ The resource identifier.
 
 #### ResourceLookupId
 
-The ID of the resource lookup action you are performing.
+When this resource type finds only one match as the result of a lookup operation, it then creates an AWS Systems Manager Parameter Store parameter resource in your account and current region to persist the lookup result for subsequent use (for example, when its `Read` handler is invoked).  `ResourceLookupId` holds the name of the Parameter Store parameter.
 

@@ -44,6 +44,10 @@ public class ReadHandler extends BaseHandlerStd {
 
         final ResourceModel requestModel = request.getDesiredResourceState();
 
+        // Using a Progress Chain to perform operations shown next; see:
+        // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
+        // for more information.
+
         // Initialize the proxy context.
         return proxy.initiate("AwsCommunity-Resource-Lookup::Read", proxySsmClient, requestModel, callbackContext)
 

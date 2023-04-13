@@ -30,7 +30,19 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 public class CreateHandler extends BaseHandlerStd {
 
     /**
-     * Defines a method to handle requests.
+     * Defines a method to handle requests. As per one of the output requirements of
+     * the Create handler contract
+     * (https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test-contract.html#resource-type-test-contract-create):
+     * "A create handler MUST always return a ProgressEvent object within 60
+     * seconds. [...] In every ProgressEvent object, the create handler MUST return
+     * a model [...] Every model MUST include the primaryIdentifier [...]". Since
+     * this resource type performs resource lookup operations that can take longer
+     * than 60 seconds, this method will first generate the primary identifier (that
+     * this resource type will use as the name of an AWS Systems Manager Parameter
+     * Store parameter resource it creates in your account and current region to
+     * persist the lookup result), and then will use a callback mechanism across
+     * subsequent calls to this Create handler to perform resource lookup
+     * operations.
      *
      * @param proxy
      *            {@link AmazonWebServicesClientProxy}
@@ -244,7 +256,7 @@ public class CreateHandler extends BaseHandlerStd {
         // Combine tags.
         final Map<String, String> combinedTags = TagHelper.combineTags(requestTags, resourceTags);
 
-        // Using a Progress Chain; see:
+        // Using a Progress Chain to perform operations shown next; see:
         // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
         // for more information.
         return ProgressEvent.progress(requestModel, callbackContext)

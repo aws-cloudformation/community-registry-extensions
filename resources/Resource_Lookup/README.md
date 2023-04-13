@@ -6,8 +6,10 @@
     - [Constructing queries](#Constructing-queries)
         - [Using the AWS resource and property types reference](#Using-the-AWS-resource-and-property-types-reference)
         - [Using the AWS CLI and AWS Cloud Control API](#Using-the-AWS-CLI-and-AWS-Cloud-Control-API)
-        - [The ResourceModel property](#The-ResourceModel-property)
-        - [The LookupSerialNumber property](#The-LookupSerialNumber-property)
+    - [The ResourceModel property](#The-ResourceModel-property)
+    - [The ResourceLookupRoleArn property](#The-ResourceLookupRoleArn-property)
+    - [The LookupSerialNumber property](#The-LookupSerialNumber-property)
+    - [The Tags property](#The-Tags-property)
     - [Usage walkthrough](#Usage-walkthrough)
     - [Cleanup](#Cleanup)
 - [Resource type registry submission with StackSets](#Resource-type-registry-submission-with-StackSets)
@@ -17,9 +19,9 @@
     - [Schema](#Schema)
 
 ## Overview
-The `AwsCommunity::Resource::Lookup` AWS CloudFormation [resource type](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-types.html) performs a search for a resource of a given type, such as `AWS::EC2::VPC`, in your AWS account -and current region if you are using a regional AWS service- based on a query you specify.  If only one match is found, `AwsCommunity::Resource::Lookup` returns the primary identifier of the resource, that you can then consume by referencing it in your template with the `Fn::GetAtt`[intrinsic function](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html).
+The `AwsCommunity::Resource::Lookup` AWS CloudFormation [resource type](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-types.html) uses `ListResources` and `GetResource` [actions](https://docs.aws.amazon.com/cloudcontrolapi/latest/APIReference/API_Operations.html) of [AWS Cloud Control API](https://aws.amazon.com/cloudcontrolapi/) to perform a search for a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account -and current region if you are using a regional AWS service- based on a query you specify.  If only one match is found, `AwsCommunity::Resource::Lookup` returns the primary identifier of the resource (in the `AWS::EC2::VPC` example, the ID of the VPC), that you can then consume by referencing it in your template with the `Fn::GetAtt`[intrinsic function](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html).
 
-Note: the `AwsCommunity::Resource::Lookup` resource type uses [AWS Cloud Control API](https://aws.amazon.com/cloudcontrolapi/) to perform `ListResources` and `GetResource` [actions](https://docs.aws.amazon.com/cloudcontrolapi/latest/APIReference/API_Operations.html) on resources whose type you indicate as an input; for more information on supported resource types, see [Determining if a resource type supports Cloud Control API](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-types.html#resource-types-determine-support).
+Note: as this resource type uses Cloud Control API, you can specify resource type search targets -like `AWS::EC2::VPC`- that are supported by Cloud Control API; for more information, see [Determining if a resource type supports Cloud Control API](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-types.html#resource-types-determine-support).
 
 ### Context
 This section describes the context on when you should use the methods that CloudFormation already provides to correlate resources, and when you can choose to use this resource type.
@@ -38,7 +40,7 @@ There are also use cases where you want to reference a resource that you chose t
 If you choose to manage the resource you want to reference outside CloudFormation -or if the resource is managed by another team with CloudFormation or with another service or tool- and you want to look it up to create a dependency against it in your template(s), you can perform the lookup yourself and provide the value as a template parameter, or use Parameter Store as mentioned earlier.  If you have use cases where a dynamic lookup is more desirable, this is where the `AwsCommunity::Resource::Lookup` resource type comes into play.
 
 ## Usage
-Example: you want to search for one of your existing [Amazon Virtual Private Cloud](https://aws.amazon.com/vpc/) (Amazon VPC) resources, based on search criteria that include [tag](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) key(s) and value(s); for more information, see [Constructing queries](#Constructing-queries) in this document.  The example CloudFormation template shown next declares the `AwsCommunity::Resource::Lookup` resource type, and shows how to consume its return value from the `VpcId` property of the `AWS::EC2::SecurityGroup` resource type.  Note also that the template shows the usage of the optional `Tags` property, that is not related to the VPC example use case: this property describes tags for the [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) parameter resource(s) that `AwsCommunity::Resource::Lookup` creates in your account to persist the lookup result(s) (`AwsCommunity::Resource::Lookup` needs this data, for example, when its `Read` handler is invoked):
+Example: you want to search for one of your existing [Amazon Virtual Private Cloud](https://aws.amazon.com/vpc/) (Amazon VPC) resources, based on search criteria that include [tag](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) key(s) and value(s); for more information, see [Constructing queries](#Constructing-queries) in this document.  The example CloudFormation template shown next declares the `AwsCommunity::Resource::Lookup` resource type, and shows how to consume its return value from the `VpcId` property of the `AWS::EC2::SecurityGroup` resource type.  Note also that the template shows the usage of the optional `Tags` property, that is not related to the VPC example use case: this property describes tags for the [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) parameter resource(s) that `AwsCommunity::Resource::Lookup` creates in your account and current region to persist the lookup result(s) (`AwsCommunity::Resource::Lookup` needs this data, for example, when its `Read` handler is invoked):
 
 ```
 AWSTemplateFormatVersion: "2010-09-09"
@@ -189,15 +191,23 @@ Assuming you want to query for the VPC whose resource tags are `Key` set to `sta
 Tags[?Key == 'stack' && Value == 'production']
 ```
 
-#### The ResourceModel property
+### The ResourceModel property
 The `ResourceModel` property for the `AwsCommunity::Resource::Lookup` resource type is required if you're using a resource type shown in the [Resources that require additional information](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers) page.  Specify the required properties using the JSON format; for example, to specify `LoadBalancerArn` and its ARN value for the `AWS::ElasticLoadBalancingV2::Listener` resource type (that you specify in the `TypeName` property), use:
 
 ```
 {"LoadBalancerArn": "REPLACE_WITH_YOUR_LOAD_BALANCER_ARN"}
 ```
 
-#### The LookupSerialNumber property
+### The ResourceLookupRoleArn property
+`ResourceLookupRoleArn` is a required property for the `AwsCommunity::Resource::Lookup` resource type: the [Amazon Resource Name](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html) (ARN) of the [AWS Identity and Access Management](https://aws.amazon.com/iam/) (IAM) role that you specify for this property is passed to Cloud Control API's `ListResources` and `GetResource` actions when this resource type calls them on your behalf against resource type targets (such as, `AWS::EC2::VPC`).
+
+You need to create an IAM role with an IAM policy that you deem to be adequate to access resource type targets (such as, `AWS::EC2::VPC`).  The `examples/example-resource-lookup-role.template` template describes an IAM role that uses the `ReadOnlyAccess` AWS managed [policy](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_job-functions.html#awsmp_readonlyaccess): you can choose to create a stack with this template, and use the ARN of the newly-created role as an input value to `ResourceLookupRoleArn`; depending on your needs, you might want to use a different policy -or create your own- to describe which permissions you require.
+
+### The LookupSerialNumber property
 The `LookupSerialNumber` property for the `AwsCommunity::Resource::Lookup` resource type is an optional, numeric integer value (such as `1`, `2`), that you can specify to induce a new search on e.g., stack updates without modifying the value for `JmesPathQuery`.  Specify a value that is different from the previous one to induce the update; note that either adding this property to the resource if not present before an update, or removing it if previously added to the resource, will yield the same effect of changing the property value and will induce an update.
+
+### The Tags property
+The `Tags` property for the `AwsCommunity::Resource::Lookup` resource type is an optional key-value pairs object (such as, `Env: Dev`, `Name: Test`) to associate to the AWS Systems Manager Parameter Store parameter resource that the implementation of this resource type creates in your account and current region to persist the lookup result.
 
 ### Usage walkthrough
 This section assumes you are using this resource type to submit it as a private extension to the CloudFormation registry, in the AWS region(s) of your choice.  To get started, follow the steps shown next:
