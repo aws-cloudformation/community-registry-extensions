@@ -48,9 +48,9 @@ first be activated using the instructions
 |[AwsCommunity::S3::BucketAccessControlsRestricted](./hooks/S3_PublicAccessControlsRestricted)|Hook|Prod|Validate that an AWS::S3::Bucket has versioning enabled|
 |[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Prod|Validates S3 Bucket is configured to block public access|
 |[AwsCommunity::S3::DeleteBucketContents](./resources/S3_DeleteBucketContents)|Resource|Prod|Delete all objects in a bucket|
-|[AwsCommunity::Time::Offset](./resources/DynamoDB_Item)|Resource|Prod|Creates a time based resource with an offset from the provided time or now|
-|[AwsCommunity::Time::Static](./resources/DynamoDB_Item)|Resource|Prod|Creates a static time stamp|
-|[AwsCommunity::Time::Sleep](./resources/DynamoDB_Item)|Resource|Prod|Sleep a provided number of seconds between create, update, or delete operations.|
+|[AwsCommunity::Time::Offset](./resources/Time_Offset)|Resource|Prod|Creates a time based resource with an offset from the provided time or now|
+|[AwsCommunity::Time::Static](./resources/Time_Static)|Resource|Prod|Creates a static time stamp|
+|[AwsCommunity::Time::Sleep](./resources/Time_Sleep)|Resource|Prod|Sleep a provided number of seconds between create, update, or delete operations.|
 
 
 ## Contributing
