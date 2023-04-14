@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Creates an Amazon Simple Storage Service (Amazon S3) bucket that you will use to deploy an AWS CloudFormation extension.
+
+Parameters:
+  Env:
+    Description: Name of the environment.
+    Type: String
+    AllowedValues:
+      - Alpha
+      - Beta
+      - dev
+      - prod
+    Default: dev
+
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Name
+          Value: CloudFormation-extension-deployment-bucket
+        - Key: AppName
+          Value: CloudFormation-extension-deployment
+        - Key: Env
+          Value: !Ref 'Env'
+      VersioningConfiguration:
+        Status: Enabled
+
+Outputs:
+  BucketName:
+    Description: The name of the bucket you created with this template.
+    Value: !Ref 'Bucket'
