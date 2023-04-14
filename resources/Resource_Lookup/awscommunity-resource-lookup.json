@@ -1,6 +1,6 @@
 {
     "typeName": "AwsCommunity::Resource::Lookup",
-  "description": "This resource uses the `ListResources` and `GetResource` actions of AWS Cloud Control API to perform a lookup of a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account -and current region if you are using a regional AWS service- based on a query you specify.  If only one match is found, this resource returns the primary identifier of the resource (in the `AWS::EC2::VPC` example, the ID of the VPC), that you can then consume by referencing it in your template with the `Fn::GetAtt` intrinsic function.  Note: as this resource type uses Cloud Control API, you can specify resource type search targets -like `AWS::EC2::VPC`- that are supported by Cloud Control API; for more information, see `Determining if a resource type supports Cloud Control API`: https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-types.html#resource-types-determine-support .",
+    "description": "This resource uses the `ListResources` and `GetResource` actions of AWS Cloud Control API to perform a lookup of a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account -and current region if you are using a regional AWS service- based on a query you specify.  If only one match is found, this resource returns the primary identifier of the resource (in the `AWS::EC2::VPC` example, the ID of the VPC), that you can then consume by referencing it in your template with the `Fn::GetAtt` intrinsic function.  Note: as this resource type uses Cloud Control API, you can specify resource type search targets -like `AWS::EC2::VPC`- that are supported by Cloud Control API; for more information, see `Determining if a resource type supports Cloud Control API`: https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-types.html#resource-types-determine-support .",
     "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/resources/Resource_Lookup",
     "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/blob/main/resources/Resource_Lookup/README.md",
     "properties": {
@@ -10,18 +10,18 @@
             "pattern": "^[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}::[A-Za-z0-9]{2,64}$"
         },
         "JmesPathQuery": {
-            "description": "A query, in JMESPath (https://jmespath.org/) format, to perform the resource lookup (example: Tags[?Key==`Owner`&&Value==`contract-test-only-test-team`]).  When you specify a new value on resource updates (for example, when you update the stack that describes this resource), a new lookup will be performed.",
+            "description": "A query, in JMESPath (https://jmespath.org/) format, to perform the resource lookup; for example: `Tags[?Key == 'Owner' && Value == 'test-only']`.  When you specify a new value on resource updates (for example, when you update the stack that describes this resource), a new lookup will be performed.",
             "type": "string",
             "minLength": 1,
             "maxLength": 4096
         },
         "ResourceLookupRoleArn": {
-            "description": "The Amazon Resource Name (ARN) of the IAM role you wish to use for performing resource lookup operations in your AWS account on your behalf; for example: arn:aws:iam::111122223333:role/my-example-role.",
+            "description": "The Amazon Resource Name (ARN) of the IAM role you wish to use for performing resource lookup operations in your AWS account on your behalf; for example: `arn:aws:iam::111122223333:role/my-example-role`.  As for the role, for example, you could create an IAM role whose `Service` `Principal` is `cloudformation.amazonaws.com` in the trust policy, and whose policy is e.g., a `ReadOnlyAccess` AWS managed policy, or another managed policy you choose, or your own policy, depending on which permissions you require.",
             "type": "string",
             "pattern": "^arn:aws(-[a-z]+)*:iam::[0-9]{12}:role\\/[\\w+=,.@-]{1,64}$"
         },
         "ResourceModel": {
-            "description": "The model of the resource you're using: this additional information is required if you're using a resource type shown in the `Resources that require additional information` page (https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers).  Specify the required properties using the JSON format; for example, to specify `LoadBalancerArn` and its ARN value for `AWS::ElasticLoadBalancingV2::Listener` (that you specify in the `TypeName` property), use: {\"LoadBalancerArn\": \"REPLACE_WITH_YOUR_LOAD_BALANCER_ARN\"}.",
+            "description": "The model of the resource you're using: this additional information is required if you're using a resource type shown in the `Resources that require additional information` page (https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers).  Specify the required properties using the JSON format; for example, to specify `LoadBalancerArn` and its ARN value for `AWS::ElasticLoadBalancingV2::Listener` (that you specify in the `TypeName` property): `{\"LoadBalancerArn\": \"REPLACE_WITH_YOUR_LOAD_BALANCER_ARN\"}`.",
             "type": "string",
             "pattern": "^[\\s\\S]*$"
         },
@@ -32,7 +32,7 @@
         },
         "Tags": {
             "type": "object",
-          "description": "Optional key-value pairs object (such as, `Env: Dev`, `Name: Test`) to associate to the AWS Systems Manager Parameter Store parameter resource, that the implementation of this resource type creates in your account to persist the lookup result.",
+            "description": "Optional key-value pairs object (such as, `Env: Dev`, `Name: Test`) to associate to the AWS Systems Manager Parameter Store parameter resource, that the implementation of this resource type creates in your account to persist the lookup result.",
             "patternProperties": {
                 "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$": {
                     "type": "string"
@@ -40,12 +40,12 @@
             },
             "additionalProperties": false
         },
-       "ResourceLookupId": {
-         "description": "When this resource type finds only one match as the result of a lookup operation, it then creates an AWS Systems Manager Parameter Store parameter resource in your account and current region to persist the lookup result for subsequent use (for example, when its `Read` handler is invoked).  `ResourceLookupId` holds the name of the Parameter Store parameter.",
-           "type": "string"
+        "ResourceLookupId": {
+            "description": "When this resource type finds only one match as the result of a lookup operation, it then creates an AWS Systems Manager Parameter Store parameter resource in your account and current region to persist the lookup result for subsequent use (for example, when its `Read` handler is invoked).  `ResourceLookupId` holds the name of the Parameter Store parameter; for example: `resource-lookup-id-11112222-3333-aaaa-bbbb-ccccddddeeee`.",
+            "type": "string"
         },
         "ResourceIdentifier": {
-            "description": "The resource identifier.",
+            "description": "The resource identifier.  For example, the ID of a VPC if you looked up an `AWS::EC2::VPC` resource type for which only one match was found.",
             "type": "string"
         }
     },

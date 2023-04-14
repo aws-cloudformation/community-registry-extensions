@@ -51,7 +51,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### JmesPathQuery
 
-A query, in JMESPath (https://jmespath.org/) format, to perform the resource lookup (example: Tags[?Key==`Owner`&&Value==`contract-test-only-test-team`]).  When you specify a new value on resource updates (for example, when you update the stack that describes this resource), a new lookup will be performed.
+A query, in JMESPath (https://jmespath.org/) format, to perform the resource lookup; for example: `Tags[?Key == 'Owner' && Value == 'test-only']`.  When you specify a new value on resource updates (for example, when you update the stack that describes this resource), a new lookup will be performed.
 
 _Required_: Yes
 
@@ -65,7 +65,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### ResourceLookupRoleArn
 
-The Amazon Resource Name (ARN) of the IAM role you wish to use for performing resource lookup operations in your AWS account on your behalf; for example: arn:aws:iam::111122223333:role/my-example-role.
+The Amazon Resource Name (ARN) of the IAM role you wish to use for performing resource lookup operations in your AWS account on your behalf; for example: `arn:aws:iam::111122223333:role/my-example-role`.  As for the role, for example, you could create an IAM role whose `Service` `Principal` is `cloudformation.amazonaws.com` in the trust policy, and whose policy is e.g., a `ReadOnlyAccess` AWS managed policy, or another managed policy you choose, or your own policy, depending on which permissions you require.
 
 _Required_: Yes
 
@@ -77,7 +77,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### ResourceModel
 
-The model of the resource you're using: this additional information is required if you're using a resource type shown in the `Resources that require additional information` page (https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers).  Specify the required properties using the JSON format; for example, to specify `LoadBalancerArn` and its ARN value for `AWS::ElasticLoadBalancingV2::Listener` (that you specify in the `TypeName` property), use: {"LoadBalancerArn": "REPLACE_WITH_YOUR_LOAD_BALANCER_ARN"}.
+The model of the resource you're using: this additional information is required if you're using a resource type shown in the `Resources that require additional information` page (https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers).  Specify the required properties using the JSON format; for example, to specify `LoadBalancerArn` and its ARN value for `AWS::ElasticLoadBalancingV2::Listener` (that you specify in the `TypeName` property): `{"LoadBalancerArn": "REPLACE_WITH_YOUR_LOAD_BALANCER_ARN"}`.
 
 _Required_: No
 
@@ -123,9 +123,9 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 
 #### ResourceIdentifier
 
-The resource identifier.
+The resource identifier.  For example, the ID of a VPC if you looked up an `AWS::EC2::VPC` resource type for which only one match was found.
 
 #### ResourceLookupId
 
-When this resource type finds only one match as the result of a lookup operation, it then creates an AWS Systems Manager Parameter Store parameter resource in your account and current region to persist the lookup result for subsequent use (for example, when its `Read` handler is invoked).  `ResourceLookupId` holds the name of the Parameter Store parameter.
+When this resource type finds only one match as the result of a lookup operation, it then creates an AWS Systems Manager Parameter Store parameter resource in your account and current region to persist the lookup result for subsequent use (for example, when its `Read` handler is invoked).  `ResourceLookupId` holds the name of the Parameter Store parameter; for example: `resource-lookup-id-11112222-3333-aaaa-bbbb-ccccddddeeee`.
 
