@@ -65,7 +65,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### ResourceLookupRoleArn
 
-The Amazon Resource Name (ARN) of the IAM role you wish to use for performing resource lookup operations in your AWS account on your behalf; for example: `arn:aws:iam::111122223333:role/my-example-role`.  As for the role, for example, you could create an IAM role whose `Service` `Principal` is `cloudformation.amazonaws.com` in the trust policy, and whose policy is e.g., a `ReadOnlyAccess` AWS managed policy, or another managed policy you choose, or your own policy, depending on which permissions you require.
+The Amazon Resource Name (ARN) of the IAM role you wish to use for performing resource lookup operations in your AWS account on your behalf; for example: `arn:aws:iam::111122223333:role/my-example-role`.  The role whose ARN you specify for this property is passed to AWS Cloud Control API's `ListResources` and `GetResource` actions when this resource type calls them on your behalf against resource type targets (such as, `AWS::EC2::VPC`).  As for the role, for example, you could create an IAM role whose `Service` `Principal` is `cloudformation.amazonaws.com` in the trust policy, and whose policy is e.g., a `ReadOnlyAccess` AWS managed policy, or another managed policy you choose, or your own policy, depending on which permissions you require.
 
 _Required_: Yes
 
