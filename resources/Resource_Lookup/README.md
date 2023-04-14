@@ -2,6 +2,7 @@
 
 - [Overview](#Overview)
     - [Context](#Context)
+- [Resource type reference](#Resource-type-reference)
 - [Usage](#Usage)
     - [Constructing queries](#Constructing-queries)
         - [Using the AWS resource and property types reference](#Using-the-AWS-resource-and-property-types-reference)
@@ -10,7 +11,7 @@
     - [The ResourceLookupRoleArn property](#The-ResourceLookupRoleArn-property)
     - [The LookupSerialNumber property](#The-LookupSerialNumber-property)
     - [The Tags property](#The-Tags-property)
-    - [Usage walkthrough](#Usage-walkthrough)
+- [Usage walkthrough](#Usage-walkthrough)
     - [Cleanup](#Cleanup)
 - [Resource type registry submission with StackSets](#Resource-type-registry-submission-with-StackSets)
 - [Development notes](#Development-notes)
@@ -38,6 +39,9 @@ You can also lookup values you need to reference (for example, the ID of a VPC),
 There are also use cases where you want to reference a resource that you chose to create outside the CloudFormation's purview.  For example, you created a VPC with the [AWS Management Console](https://aws.amazon.com/console/), or with the [AWS Command Line Interface (AWS CLI)](https://aws.amazon.com/cli/).  In these cases, if you are planning to use CloudFormation to manage your resource, you have the option of importing a resource supported today, and then use one of the methods described earlier to establish resource dependencies.  For more information, see [Bringing existing resources into CloudFormation management](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import.html).
 
 If you choose to manage the resource you want to reference outside CloudFormation -or if the resource is managed by another team with CloudFormation or with another service or tool- and you want to look it up to create a dependency against it in your template(s), you can perform the lookup yourself and provide the value as a template parameter, or use Parameter Store as mentioned earlier.  If you have use cases where a dynamic lookup is more desirable, this is where the `AwsCommunity::Resource::Lookup` resource type comes into play.
+
+## Resource type reference
+For reference information on properties for the `AwsCommunity::Resource::Lookup` resource type, including properties that are required or not, property types, property value constraints, and update behaviors, see [AwsCommunity::Resource::Lookup](docs/README.md) in the documentation page for this resource in the `docs` directory.
 
 ## Usage
 Example: you want to search for one of your existing [Amazon Virtual Private Cloud](https://aws.amazon.com/vpc/) (Amazon VPC) resources, based on search criteria that include [tag](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html) key(s) and value(s); for more information, see [Constructing queries](#Constructing-queries) in this document.  The example CloudFormation template shown next declares the `AwsCommunity::Resource::Lookup` resource type, and shows how to consume its return value from the `VpcId` property of the `AWS::EC2::SecurityGroup` resource type.  Note also that the template shows the usage of the optional `Tags` property, that is not related to the VPC example use case: this property describes tags for the [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) parameter resource(s) that `AwsCommunity::Resource::Lookup` creates in your account and current region to persist the lookup result(s) (`AwsCommunity::Resource::Lookup` needs this data, for example, when its `Read` handler is invoked):
@@ -209,7 +213,7 @@ The `LookupSerialNumber` property for the `AwsCommunity::Resource::Lookup` resou
 ### The Tags property
 The `Tags` property for the `AwsCommunity::Resource::Lookup` resource type is an optional key-value pairs object (such as, `Env: Dev`, `Name: Test`) to associate to the AWS Systems Manager Parameter Store parameter resource that the implementation of this resource type creates in your account and current region to persist the lookup result.
 
-### Usage walkthrough
+## Usage walkthrough
 This section assumes you are using this resource type to submit it as a private extension to the CloudFormation registry, in the AWS region(s) of your choice.  To get started, follow the steps shown next:
 
 - Install [Apache Maven](https://maven.apache.org/install.html), that you'll need to build this resource type that uses Java.  You'll also need to install the JDK 8 or JDK 11.
