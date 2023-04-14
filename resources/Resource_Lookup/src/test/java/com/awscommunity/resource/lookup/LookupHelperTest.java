@@ -22,11 +22,12 @@ public class LookupHelperTest {
 
     @Test
     public void generateResourceLookupIdMatchesExpectedPattern() {
-        final Pattern pattern = Pattern.compile("resource-lookup-id-[a-z0-9]{8}-([a-z0-9]{4}-){3}[a-z0-9]{12}");
+        final Pattern pattern = Pattern
+                .compile(Constants.PRIMARY_IDENTIFIER_PREFIX + "-[a-z0-9]{8}-([a-z0-9]{4}-){3}[a-z0-9]{12}");
         final String response = LookupHelper.generateResourceLookupId();
         final Matcher matcher = pattern.matcher(response);
 
-        assertThat(response).startsWith("resource-lookup-id-");
+        assertThat(response).startsWith(Constants.PRIMARY_IDENTIFIER_PREFIX);
         assertTrue(matcher.find());
     }
 

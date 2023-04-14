@@ -127,5 +127,5 @@ The resource identifier.  For example, the ID of a VPC if you looked up an `AWS:
 
 #### ResourceLookupId
 
-When this resource type finds only one match as the result of a lookup operation, it then creates an AWS Systems Manager Parameter Store parameter resource in your account and current region to persist the lookup result for subsequent use (for example, when its `Read` handler is invoked).  `ResourceLookupId` holds the name of the Parameter Store parameter; for example: `resource-lookup-id-11112222-3333-aaaa-bbbb-ccccddddeeee`.
+When this resource type finds only one match as the result of a lookup operation, it then creates an AWS Systems Manager Parameter Store parameter resource in your account and current region to persist the lookup result for subsequent use (for example, when its `Read` handler is invoked).  `ResourceLookupId` holds the name of the Parameter Store parameter; for example: `/CloudFormation/AwsCommunity/Resource/Lookup/resource-lookup-id-11112222-3333-aaaa-bbbb-ccccddddeeee`.
 

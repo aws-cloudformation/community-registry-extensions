@@ -25,7 +25,7 @@ public final class LookupHelper {
      */
     public static String generateResourceLookupId() {
         // Set a UUID of type 4 value as a suffix.
-        return Constants.PRIMARY_IDENTIFIER_PREFIX + UUID.randomUUID();
+        return Constants.PRIMARY_IDENTIFIER_PREFIX + "-" + UUID.randomUUID();
     }
 
     /**
