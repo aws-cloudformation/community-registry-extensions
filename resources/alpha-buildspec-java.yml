@@ -1,0 +1,46 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+      java: corretto8
+    commands:
+      - echo Entered the install phase...
+      - echo About to build $RESOURCE_PATH
+      - export PATH="/usr/local/bin:$PATH"
+      - TYPE_NAME=$(python scripts/type_name.py $RESOURCE_PATH/.rpdk-config)
+      - TYPE_CLEAN_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr ‘[:upper:]’ ‘[:lower:]’)"
+      - /usr/local/bin/dockerd-entrypoint.sh
+      - cat /var/log/docker.log
+      - echo TYPE_CLEAN_NAME is $TYPE_CLEAN_NAME
+      - BUILD_FILE_NAME="${TYPE_CLEAN_NAME}.zip"
+      - apt-get install -y maven
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-java-plugin.git@master
+      - cd $RESOURCE_PATH
+      - ls /usr/local/bin
+      - pip freeze
+      - cfn --version
+      - which sam
+      - sam --version
+      - echo $PATH
+  build:
+    commands:
+      - echo Entered the build phase...
+      - cfn validate
+      - cfn generate
+      - SETUP_STACK_NAME="setup-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
+      - rain deploy test/setup.yml $SETUP_STACK_NAME -y
+      - mvn clean verify javadoc:javadoc
+      - ls -ltra
+      - nohup sam local start-lambda &
+      - sleep 10
+      - cfn test --enforce-timeout 90 --region $AWS_REGION # Region added: https://github.com/aws-cloudformation/cloudformation-cli/issues/625
+    finally:
+      - cat rpdk.log
+      - rain rm $SETUP_STACK_NAME -y
+artifacts:
+  files:
+    - $BUILD_FILE_NAME 
+  name: extensions-build
+
