@@ -45,8 +45,8 @@ first be activated using the instructions
 |[AwsCommunity::DynamoDB::Item](./resources/DynamoDB_Item)|Resource|Prod|Manage the lifecycle of items in a DynamoDB table|
 |[AwsCommunity::S3::Bucket::MODULE](./modules/S3_Bucket/)|Module|Prod|Create a standard S3 bucket|
 |[AwsCommunity::S3::BucketNotification](./resources/S3_BucketNotification)|Resource|Alpha|Configure bucket notifications|
-|[AwsCommunity::S3::BucketAccessControlsRestricted](./hooks/S3_PublicAccessControlsRestricted)|Hook|Prod|Validate that an AWS::S3::Bucket has versioning enabled|
-|[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Prod|Validates S3 Bucket is configured to block public access|
+|[AwsCommunity::S3::BucketAccessControlsRestricted](./hooks/S3_PublicAccessControlsRestricted)|Hook|Prod|Validates S3 Bucket is configured to block public access|
+|[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Prod|Validate that an AWS::S3::Bucket has versioning enabled|
 |[AwsCommunity::S3::DeleteBucketContents](./resources/S3_DeleteBucketContents)|Resource|Prod|Delete all objects in a bucket|
 |[AwsCommunity::Time::Offset](./resources/Time_Offset)|Resource|Prod|Creates a time based resource with an offset from the provided time or now|
 |[AwsCommunity::Time::Static](./resources/Time_Static)|Resource|Prod|Creates a static time stamp|
