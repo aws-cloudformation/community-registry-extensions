@@ -372,6 +372,13 @@ Resources:
             - ssm:PutParameter
             - ssm:RemoveTagsFromResource
             Resource: "*"
+          - Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:AttachRolePolicy
+              - iam:DetachRolePolicy
+            Resource: !Sub 'arn:${AWS::Partition}:iam::aws:role/awscommunity-resource-lookup-setup'
         Version: '2012-10-17'
       PolicyName: resource-lookup-build-project-policy
       Roles:
