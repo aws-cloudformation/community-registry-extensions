@@ -374,11 +374,26 @@ Resources:
             Resource: "*"
           - Effect: Allow
             Action:
+              - iam:AttachRolePolicy
               - iam:CreateRole
               - iam:DeleteRole
-              - iam:AttachRolePolicy
               - iam:DetachRolePolicy
-            Resource: !Sub 'arn:${AWS::Partition}:iam::aws:role/awscommunity-resource-lookup-setup'
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:GetRole
+              - iam:ListAttachedRolePolicies
+              - iam:ListEntitiesForPolicy
+              - iam:ListPolicies
+              - iam:ListPolicyTags
+              - iam:ListPolicyVersions
+              - iam:ListRolePolicies
+              - iam:ListRoles
+              - iam:ListRoleTags
+              - iam:TagRole
+              - iam:UntagRole
+              - iam:UpdateRole
+              - iam:UpdateRoleDescription
+            Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/awscommunity-resource-lookup-setup'
         Version: '2012-10-17'
       PolicyName: resource-lookup-build-project-policy
       Roles:
