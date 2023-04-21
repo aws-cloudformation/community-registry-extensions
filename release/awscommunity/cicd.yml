@@ -362,6 +362,7 @@ Resources:
             Action:
             - cloudformation:GetResource
             - cloudformation:ListResources
+            - cloudformation:ListExports
             - iam:PassRole
             - ssm:AddTagsToResource
             - ssm:DeleteParameter

@@ -41,6 +41,7 @@ Resources:
                 - "ssm:ListTagsForResource"
                 - "ssm:PutParameter"
                 - "ssm:RemoveTagsFromResource"
+                - "cloudformation:ListExports"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
