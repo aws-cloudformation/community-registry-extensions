@@ -11,33 +11,28 @@ phases:
       - export PATH="/usr/local/bin:$PATH"
       - TYPE_NAME=$(python scripts/type_name.py $RESOURCE_PATH/.rpdk-config)
       - TYPE_CLEAN_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr ‘[:upper:]’ ‘[:lower:]’)"
-      - /usr/local/bin/dockerd-entrypoint.sh
-      - cat /var/log/docker.log
       - echo TYPE_CLEAN_NAME is $TYPE_CLEAN_NAME
-      - BUILD_FILE_NAME="${TYPE_CLEAN_NAME}.zip"
+      - BUILD_FILE_NAME=$(cat TYPE_CLEAN_NAME | sed s/_/-/g)
+      - BUILD_FILE_NAME="${BUILD_FILE_NAME}.zip"
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-java-plugin.git@master
       - cd $RESOURCE_PATH
-      - ls /usr/local/bin
-      - pip freeze
       - cfn --version
-      - which sam
       - sam --version
-      - echo $PATH
+
   build:
     commands:
       - echo Entered the build phase...
       - cfn validate
       - cfn generate
-      - SETUP_STACK_NAME="setup-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
-      - if [ -f test/setup.yml ]; then rain deploy test/setup.yml $SETUP_STACK_NAME -y; fi
+      - ../../release/deregister-all.sh us-east-1 RESOURCE
       - mvn clean verify javadoc:javadoc
-      - ls -ltra
-      - nohup sam local start-lambda &
-      - sleep 10
-      - cfn test --enforce-timeout 90 --region $AWS_REGION # Region added: https://github.com/aws-cloudformation/cloudformation-cli/issues/625
+      - cfn submit --set-default
+      - INTEG_STACK_NAME="integ-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
+      - rain deploy test/integ.yml $INTEG_STACK_NAME -y
     finally:
       - cat rpdk.log
-      - if [ -f test/setup.yml ]; then rain rm $SETUP_STACK_NAME -y; fi
+      - rain rm $INTEG_STACK_NAME -y
+
 artifacts:
   files:
     - $BUILD_FILE_NAME
