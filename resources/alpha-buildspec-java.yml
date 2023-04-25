@@ -28,7 +28,8 @@ phases:
       - echo Entered the build phase...
       - cfn validate
       - cfn generate
-      - if [ -f test/setup.yml ]; then SETUP_STACK_NAME="setup-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)" && rain deploy test/setup.yml $SETUP_STACK_NAME -y; fi
+      - SETUP_STACK_NAME="setup-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
+      - if [ -f test/setup.yml ]; then rain deploy test/setup.yml $SETUP_STACK_NAME -y; fi
       - mvn clean verify javadoc:javadoc
       - ls -ltra
       - nohup sam local start-lambda &
