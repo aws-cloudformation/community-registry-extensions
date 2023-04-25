@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: This example CloudFormation template creates an IAM role assumed by CloudFormation to perform resource lookup operations on your behalf.
+Description: This template describes an example resource type for an AWS::EC2::VPC resource lookup operation, and an IAM role assumed by CloudFormation to perform resource lookup operations on your behalf.
 
 Parameters:
   Env:
@@ -11,7 +11,7 @@ Parameters:
       - Beta
       - dev
       - prod
-    Default: dev
+    Default: Alpha
 
 Resources:
   ResourceLookupRole:
@@ -34,6 +34,22 @@ Resources:
           Value: AwsCommunityResourceLookup
         - Key: Env
           Value: !Ref 'Env'
+
+  TestVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: TestOnly
+        - Key: AppName
+          Value: TestOnlyApp
+        - Key: Env
+          Value: !Ref 'Env'
+        - Key: Owner
+          Value: contract-test-only-test-team-alpha
 
 Outputs:
   ResourceLookupRoleArn:
