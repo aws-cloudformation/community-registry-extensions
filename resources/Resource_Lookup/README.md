@@ -367,7 +367,7 @@ sam local start-lambda
 
 For more information, see [Testing resource types locally using AWS SAM](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test.html#resource-type-develop-test).
 
-Open another terminal window.  Create a stack using the `test/setup.yml` template, to create the IAM role used with lookup operations; the template you are using will create an `Export` called `ResourceLookupRoleArn`, that contract test inputs in the `inputs` directory will reference using the `{{ResourceLookupRoleArn}}` syntax.  Run these commands to create the role and the output to export (the examples use the `us-east-1` region; adapt to the region you wish to use):
+Open another terminal window.  Create a stack using the `test/setup.yml` template, to create a `AWS::EC2::VPC` search target, and an IAM role to use for lookup operations; the template you are using will create an `Export` called `ResourceLookupRoleArn`, that contract test inputs in the `inputs` directory will reference using the `{{ResourceLookupRoleArn}}` syntax.  Run these commands to create the role and the output to export (the examples use the `us-east-1` region; adapt to the region you wish to use):
 
 ```
 aws cloudformation create-stack \
