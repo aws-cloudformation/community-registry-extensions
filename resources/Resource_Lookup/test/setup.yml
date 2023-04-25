@@ -9,14 +9,14 @@ Parameters:
     AllowedValues:
       - Alpha
       - Beta
-      - dev
-      - prod
+      - Prod
     Default: Alpha
 
 Resources:
   ResourceLookupRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: "awscommunity-resource-lookup-setup"
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -32,8 +32,6 @@ Resources:
           Value: AwsCommunityResourceLookup-LookupRole
         - Key: AppName
           Value: AwsCommunityResourceLookup
-        - Key: Env
-          Value: !Ref 'Env'
 
   TestVpc:
     Type: AWS::EC2::VPC

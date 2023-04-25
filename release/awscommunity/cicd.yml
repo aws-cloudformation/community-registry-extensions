@@ -153,6 +153,19 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  ResourceLookupBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   DynamoDBItemBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -339,6 +352,66 @@ Resources:
       PolicyName: delete-bucket-contents-build-project-policy
       Roles:
         - !Ref S3DeleteBucketContentsBuildProjectRole
+
+  ResourceLookupBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+            - cloudformation:GetResource
+            - cloudformation:ListResources
+            - cloudformation:ListExports
+            - iam:PassRole
+            - ssm:AddTagsToResource
+            - ssm:DeleteParameter
+            - ssm:DescribeParameters
+            - ssm:GetParameter
+            - ssm:GetParameters
+            - ssm:ListTagsForResource
+            - ssm:PutParameter
+            - ssm:RemoveTagsFromResource
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:DetachRolePolicy
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:GetRole
+              - iam:ListAttachedRolePolicies
+              - iam:ListEntitiesForPolicy
+              - iam:ListPolicies
+              - iam:ListPolicyTags
+              - iam:ListPolicyVersions
+              - iam:ListRolePolicies
+              - iam:ListRoles
+              - iam:ListRoleTags
+              - iam:TagRole
+              - iam:UntagRole
+              - iam:UpdateRole
+              - iam:UpdateRoleDescription
+            Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/awscommunity-resource-lookup-setup'
+          - Effect: Allow
+            Action:
+              - ec2:AssociateVpcCidrBlock
+              - ec2:CreateTags
+              - ec2:CreateVpc
+              - ec2:DeleteTags
+              - ec2:DeleteVpc
+              - ec2:DescribeVpcAttribute
+              - ec2:DescribeVpcs
+              - ec2:DisassociateVpcCidrBlock
+              - ec2:ModifyVpcAttribute
+              - ec2:ModifyVpcTenancy
+            Resource: !Sub "arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*"
+        Version: '2012-10-17'
+      PolicyName: resource-lookup-build-project-policy
+      Roles:
+        - !Ref ResourceLookupBuildProjectRole
 
   DynamoDBItemBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -700,6 +773,28 @@ Resources:
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
       TimeoutInMinutes: 480
 
+  ResourceLookupBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-resource-lookup"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt ResourceLookupBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec-java.yml"
+      TimeoutInMinutes: 480
+
   DynamoDBItemBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -1056,6 +1151,7 @@ Resources:
               - !GetAtt HookEC2SecurityGroupRestrictedSSHBuildProject.Arn
               - !GetAtt S3BucketNotificationBuildProject.Arn
               - !GetAtt S3DeleteBucketContentsBuildProject.Arn
+              - !GetAtt ResourceLookupBuildProject.Arn
               - !GetAtt DynamoDBItemBuildProject.Arn
               - !GetAtt S3BucketVersioningEnabledBuildProject.Arn
               - !GetAtt S3PublicAccessControlsRestrictedBuildProject.Arn
@@ -1123,6 +1219,7 @@ Resources:
                 - !GetAtt HookEC2SecurityGroupRestrictedSSHBuildProjectRole.Arn
                 - !GetAtt S3BucketNotificationBuildProjectRole.Arn
                 - !GetAtt S3DeleteBucketContentsBuildProjectRole.Arn
+                - !GetAtt ResourceLookupBuildProjectRole.Arn
                 - !GetAtt DynamoDBItemBuildProjectRole.Arn
                 - !GetAtt S3BucketVersioningEnabledBuildProjectRole.Arn
                 - !GetAtt S3PublicAccessControlsRestrictedBuildProjectRole.Arn
@@ -1236,6 +1333,25 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "resources/S3_DeleteBucketContents"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: ResourceLookup
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref ResourceLookupBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/Resource_Lookup"
                     }
                   ]
               RunOrder: 1
