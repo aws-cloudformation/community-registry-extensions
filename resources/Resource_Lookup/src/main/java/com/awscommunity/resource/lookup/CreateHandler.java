@@ -68,8 +68,17 @@ public class CreateHandler extends BaseHandlerStd {
         final ResourceModel requestModel = request.getDesiredResourceState();
 
         /*
-         * Generate the primary identifier on the first invocation, set it in the
-         * resource model, return an in-progress event to continue with the search next.
+         * Generates the primary identifier on the first invocation, sets it in the
+         * resource model, and returns an in-progress event to continue with the search
+         * on subsequent handler invocations. On subsequent invocations of the handler,
+         * the primary identifier and other properties from the model are available in
+         * request.getDesiredResourceState(), and there is no need to use the callback
+         * context to store and reuse model-related properties. This implementation
+         * stores the resourceLookupId, that is a property in the model, in the callback
+         * context to help drive the boolean callback logic shown next with a reasonably
+         * meaningful property and value, but the resourceLookupId and other model
+         * properties can be consumed from the model directly (with values available
+         * across invocations) without storing/consuming them from the callback context.
          */
         if (callbackContext.getResourceLookupId() == null) {
             final String resourceLookupId = LookupHelper.generateResourceLookupId();
@@ -82,7 +91,7 @@ public class CreateHandler extends BaseHandlerStd {
                     .resourceModel(requestModel).callbackContext(currentContext)
                     .callbackDelaySeconds(Constants.CALLBACK_DELAY_SECONDS).build();
         }
-        logger.log("Callback handler invocation.");
+        logger.log("Callback handler invocation; resourceLookupId: " + callbackContext.getResourceLookupId());
         return lookupAndStoreResult(proxy, request, callbackContext, proxySsmClient, proxyCloudControlClient, logger);
     }
 
@@ -122,6 +131,14 @@ public class CreateHandler extends BaseHandlerStd {
 
         final JmesPath<JsonNode> jmespath = LookupHelper.getJacksonRuntimeForJmesPath();
         final Expression<JsonNode> expression = jmespath.compile(jmesPathQuery);
+
+        // The maxResults field for AWS Cloud Control API's ListResourcesRequest:
+        // https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/cloudcontrol/model/ListResourcesRequest.html#maxResults()
+        // is marked as `Reserved`; hence, not using it here. The implementation shown
+        // next uses a custom pagination across handler invocations, that first fetches
+        // data from the `ListResources` API, and fills up IdentifiersBuffer defined in
+        // the callback context POJO. If a NextToken is found, it is also stored in the
+        // POJO for later consumption, after the custom pagination depletes the buffer.
 
         // If IdentifiersBuffer is null or empty: call ListResources, and fill the
         // buffer with resource identifiers.
@@ -166,10 +183,8 @@ public class CreateHandler extends BaseHandlerStd {
                 if (LookupHelper.jmesPathQueryMatches(resourcePropertiesString, expression)) {
                     logger.log("JMESPath match, resource identifier: " + identifier);
                     if (requestModel.getResourceIdentifier() == null) {
-                        logger.log(
-                                "Setting the " + identifier + " identifier in the model, and in the callback context.");
+                        logger.log("Setting the resource identifier to: " + identifier + ".");
                         requestModel.setResourceIdentifier(identifier);
-                        currentContext.setResourceLookupId(identifier);
                     } else {
                         final String message = "The query returned more than one result; cannot provide a single resource identifier.";
                         logger.log(message);
@@ -209,11 +224,10 @@ public class CreateHandler extends BaseHandlerStd {
         }
 
         if (requestModel.getResourceIdentifier() == null) {
+            final String message = "The provided search query did not return a matching result; cannot provide a single resource identifier.";
+            logger.log(message);
             return ProgressEvent.<ResourceModel, CallbackContext>builder().status(OperationStatus.FAILED)
-                    .errorCode(HandlerErrorCode.GeneralServiceException)
-                    .message(
-                            "The provided search query did not return a matching result; cannot provide a single resource identifier.")
-                    .build();
+                    .errorCode(HandlerErrorCode.GeneralServiceException).message(message).build();
         }
 
         currentContext.setIdentifiersBuffer(null);

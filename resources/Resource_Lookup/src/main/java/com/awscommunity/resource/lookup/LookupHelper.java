@@ -100,4 +100,51 @@ public final class LookupHelper {
 
         return result.asBoolean() || !result.isEmpty();
     }
+
+    /**
+     * Escapes a given input string's delimiter (`,`) with an escape character
+     * (`\`). Given an input such as `test,test`, the output that this method
+     * produces is `test\,test`.
+     *
+     * @param input
+     *            {@link String}
+     * @return {@link String} escaped string
+     */
+    public static String escapeCommaDelimiters(final String input) {
+        // Replace the comma delimiter with a backslash, that is here represented with 4
+        // backslash characters to compensate for invalid escape sequence errors as part
+        // of the escaping intent. The output string will only have 1 backslash
+        // character.
+        return input.replaceAll(",", "\\\\,");
+    }
+
+    /**
+     * Unescapes a given input string's delimiter (`,`) by removing the preceding
+     * escape character (`\`). Given an input such as `test\,test`, the output that
+     * this method produces is `test,test`.
+     *
+     * @param input
+     *            {@link String}
+     * @return {@link String} unescaped string
+     */
+    public static String unescapeCommaDelimiters(final String input) {
+        // Replace a backslash character (here represented with 4 backslashes; see
+        // escapeCommaDelimiters()) and a subsequent comma delimiter with just a comma.
+        return input.replaceAll("\\\\,", ",");
+    }
+
+    /**
+     * Splits a comma-delimited input string if commas are not preceded by a `\`
+     * escape character.
+     *
+     * @param input
+     *            {@link String}
+     * @return Array of {@link String}
+     */
+    public static String[] splitStringWithUnescapedCommaDelimiters(final String input) {
+        // Use a negative lookbehind regular expression to match a comma that is not
+        // preceded by a `\` escape character, that is here represented with 4
+        // backslashes; see escapeCommaDelimiters().
+        return input.split("(?<!\\\\),");
+    }
 }
