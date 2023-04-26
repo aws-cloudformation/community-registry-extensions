@@ -1,3 +1,2 @@
-cloudformation-cli-python-lib>=2.1.9
+cloudformation-cli-python-lib>2.1.15
 cfn-guard-rs-hook>=0.1.1
-cryptography<40.0.0
