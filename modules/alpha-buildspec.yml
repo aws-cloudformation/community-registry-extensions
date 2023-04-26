@@ -8,7 +8,6 @@ phases:
       - echo Entered the install phase...
       - echo About to build $MODULE_PATH
       - export PATH="/usr/local/bin:$PATH"
-      - pip install "cryptography<40.0.0"
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
       - cd $MODULE_PATH
