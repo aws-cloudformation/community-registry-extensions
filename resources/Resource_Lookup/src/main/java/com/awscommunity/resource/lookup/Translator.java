@@ -22,7 +22,6 @@ import software.amazon.awssdk.services.ssm.model.ParameterType;
 import software.amazon.awssdk.services.ssm.model.PutParameterRequest;
 import software.amazon.awssdk.services.ssm.model.RemoveTagsFromResourceRequest;
 import software.amazon.awssdk.services.ssm.model.ResourceTypeForTagging;
-import software.amazon.awssdk.services.ssm.model.Tag;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
 /**
@@ -84,10 +83,18 @@ public final class Translator {
      */
     public static PutParameterRequest translateToPutParameterRequest(final ResourceModel model,
             final Map<String, String> tags) {
-        final List<Tag> tagsToList = TagHelper.convertToList(tags);
-        final PutParameterRequest putParameterRequest = PutParameterRequest.builder().type(ParameterType.STRING_LIST)
-                .name(model.getResourceLookupId()).value(model.getTypeName() + "," + model.getResourceIdentifier())
-                .description(model.getResourceLookupId()).tags(tagsToList).build();
+        final String parameterName = model.getResourceLookupId();
+        final String typeName = model.getTypeName();
+        // Before storing typeName and resourceIdentifier as a Parameter Store parameter
+        // value delimited by a comma, escape comma(s) that might be present in
+        // resourceIdentifier; an example is the resource identifier for
+        // `AWS::IAM::Role`, whereas a comma is allowed in the role name.
+        final String resourceIdentifier = LookupHelper.escapeCommaDelimiters(model.getResourceIdentifier());
+        final String parameterValue = typeName + "," + resourceIdentifier;
+
+        final PutParameterRequest putParameterRequest = PutParameterRequest.builder().type(ParameterType.STRING)
+                .name(parameterName).value(parameterValue).description(parameterName)
+                .tags(TagHelper.convertToList(tags)).build();
         return putParameterRequest;
     }
 
@@ -128,7 +135,14 @@ public final class Translator {
         final String parameterName = getParameterResponse.parameter().name();
         final String parameterValue = getParameterResponse.parameter().value();
         final String typeName = parameterValue.split(",")[0];
-        final String resourceIdentifier = parameterValue.split(",")[1];
+
+        // When reading typeName and resourceIdentifier from a Parameter Store parameter
+        // value delimited by a comma, first split the string when an unescaped comma is
+        // found to get resourceIdentifier, and then unescape resourceIdentifier. An
+        // example use case is the resource identifier for
+        // `AWS::IAM::Role`, whereas a comma is allowed in the role name.
+        final String resourceIdentifier = LookupHelper
+                .unescapeCommaDelimiters(LookupHelper.splitStringWithUnescapedCommaDelimiters(parameterValue)[1]);
 
         // Call ListTagsForResource to get the tags for the parameter.
         final SsmClient ssmClient = proxySsmClient.client();
