@@ -14,7 +14,7 @@ Parameters:
 
   BetaAccountId:
     Type: String
-    Description: AccountId for the beta account, which pushes builds to the prod source bucket 
+    Description: AccountId for the beta account, which pushes builds to the prod source bucket
 
   ProdAccountId:
     Type: String
@@ -25,7 +25,7 @@ Parameters:
     Description: Email address for pipeline notifications
 
 Conditions:
-  
+
   IsAlpha: !Equals
     - !Ref Env
     - alpha
@@ -65,15 +65,15 @@ Resources:
           - Sid: BetaProdCrossAccount
             Effect: Allow
             Principal:
-              AWS: 
+              AWS:
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
-            Action: 
+            Action:
               - s3:Put*
               - s3:Get*
               - s3:List*
-            Resource: 
+            Resource:
               - !Sub "arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifacts"
-              - !Sub "arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifacts/*" 
+              - !Sub "arn:aws:s3:::cep-${Env}-${AWS::AccountId}-artifacts/*"
 
   S3BucketVersioningEnabledBuildProjectRole:
     Type: AWS::IAM::Role
@@ -256,7 +256,7 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
-  
+
   ResourceIamPasswordPolicyRole:
     Type: AWS::IAM::Role
     Properties:
@@ -309,7 +309,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt S3BucketNotificationBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: bucket-notification-build-project-policy
@@ -346,7 +346,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt S3DeleteBucketContentsBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: delete-bucket-contents-build-project-policy
@@ -434,7 +434,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt DynamoDBItemBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: dynamodb-item-build-project-policy
@@ -467,7 +467,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: cloudfront-s3-website-build-project-policy
@@ -495,7 +495,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt TimeStaticBuildProject.Arn
           - Action:
               - ssm:DeleteParameter
@@ -529,7 +529,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt TimeSleepBuildProject.Arn
           - Action:
               - ssm:DeleteParameter
@@ -563,7 +563,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt TimeOffsetBuildProject.Arn
           - Action:
               - ssm:DeleteParameter
@@ -623,13 +623,13 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: cloudfront-webacl-association-build-project-policy
       Roles:
         - !Ref CloudFrontWebAclAssociationBuildProjectRole
-  
+
   ResourceIamPasswordPolicyPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -663,7 +663,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt IamPasswordPolicyBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: cloudfront-webacl-association-build-project-policy
@@ -1057,7 +1057,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt AlternateContactBuildProject.Arn
         Version: '2012-10-17'
       PolicyName: alternate-contact-build-project-policy
@@ -1092,7 +1092,7 @@ Resources:
       Comment: The name is important here since it gets constructed by the webhook handler and CodeBuild job to drop the build into the correct bucket. We only use a one webhook for AwsCommunity and 3rd parties like Okta.
     Properties:
       BucketName: !Sub "cep-source-${AWS::AccountId}-${Env}-${PrefixLower}"
-      VersioningConfiguration: 
+      VersioningConfiguration:
         Status: Enabled
 
   PipelineRole:
@@ -1111,7 +1111,7 @@ Resources:
     Type: AWS::IAM::Policy
     Properties:
       PolicyName: extension-pipeline-policy
-      Roles: 
+      Roles:
         - !Ref PipelineRole
       PolicyDocument:
         Statement:
@@ -1147,7 +1147,7 @@ Resources:
               - codebuild:RetryBuildBatch
               - codebuild:StopBuildBatch
             Effect: Allow
-            Resource: 
+            Resource:
               - !GetAtt HookEC2SecurityGroupRestrictedSSHBuildProject.Arn
               - !GetAtt S3BucketNotificationBuildProject.Arn
               - !GetAtt S3DeleteBucketContentsBuildProject.Arn
@@ -1174,16 +1174,16 @@ Resources:
 
   PipelineKey:
     Type: AWS::KMS::Key
-    Metadata: 
+    Metadata:
       Comment: Required for cross account deployment from beta CodePipeline to the prod bucket
     Condition: IsBeta
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
-    Properties: 
+    Properties:
       Description: This key is used by the CEP beta build process to deploy builds to the prod bucket
-      KeyPolicy: 
+      KeyPolicy:
         Statement:
-          - Action: 
+          - Action:
               - kms:Create*
               - kms:Describe*
               - kms:Enable*
@@ -1200,20 +1200,20 @@ Resources:
               - kms:TagResource
               - kms:UntagResource
             Effect: Allow
-            Principal: 
-              AWS: 
+            Principal:
+              AWS:
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !Sub "arn:aws:iam::${AWS::AccountId}:role/Admin"
             Resource: "*"
-          - Action: 
+          - Action:
               - kms:Encrypt
               - kms:Decrypt
               - kms:ReEncrypt
               - kms:GenerateDataKey*
               - kms:DescribeKey
             Effect: Allow
-            Principal: 
-              AWS: 
+            Principal:
+              AWS:
                 - !GetAtt PipelineRole.Arn
                 - !Sub "arn:aws:iam::${ProdAccountId}:root"
                 - !GetAtt HookEC2SecurityGroupRestrictedSSHBuildProjectRole.Arn
@@ -1268,12 +1268,12 @@ Resources:
                 Owner: AWS
                 Provider: S3
                 Version: 1
-              Configuration: 
+              Configuration:
                 S3Bucket: !Ref SourceBucket
-                S3ObjectKey: "source.zip" 
+                S3ObjectKey: "source.zip"
                 PollForSourceChanges: true
               OutputArtifacts:
-                - Name: extensions-source 
+                - Name: extensions-source
         - Name: Build
           Actions:
             - !If
@@ -1365,7 +1365,7 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref DynamoDBItemBuildProject
-                # BatchEnabled: 
+                # BatchEnabled:
                 #   !If
                 #     - IsProd
                 #     - true
@@ -1389,7 +1389,7 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref TimeStaticBuildProject
-                # BatchEnabled: 
+                # BatchEnabled:
                 #   !If
                 #     - IsProd
                 #     - true
@@ -1413,7 +1413,7 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref TimeSleepBuildProject
-                # BatchEnabled: 
+                # BatchEnabled:
                 #   !If
                 #     - IsProd
                 #     - true
@@ -1437,7 +1437,7 @@ Resources:
                 Version: 1
               Configuration:
                 ProjectName: !Ref TimeOffsetBuildProject
-                # BatchEnabled: 
+                # BatchEnabled:
                 #   !If
                 #     - IsProd
                 #     - true
@@ -1571,7 +1571,7 @@ Resources:
             Actions:
               - Name: Copy
                 RoleArn: !Sub "arn:aws:iam::${ProdAccountId}:role/community-registry-extensions-publish-role"
-                InputArtifacts: 
+                InputArtifacts:
                   - Name: extensions-source
                 ActionTypeId:
                   Category: Deploy
@@ -1631,7 +1631,7 @@ Resources:
               -
                 Effect: Allow
                 Action: s3:PutObject
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
                   - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
 
@@ -1643,12 +1643,12 @@ Resources:
     Properties:
       TopicName: !Sub "${PrefixLower}-${Env}-pipeline-topic"
       Subscription:
-        - Endpoint: !Ref NotificationEmail 
+        - Endpoint: !Ref NotificationEmail
           Protocol: email
 
   WaitForPipelinePolicy:
     Type: Custom::Delay
-    DependsOn: 
+    DependsOn:
       - PipelinePolicy
     Properties:
       ServiceToken: !GetAtt DelayFunction.Arn
@@ -1656,7 +1656,7 @@ Resources:
 
   WaitForPipeline:
     Type: Custom::Delay
-    DependsOn: 
+    DependsOn:
       - Pipeline
     Properties:
       ServiceToken: !GetAtt DelayFunction.Arn
@@ -1664,7 +1664,7 @@ Resources:
 
   WaitForTopic:
     Type: Custom::Delay
-    DependsOn: 
+    DependsOn:
       - PipelineTopic
       - PipelineTopicPolicy
     Properties:
@@ -1719,13 +1719,13 @@ Resources:
     DependsOn: WaitForTopic
     Properties:
       Description: Watch for pipeline success and failure
-      EventPattern: 
+      EventPattern:
         source:
           - aws.codepipeline
         detail-type:
           - CodePipeline Pipeline Execution State Change
         detail:
-          pipeline: 
+          pipeline:
             - !Ref Pipeline
           state:
             - SUCCEEDED
@@ -1757,11 +1757,11 @@ Resources:
           - Sid: BetaAccountPut
             Effect: Allow
             Principal:
-              AWS: 
+              AWS:
                 - !Sub "arn:aws:iam::${BetaAccountId}:root"
                 - !GetAtt PublishCrossAccountRole.Arn
             Action: s3:PutObject
-            Resource: 
+            Resource:
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}"
               - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
 
@@ -1829,12 +1829,12 @@ Resources:
           - Action:
               - codebuild:*
             Effect: Allow
-            Resource: "*" 
+            Resource: "*"
           - Action:
               - codepipeline:*
             Effect: Allow
             Resource: "*"
-          - Action: 
+          - Action:
               - s3:*
             Effect: Allow
             Resource: "*"
@@ -1888,16 +1888,16 @@ Resources:
                   - !Sub "arn:aws:s3:::cep-source-${ProdAccountId}-prod-${PrefixLower}/*"
                   - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifacts"
                   - !Sub "arn:aws:s3:::cep-beta-${BetaAccountId}-artifacts/*"
-              - Action: 
+              - Action:
                   - kms:Encrypt
                   - kms:Decrypt
                   - kms:ReEncrypt
                   - kms:GenerateDataKey*
                   - kms:DescribeKey
                 Effect: Allow
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
-              
+
 # Delay Function to solve race conditions where the resource is not actually ready
 
   DelayFunctionRole:
@@ -1934,10 +1934,9 @@ Resources:
       Timeout: 120
       Role: !GetAtt DelayFunctionRole.Arn
       Runtime: python3.7
-      Code: !Rain::S3 
-        Path: ../delay.py 
+      Code: !Rain::S3
+        Path: ../delay.py
         Zip: true
         BucketProperty: S3Bucket
         KeyProperty: S3Key
       MemorySize: 1024
-
