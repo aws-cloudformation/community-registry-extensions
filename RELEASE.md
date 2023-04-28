@@ -7,7 +7,7 @@ we complete an appsec review internally_
 
 This document covers the release process for registry extensions in the
 `AwsCommunity::` namespace, published by the AWS Community Engagement Program
-(CEP) team.  
+(CEP) team.
 
 See the tracking issue [here](https://github.com/aws-cloudformation/community-registry-extensions/issues/22)
 
@@ -50,11 +50,11 @@ parallel CodeBuild jobs for each resource. The jobs for resource types run
 `resources/{env}-buildspec-{language}.yml`.
 
 There are some changes that need to be made to the `release/cicd.yml` template
-when adding a new resource. Each resource gets is own build action, and any 
-permissions that are needed to run the setup template and make SDK calls 
+when adding a new resource. Each resource gets is own build action, and any
+permissions that are needed to run the setup template and make SDK calls
 during contract testing need to be added to the project policy.
 
-Each extension type and each language has its own build spec within each environment. 
+Each extension type and each language has its own build spec within each environment.
 For example, `resources/alpha-buildspec-python.yml` is used in the alpha account
 when building Python resources.
 
@@ -71,14 +71,14 @@ template.
 In the integ template, no hard-coded names should be used, to avoid issues with
 multiple stacks being deployed from the same template in the same account.
 
-The beta account uses the same CloudFormation template, `release/cicd.yml`, as 
-the alpha account, since the pipeline and permissions are very similar. The pipeline 
+The beta account uses the same CloudFormation template, `release/cicd.yml`, as
+the alpha account, since the pipeline and permissions are very similar. The pipeline
 is started by creating a release in the GitHub repo and then copying the zip file to the `cep-source-${ACCOUNT_ID}-beta-awscommunity` bucket in the beta account. There is a script to do this here:  `release/awscommunity/release.sh`.
 
-The beta pipeline has one extra stage which copies the source zip to a bucket in the 
-prod account to start the publishing process, if all beta tests succeed. 
+The beta pipeline has one extra stage which copies the source zip to a bucket in the
+prod account to start the publishing process, if all beta tests succeed.
 
-The beta pipeline can be triggered by a push to the release branch, or a release zip 
+The beta pipeline can be triggered by a push to the release branch, or a release zip
 can be copied to the beta bucket using `release/release.sh`, which is preferred.
 
 ### Prod account
@@ -97,12 +97,12 @@ to fix a bug that is not related to the release process.  See the
 [CONTRIBUTOR](./CONTRIBUTOR.md) guide for instructions instead.*
 
 If you need to make changes to the release process, deploy the CICD stacks to
-your own sandbox account for development and testing. 
+your own sandbox account for development and testing.
 
 **Pre-Requisites**
 
 ***In your sandbox AWS Account***
-- Create a secret in Secrets Manager for the GitHub webhook secret. 
+- Create a secret in Secrets Manager for the GitHub webhook secret.
 *This should be a plaintext string that you determine. Note the ARN of the secret.*
 
 - Create S3 buckets for `alpha`, `beta`, `prod` environments
@@ -130,17 +130,19 @@ doing this from a Cloud9 instance in your account if that is a concern.
 Once `deploy-sandbox-pipeline.sh` has completed, you will need to confgure a GitHub
 webhook from your fork to point to the API Gateway `prod` stage that is created
 by the `cicd.yml` template. Set the content-type to `application-json` and
-leave the default of "Just the push event".
+leave the default of "Just the push event". Add, in the "Secret" field, the plaintext
+string value you created earlier and stored in Secrets Manager.
 
-The Webhook URL is in the output of the cloudformation stacks of cep-alpha and
-cep-beta.  The "Recent Deliveries" tab on the webhook screen can be used to re-deliver
-payloads if you are troubleshooting it.
+The Webhook URL is in the output of the `cep-common-alpha`
+CloudFormation stack.  The "Recent Deliveries" tab on the webhook
+screen can be used to re-deliver payloads if you are troubleshooting
+it.
 
 ### 3rd party resources
 
-We use this release process for third parties as well as `AwsCommunity`. The 
-base CICD template in each account handles some things centrally, such as the 
-GitHub webhook to start an alpha build. But most of the resources have to be 
+We use this release process for third parties as well as `AwsCommunity`. The
+base CICD template in each account handles some things centrally, such as the
+GitHub webhook to start an alpha build. But most of the resources have to be
 replicated into a distint pipeline for each namespace (GitHub, Okta, etc.)
 
 Run this script to generate the CICD template for a 3rd party:
@@ -161,8 +163,8 @@ cd release
 ../scripts/deploy-3p.sh beta oktank
 ```
 
-In the 3rd party repo, what's needed here is somewhat dependent on the layout of the 
-project, and if there is more than one resource in the namespace. These are the files 
+In the 3rd party repo, what's needed here is somewhat dependent on the layout of the
+project, and if there is more than one resource in the namespace. These are the files
 that will typically need to be added, beyond what the cfn cli generates for you.
 
 ```
@@ -183,12 +185,12 @@ Copy-pasting templates is not ideal, but they are full of extension-specific stu
 that is not easily abstracted without use of something like CDK, which we are not using
 here on purpose, in order to dogfood CloudFormation tools as much as possible.
 
-These templates are deployed to the same accounts as `AwsCommunity`. This is required 
+These templates are deployed to the same accounts as `AwsCommunity`. This is required
 since we need these all to be published by us from a single account.
 
 ## Publishing a release (this is done by AWS staff)
 
-For now, when we do a release, all resources are published. In the future we will look at 
+For now, when we do a release, all resources are published. In the future we will look at
 publishing only those resources that have changed.
 
 Go to the GitHub repo, `Code` -> `Releases` -> `Draft a new release`.
@@ -200,8 +202,3 @@ Add release notes that cover any changes made since the last release.
 `Publish release`
 
 Run the `release/release.sh` script to copy the zip from GitHub to the beta pipeline bucket.
-
-
-
-
-
