@@ -1,0 +1,49 @@
+{
+    "typeName": "AwsCommunity::Lambda::Invoker",
+    "description": "This hook offloads compliance checks to Lambda functions that you create and control separately from the hook. It reads a list of Lambda function Arns from a DynamoDB table that you create, and calls them one by one. If any of them fail, the hook invocation fails.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/hooks/Lambda_Invoker",
+    "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/hooks/Lambda_Invoker",
+    "typeConfiguration": {
+        "properties": {
+            "RegistrationTableArn": {
+                "description": "Arn for the DynamoDB table that will hold the list of Lambda functions to invoke. The table must have a partition key called 'pk', and sort key called 'sk'. Entries should have a single additional attribute called 'lambda_arn'. You must create the table as a prerequisite to installing this hook.",
+                "type": "string"
+            }
+        },
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::*::*"
+            ],
+            "permissions": [
+                "lambda:InvokeFunction", 
+                "dynamodb:GetItem", 
+                "dynamodb:Query"
+            ]
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::*::*"
+            ],
+            "permissions": [
+                "lambda:InvokeFunction", 
+                "dynamodb:GetItem", 
+                "dynamodb:Query"
+            ]
+        },
+        "preDelete": {
+            "targetNames": [
+                "AWS::*::*"
+            ],
+            "permissions": [
+                "lambda:InvokeFunction", 
+                "dynamodb:GetItem", 
+                "dynamodb:Query"
+            ]
+        }
+    },
+    "additionalProperties": false
+}

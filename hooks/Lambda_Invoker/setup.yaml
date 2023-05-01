@@ -1,0 +1,118 @@
+Parameters:
+  Env:
+    Type: String
+
+Resources:
+
+  RegistrationTable:
+    Type: AWS::DyanamoDB::Table
+    Metadata:
+      Comment: |
+        This table is created during the testing of the hook. It is also an example of the table 
+        that you need to create in order to configure the hook. The table holds a list of Lambda 
+        Arns that will be invoked in order by the hook before CREATE, UPDATE, and DELETE operations.
+    Properties:
+      TableName: !Sub "cep-hook-lambda-registration-${Env}-${AWS::Region}-${AWS:AccountId}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - 
+          AttributeName: "pk"
+          AttributeType: "S"
+        - 
+          AttributeName: "sk"
+          AttributeType: "S"
+        - 
+          AttributeName: "lambda_arn"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "pk"
+          KeyType: "HASH"
+        -
+          AttributeName: "sk"
+          KeyType: "RANGE"
+
+  ComplianceLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "cep-compliance-lambda-role-${Env}-${AWS::AccountId}"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+            - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+      Path: /
+
+  ComplianceLambda1:
+    Type: AWS::Lambda::Function
+    Metadata:
+      Comment: |
+        This is an example of a Lambda function that you will create and register in the RegistrationTable, 
+        so that it can be invoked by the hook to check the compliance of resources before they are deployed.
+    Properties:
+      Runtime: python3.9
+      Role: !GetAtt ComplianceLambdaRole.Arn
+      Handler: index.handler
+      Code:
+        ZipFile: |
+          import boto3
+          def handler:
+            print('ComplianceLambda1 was invoked')
+    
+  RegistrationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Sub: lambda-role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+            - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        -
+          PolicyName: lambdaexec
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: "*"
+              - Action:
+                  - dynamodb:PutItem
+                Effect: Allow
+                Resource: !GetAtt RegistrationTable.Arn
+      Path: /
+
+  RegistrationLambda:
+    Type: AWS::Lambda::Function
+    Metadata:
+      Comment: |
+        This Lambda will be called by a custom resource when this template is deployed, in order to 
+        put the name of ComplianceLambda1 into RegistrationTable. Ideally you would use AwsCommunity::DynamoDB::Item
+        to do this, but since we also publish that resource in the same pipeline, we can't use it here.
+    Properties:
+      Runtime: python3.9
+      Code: !Rain::S3 
+        Path: registration 
+        Zip: true
+        BucketProperty: S3Bucket
+        KeyProperty: S3Key
+      Role: !GetAtt RegistrationLambdaRole.Arn
+      Handler: registration.handler
+
+
+
