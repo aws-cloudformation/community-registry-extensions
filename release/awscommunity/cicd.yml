@@ -388,13 +388,18 @@ Resources:
               - iam:ListPolicyTags
               - iam:ListPolicyVersions
               - iam:ListRolePolicies
-              - iam:ListRoles
               - iam:ListRoleTags
+              - iam:ListRoles
               - iam:TagRole
               - iam:UntagRole
               - iam:UpdateRole
               - iam:UpdateRoleDescription
             Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/awscommunity-resource-lookup-setup'
+          - Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+              - iam:DetachRolePolicy
+            Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/integ-awscommunity-resource-loo*'
           - Effect: Allow
             Action:
               - ec2:AssociateVpcCidrBlock
@@ -407,7 +412,7 @@ Resources:
               - ec2:DisassociateVpcCidrBlock
               - ec2:ModifyVpcAttribute
               - ec2:ModifyVpcTenancy
-            Resource: !Sub "arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*"
+            Resource: "*"
         Version: '2012-10-17'
       PolicyName: resource-lookup-build-project-policy
       Roles:
