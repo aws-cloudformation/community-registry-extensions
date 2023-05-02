@@ -8,6 +8,8 @@ phases:
       - echo Entered the install phase...
       - echo About to build $RESOURCE_PATH
       - export PATH="/usr/local/bin:$PATH"
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-typescript-plugin.git@master
       - /usr/local/bin/dockerd-entrypoint.sh
       - cat /var/log/docker.log
       - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
