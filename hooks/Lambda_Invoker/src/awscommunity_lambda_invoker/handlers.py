@@ -46,6 +46,8 @@ def pre_create_handler(
 
             # TODO
 
+            LOG.debug("About to query DDB for all Lambda Arns")
+            Log.debug(f"DDB Arn: {type_configuration.RegistrationTableArn}")
             # Query the DDB table for all Lambda Arns
 
             # Invoke each Lambda Arn and send in the resource properties

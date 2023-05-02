@@ -8,12 +8,12 @@ helper = CfnResource()
 @helper.update
 def create_reg(event, _):
     "Create the registration entry in the table"
-    pass #TODO
+    print("create_reg called")
 
 @helper.delete
 def delete_reg(_, __):
     "Delete the registration entry from the table"
-    pass
+    print("delete_reg called")
 
 def handler(event, context):
     "Handle the invocation from the CloudFormation custom resource"

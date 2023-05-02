@@ -30,9 +30,11 @@ Resources:
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Effect: Deny
+              - Effect: Allow
                 Action:
-                - "*"
+                - "dynamodb:GetItem"
+                - "dynamodb:Query"
+                - "lambda:InvokeFunction"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
