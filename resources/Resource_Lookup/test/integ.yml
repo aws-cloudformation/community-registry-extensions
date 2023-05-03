@@ -54,6 +54,7 @@ Resources:
         - ResourceModelEmpty
         - !Ref 'AWS::NoValue'
         - !Ref 'ResourceModel'
+      RoleName: !Sub 'awscommunity-resource-lookup-integ-${Env}-${AWS::Region}'
       Tags:
         AppName: TestOnlyApp
         Env: !Ref 'Env'
