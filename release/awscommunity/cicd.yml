@@ -399,7 +399,7 @@ Resources:
             Action:
               - iam:AttachRolePolicy
               - iam:DetachRolePolicy
-            Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/integ-awscommunity-resource-loo*'
+            Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*-awscommunity-resource-loo*'
           - Effect: Allow
             Action:
               - ec2:AssociateVpcCidrBlock
