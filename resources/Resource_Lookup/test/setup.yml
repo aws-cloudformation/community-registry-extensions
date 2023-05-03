@@ -7,10 +7,11 @@ Parameters:
     Description: Name of the environment you plan to use.
     Type: String
     AllowedValues:
-      - Alpha
-      - Beta
-      - Prod
-    Default: Alpha
+      - dev
+      - alpha
+      - beta
+      - prod
+    Default: alpha
 
 Resources:
   ResourceLookupRole:
@@ -47,7 +48,7 @@ Resources:
         - Key: Env
           Value: !Ref 'Env'
         - Key: Owner
-          Value: contract-test-only-test-team-alpha
+          Value: !Sub 'contract-test-only-test-team-${Env}'
 
 Outputs:
   ResourceLookupRoleArn:
