@@ -7,11 +7,11 @@ Parameters:
     Description: Name of the environment you plan to use.
     Type: String
     AllowedValues:
-      - Alpha
-      - Beta
       - dev
+      - alpha
+      - beta
       - prod
-    Default: Beta
+    Default: beta
 
   JmesPathQuery:
     Description: Specify the query, in JMESPath format, that you wish to run to filter results.
@@ -73,6 +73,7 @@ Resources:
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/ReadOnlyAccess'
       Path: /
+      RoleName: !Sub 'awscommunity-resource-lookup-integ-${Env}-${AWS::Region}'
       Tags:
         - Key: Name
           Value: AwsCommunityResourceLookup-LookupRole
@@ -95,7 +96,7 @@ Resources:
         - Key: Env
           Value: !Ref 'Env'
         - Key: Owner
-          Value: contract-test-only-test-team-beta
+          Value: !Sub 'contract-test-only-test-team-${Env}'
 
 Outputs:
   ResourceIdentifier:

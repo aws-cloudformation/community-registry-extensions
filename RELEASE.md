@@ -120,7 +120,7 @@ folder and update the environment variables in the shell scripts you will be
 using.  To set up the sandbox pipelines you would update the
 `deploy-sandbox-pipeline.sh` file.
 
-Change to the `releases` directory and run
+Change to the `release` directory and run
 
 1. `../local/deploy-sandbox-pipeline.sh`
 

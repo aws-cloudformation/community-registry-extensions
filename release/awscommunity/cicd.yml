@@ -394,12 +394,7 @@ Resources:
               - iam:UntagRole
               - iam:UpdateRole
               - iam:UpdateRoleDescription
-            Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/awscommunity-resource-lookup-setup'
-          - Effect: Allow
-            Action:
-              - iam:AttachRolePolicy
-              - iam:DetachRolePolicy
-            Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/integ-awscommunity-resource-loo*'
+            Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/awscommunity-resource-lookup-*-*-*'
           - Effect: Allow
             Action:
               - ec2:AssociateVpcCidrBlock
