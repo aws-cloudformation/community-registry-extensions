@@ -1,18 +1,20 @@
 Parameters:
+
   Env:
     Type: String
 
 Resources:
 
   RegistrationTable:
-    Type: AWS::DyanamoDB::Table
+    Type: AWS::DynamoDB::Table
     Metadata:
       Comment: |
-        This table is created during the testing of the hook. It is also an example of the table 
-        that you need to create in order to configure the hook. The table holds a list of Lambda 
-        Arns that will be invoked in order by the hook before CREATE, UPDATE, and DELETE operations.
+        This table is created during the testing of the hook. It is also an
+        example of the table that you need to create in order to configure the
+        hook. The table holds a list of Lambda Arns that will be invoked in
+        order by the hook before CREATE, UPDATE, and DELETE operations.
     Properties:
-      TableName: !Sub "cep-hook-lambda-registration-${Env}-${AWS::Region}-${AWS:AccountId}"
+      TableName: !Sub "cep-lambda-invoker-reg-${Env}-${AWS::Region}-${AWS::AccountId}"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - 
@@ -20,9 +22,6 @@ Resources:
           AttributeType: "S"
         - 
           AttributeName: "sk"
-          AttributeType: "S"
-        - 
-          AttributeName: "lambda_arn"
           AttributeType: "S"
       KeySchema:
         -
@@ -35,7 +34,7 @@ Resources:
   ComplianceLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "cep-compliance-lambda-role-${Env}-${AWS::AccountId}"
+      RoleName: !Sub "cep-lambda-invoker-setup-compl-lambda-role-${Env}-${AWS::Region}"
       AssumeRolePolicyDocument:
         Statement:
           - Action:
@@ -53,23 +52,25 @@ Resources:
     Type: AWS::Lambda::Function
     Metadata:
       Comment: |
-        This is an example of a Lambda function that you will create and register in the RegistrationTable, 
-        so that it can be invoked by the hook to check the compliance of resources before they are deployed.
+        This is an example of a Lambda function that you will create and
+        register in the RegistrationTable, so that it can be invoked by the
+        hook to check the compliance of resources before they are deployed.
     Properties:
+      FunctionName: !Sub "cep-lambda-invoker-compl-${Env}-${AWS::Region}-${AWS::AccountId}"
       Runtime: python3.9
       Role: !GetAtt ComplianceLambdaRole.Arn
       Handler: index.handler
       Code:
         ZipFile: |
           import boto3
-          def handler:
+          def handler(event):
             print('ComplianceLambda1 was invoked')
+            print(event)
     
   RegistrationLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName:
-        Fn::Sub: lambda-role
+      RoleName: !Sub "cep-lambda-invoker-setup-reg-lambda-role-${Env}-${AWS::Region}"
       AssumeRolePolicyDocument:
         Statement:
           - Action:
@@ -101,10 +102,17 @@ Resources:
     Type: AWS::Lambda::Function
     Metadata:
       Comment: |
-        This Lambda will be called by a custom resource when this template is deployed, in order to 
-        put the name of ComplianceLambda1 into RegistrationTable. Ideally you would use AwsCommunity::DynamoDB::Item
-        to do this, but since we also publish that resource in the same pipeline, we can't use it here.
+        This Lambda will be called by a custom resource when this template is
+        deployed, in order to put the name of ComplianceLambda1 into
+        RegistrationTable. Ideally you would use AwsCommunity::DynamoDB::Item
+        to do this, but since we also publish that resource in the same
+        pipeline, we can't use it here.
+      cfn-lint:
+        config:
+          ignore_checks:
+            - E3002
     Properties:
+      FunctionName: !Sub "cep-lambda-invoker-reg-${Env}-${AWS::Region}-${AWS::AccountId}"
       Runtime: python3.9
       Code: !Rain::S3 
         Path: registration 
@@ -112,7 +120,17 @@ Resources:
         BucketProperty: S3Bucket
         KeyProperty: S3Key
       Role: !GetAtt RegistrationLambdaRole.Arn
-      Handler: registration.handler
+      Handler: handler.handler
 
+  RegistrationCustom:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt RegistrationLambda.Arn
 
+Outputs:
+
+  RegistrationTable:
+    Export:
+      Name: CepLambdaInvokerRegistrationTable
+    Value: !Ref RegistrationTable
 

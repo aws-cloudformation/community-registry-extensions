@@ -127,3 +127,6 @@ dmypy.json
 sam-tests/
 
 rpdk.log*
+awscommunity-lambda-invoker.zip
+local/
+

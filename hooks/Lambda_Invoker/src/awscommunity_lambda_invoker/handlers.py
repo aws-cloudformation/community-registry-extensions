@@ -13,10 +13,7 @@ from cloudformation_cli_python_lib import (
 
 from .models import HookHandlerRequest, TypeConfigurationModel
 
-# Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
-
-# Set the logging level
 LOG.setLevel(logging.DEBUG)
 
 TYPE_NAME = "AwsCommunity::Lambda::Invoker"
@@ -47,10 +44,12 @@ def pre_create_handler(
             # TODO
 
             LOG.debug("About to query DDB for all Lambda Arns")
-            Log.debug(f"DDB Arn: {type_configuration.RegistrationTableArn}")
+            LOG.debug(f"DDB Arn: {type_configuration.RegistrationTableArn}")
             # Query the DDB table for all Lambda Arns
 
             # Invoke each Lambda Arn and send in the resource properties
+            target_json = json.dumps(dict(target_model))
+            LOG.debug(target_json)
             
             # Store each failure message
             

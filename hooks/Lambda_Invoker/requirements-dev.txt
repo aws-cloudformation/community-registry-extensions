@@ -1,0 +1,5 @@
+cloudformation-cli
+cloudformation-cli-python-plugin
+pylint
+black
+
