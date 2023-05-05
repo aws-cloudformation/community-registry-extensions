@@ -32,12 +32,10 @@ phases:
       - aws cloudformation set-type-configuration --configuration file://test/configuration.json --type-arn $HOOK_TYPE_ARN
       - INTEG_SUCCEED_STACK_NAME="integ-succeed-$(echo $ENTRY_PATH | sed s/_/-/g)"
       - INTEG_FAIL_STACK_NAME="integ-fail-$(echo $ENTRY_PATH | sed s/_/-/g)"
-      - aws cloudformation create-stack --stack-name $INTEG_SUCCEED_STACK_NAME --template-body file://test/integ-succeed.yml
-      - aws cloudformation wait stack-create-complete --stack-name $INTEG_SUCCEED_STACK_NAME
-      - aws cloudformation create-stack --stack-name $INTEG_FAIL_STACK_NAME --template-body file://test/integ-fail.yml
-      - aws cloudformation wait stack-create-complete --stack-name $INTEG_FAIL_STACK_NAME || [ $? -eq 255 ]
+      - rain deploy test/integ-succeed.yml $INTEG_SUCCEED_STACK_NAME -y
+      - rain deploy test/integ-fail.yml $INTEG_FAIL_STACK_NAME -y || [ $? -eq 1 ]
     finally:
       - cat rpdk.log
       - aws cloudformation set-type-configuration --configuration file://test/configuration-undo.json --type-arn $HOOK_TYPE_ARN
-      - aws cloudformation delete-stack --stack-name $INTEG_SUCCEED_STACK_NAME
-      - aws cloudformation delete-stack --stack-name $INTEG_FAIL_STACK_NAME
+      - rain rm $INTEG_SUCCEED_STACK_NAME -y
+      - rain rm $INTEG_FAIL_STACK_NAME -y
