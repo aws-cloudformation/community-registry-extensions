@@ -101,6 +101,19 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  KMSEncryptionSettingsBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   HookEC2SecurityGroupRestrictedSSHBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -685,6 +698,22 @@ Resources:
       Roles:
         - !Ref HookEC2SecurityGroupRestrictedSSHBuildProjectRole
 
+  KMSEncryptionSettingsBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:DescribeImages
+              - ec2:DescribeInstances
+              - ec2:GetEbsEncryptionByDefault
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: kms-encryptionsettings-build-project-policy
+      Roles:
+        - !Ref KMSEncryptionSettingsBuildProjectRole
+
   S3BucketNotificationBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -1086,6 +1115,28 @@ Resources:
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
       TimeoutInMinutes: 480
 
+  KMSEncryptionSettingsBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-kms-encryptionsettings"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-hook"
+      ServiceRole: !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "hooks/${Env}-buildspec-java.yml"
+      TimeoutInMinutes: 480
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -1163,6 +1214,7 @@ Resources:
               - !GetAtt S3BucketModuleBuildProject.Arn
               - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
               - !GetAtt AlternateContactBuildProject.Arn
+              - !GetAtt KMSEncryptionSettingsBuildProject.Arn
           - Action:
               - kms:*
             Effect: Allow
@@ -1231,6 +1283,7 @@ Resources:
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
                 - !GetAtt S3BucketModuleBuildProjectRole.Arn
                 - !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
+                - !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -1562,6 +1615,25 @@ Resources:
                       "name": "HOOK_PATH",
                       "type": "PLAINTEXT",
                       "value": "hooks/S3_PublicAccessControlsRestricted"
+                    }
+                  ]
+              RunOrder: 3
+            - Name: KMSEncryptionSettings
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref KMSEncryptionSettingsBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/KMS_EncryptionSettings"
                     }
                   ]
               RunOrder: 3

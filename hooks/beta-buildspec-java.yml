@@ -1,0 +1,43 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+      java: corretto8
+    commands:
+      - echo Entered the install phase...
+      - echo About to build $HOOK_PATH
+      - export PATH="/usr/local/bin:$PATH"
+      - /usr/local/bin/dockerd-entrypoint.sh
+      - cat /var/log/docker.log
+      - ENTRY_PATH=$(python scripts/entry.py $HOOK_PATH/.rpdk-config)
+      - RESOURCE_NAME=$(cat $HOOK_PATH/.rpdk-config | jq -r '.typeName')
+      - echo ENTRY_PATH is $ENTRY_PATH
+      - cd $HOOK_PATH
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-java-plugin.git@master
+      - pip install cfn_guard_rs_hook
+      - cfn --version
+      - sam --version
+  build:
+    commands:
+      - echo Entered the build phase...
+      - cfn validate
+      - cfn generate
+      - mvn clean verify javadoc:javadoc
+      - cfn submit --set-default
+      - HOOK_TYPE_ARN=$(aws cloudformation list-types --visibility PRIVATE --type HOOK --filters TypeNamePrefix=$RESOURCE_NAME --output json | jq -r '.TypeSummaries[0].TypeArn')
+      - aws cloudformation set-type-configuration --configuration file://test/configuration.json --type-arn $HOOK_TYPE_ARN
+      - INTEG_SUCCEED_STACK_NAME="integ-succeed-$(echo $ENTRY_PATH | sed s/_/-/g)"
+      - INTEG_FAIL_STACK_NAME="integ-fail-$(echo $ENTRY_PATH | sed s/_/-/g)"
+      - aws cloudformation create-stack --stack-name $INTEG_SUCCEED_STACK_NAME --template-body file://test/integ-succeed.yml
+      - aws cloudformation wait stack-create-complete --stack-name $INTEG_SUCCEED_STACK_NAME
+      - aws cloudformation create-stack --stack-name $INTEG_FAIL_STACK_NAME --template-body file://test/integ-fail.yml
+      - aws cloudformation wait stack-create-complete --stack-name $INTEG_FAIL_STACK_NAME || [ $? -eq 255 ]
+    finally:
+      - cat rpdk.log
+      - aws cloudformation set-type-configuration --configuration file://test/configuration-undo.json --type-arn $HOOK_TYPE_ARN
+      - aws cloudformation delete-stack --stack-name $INTEG_SUCCEED_STACK_NAME
+      - aws cloudformation delete-stack --stack-name $INTEG_FAIL_STACK_NAME

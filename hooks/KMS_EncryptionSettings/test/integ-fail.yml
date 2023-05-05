@@ -34,9 +34,11 @@ Parameters:
     Description: Value for the Env tag.
     Type: String
     AllowedValues:
-      - Alpha
-      - Beta
-    Default: Beta
+      - dev
+      - alpha
+      - beta
+      - prod
+    Default: beta
 
   TagName:
     Description: 'Value for the Name tag; minimum length: 0, maximum: 100.'
@@ -52,12 +54,10 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: /dev/sdm
           Ebs:
-            Encrypted: true
             VolumeSize: 1
             VolumeType: gp3
         - DeviceName: /dev/sdk
           Ebs:
-            Encrypted: true
             VolumeSize: 1
             VolumeType: gp3
       ImageId: !Ref 'LatestAmiId'
@@ -70,7 +70,6 @@ Resources:
         - IncludeManagementEvents: true
           ReadWriteType: All
       IsLogging: false
-      KMSKeyId: !Ref 'CloudTrailTrailKmsKey'
       S3BucketName: !Ref 'CloudTrailTrailS3Bucket'
       Tags:
         - Key: Name
@@ -81,198 +80,9 @@ Resources:
           Value: !Ref 'TagEnv'
       TrailName: !Sub '${AWS::Partition}-${AWS::AccountId}-${AWS::Region}-test-only-trail'
 
-  CloudTrailTrailEmptyIntegS3PrefixCleanupCustomResource:
-    Type: Custom::CloudTrailTrailEmptyIntegS3PrefixCleanup
-    Properties:
-      AccountId: !Ref 'AWS::AccountId'
-      BucketName: !Ref 'CloudTrailTrailS3Bucket'
-      ServiceToken: !GetAtt CloudTrailTrailEmptyIntegS3PrefixCleanupLambdaFunction.Arn
-
-  CloudTrailTrailEmptyIntegS3PrefixCleanupLambdaFunction:
-    Type: AWS::Lambda::Function
-    DependsOn: CloudTrailTrailEmptyIntegS3PrefixCleanupLogsLogGroup
-    Properties:
-      Code:
-        ZipFile: |
-          """Deletes the `AWSLogs/YOUR_ACCOUNT_ID/CloudTrail/` empty prefix
-          from the specified S3 bucket.
-          """
-          import boto3
-          import cfnresponse
-          import logging
-          LOGGER = logging.getLogger("CloudTrailTrailEmptyIntegS3PrefixCleanup")
-          LOGGER.setLevel(logging.INFO)
-          S3_CLIENT = boto3.client("s3")
-          def lambda_handler(event, context):
-              """Handler function."""
-              try:
-                  if event["RequestType"] == "Delete":
-                      account_id = event["ResourceProperties"]["AccountId"]
-                      bucket_name = event["ResourceProperties"]["BucketName"]
-                      LOGGER.info(f"bucket_name: {bucket_name}")
-                      response = S3_CLIENT.list_objects_v2(
-                          Bucket=bucket_name,
-                          Prefix=f"AWSLogs/{account_id}/CloudTrail/",
-                          MaxKeys=2,
-                      )
-                      if response["KeyCount"] > 1:
-                          LOGGER.error("Cannot continue, the prefix contains objects.")
-                          cfnresponse.send(event, context, cfnresponse.FAILED, {}, "")
-                          return False
-                      S3_CLIENT.delete_object(
-                          Bucket=bucket_name,
-                          Key=f"AWSLogs/{account_id}/CloudTrail/",
-                      )
-                      S3_CLIENT.delete_object(
-                          Bucket=bucket_name,
-                          Key=f"AWSLogs/{account_id}/",
-                      )
-                      S3_CLIENT.delete_object(
-                          Bucket=bucket_name,
-                          Key="AWSLogs/",
-                      )
-                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, "")
-                  return True
-              except Exception as e:
-                  LOGGER.error(e)
-                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, "")
-                  return False
-      Description: Deletes the `AWSLogs/YOUR_ACCOUNT_ID/CloudTrail/` empty prefix from the specified S3 bucket.
-      FunctionName: CloudTrailTrailEmptyIntegS3PrefixCleanup
-      Handler: index.lambda_handler
-      MemorySize: 256
-      Role: !GetAtt CloudTrailTrailEmptyIntegS3PrefixCleanupLambdaFunctionExecutionRole.Arn
-      Runtime: python3.9
-      Tags:
-        - Key: Name
-          Value: !Ref 'TagName'
-        - Key: AppName
-          Value: !Ref 'TagAppName'
-        - Key: Env
-          Value: !Ref 'TagEnv'
-      Timeout: 30
-
-  CloudTrailTrailEmptyIntegS3PrefixCleanupLambdaFunctionExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action:
-              - sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-        Version: "2012-10-17"
-      Path: /
-      Policies:
-        - PolicyDocument:
-            Statement:
-              - Action:
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Effect: Allow
-                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/CloudTrailTrailEmptyIntegS3PrefixCleanup*'
-              - Action:
-                  - s3:ListBucket
-                Condition:
-                  StringLike:
-                    s3:prefix:
-                      - !Sub 'AWSLogs/${AWS::AccountId}/CloudTrail/*'
-                Effect: Allow
-                Resource:
-                  - !GetAtt CloudTrailTrailS3Bucket.Arn
-              - Action:
-                  - s3:DeleteObject
-                Effect: Allow
-                Resource:
-                  - !Sub '${CloudTrailTrailS3Bucket.Arn}/AWSLogs/${AWS::AccountId}/CloudTrail/'
-                  - !Sub '${CloudTrailTrailS3Bucket.Arn}/AWSLogs/${AWS::AccountId}/'
-                  - !Sub '${CloudTrailTrailS3Bucket.Arn}/AWSLogs/'
-            Version: "2012-10-17"
-          PolicyName: CloudTrailTrailEmptyIntegS3PrefixCleanupLambdaFunctionExecutionRole
-      Tags:
-        - Key: Name
-          Value: !Ref 'TagName'
-        - Key: AppName
-          Value: !Ref 'TagAppName'
-        - Key: Env
-          Value: !Ref 'TagEnv'
-
-  CloudTrailTrailEmptyIntegS3PrefixCleanupLogsLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      KmsKeyId: !GetAtt LogsLogGroupKmsKey.Arn
-      LogGroupName: /aws/lambda/CloudTrailTrailEmptyIntegS3PrefixCleanup
-      RetentionInDays: 365
-      Tags:
-        - Key: Name
-          Value: !Ref 'TagName'
-        - Key: AppName
-          Value: !Ref 'TagAppName'
-        - Key: Env
-          Value: !Ref 'TagEnv'
-
-  CloudTrailTrailKmsKey:
-    Type: AWS::KMS::Key
-    Properties:
-      EnableKeyRotation: true
-      KeyPolicy:
-        Id: key-default-1
-        Statement:
-          - Action: kms:*
-            Effect: Allow
-            Principal:
-              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
-            Resource: '*'
-            Sid: Enable IAM User Permissions
-          - Action: kms:GenerateDataKey*
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AWS::Partition}-${AWS::AccountId}-${AWS::Region}-test-only-trail'
-              StringLike:
-                kms:EncryptionContext:aws:cloudtrail:arn: !Sub 'arn:${AWS::Partition}:cloudtrail:*:${AWS::AccountId}:trail/*'
-            Effect: Allow
-            Principal:
-              Service: cloudtrail.amazonaws.com
-            Resource: '*'
-            Sid: Allow CloudTrail to encrypt logs
-          - Action: kms:DescribeKey
-            Effect: Allow
-            Principal:
-              Service: cloudtrail.amazonaws.com
-            Resource: '*'
-            Sid: Allow CloudTrail to describe key
-          - Action:
-              - kms:Decrypt
-              - kms:ReEncryptFrom
-            Condition:
-              StringEquals:
-                kms:CallerAccount: !Ref 'AWS::AccountId'
-              StringLike:
-                kms:EncryptionContext:aws:cloudtrail:arn: !Sub 'arn:${AWS::Partition}:cloudtrail:*:${AWS::AccountId}:trail/*'
-            Effect: Allow
-            Principal:
-              AWS: '*'
-            Resource: '*'
-            Sid: Allow principals in the account to decrypt log files
-        Version: "2012-10-17"
-      PendingWindowInDays: 7
-      Tags:
-        - Key: Name
-          Value: !Ref 'TagName'
-        - Key: AppName
-          Value: !Ref 'TagAppName'
-        - Key: Env
-          Value: !Ref 'TagEnv'
-
   CloudTrailTrailS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: aws:kms
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -332,9 +142,6 @@ Resources:
               Value: !Ref 'TagAppName'
             - Key: Env
               Value: !Ref 'TagEnv'
-      SSESpecification:
-        SSEEnabled: true
-        SSEType: KMS
 
   DynamoDbTable:
     Type: AWS::DynamoDB::Table
@@ -352,9 +159,6 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
-      SSESpecification:
-        SSEEnabled: true
-        SSEType: KMS
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -369,12 +173,10 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: /dev/sdm
           Ebs:
-            Encrypted: true
             VolumeSize: 1
             VolumeType: gp3
         - DeviceName: /dev/sdk
           Ebs:
-            Encrypted: true
             VolumeSize: 1
             VolumeType: gp3
       ImageId: !Ref 'LatestAmiId'
@@ -395,12 +197,10 @@ Resources:
         BlockDeviceMappings:
           - DeviceName: /dev/sdm
             Ebs:
-              Encrypted: true
               VolumeSize: 1
               VolumeType: gp3
           - DeviceName: /dev/sdk
             Ebs:
-              Encrypted: true
               VolumeSize: 1
               VolumeType: gp3
         ImageId: !Ref 'LatestAmiId'
@@ -419,7 +219,6 @@ Resources:
     Type: AWS::EC2::Volume
     Properties:
       AvailabilityZone: !Sub '${AWS::Region}a'
-      Encrypted: true
       Size: 1
       Tags:
         - Key: Name
@@ -432,7 +231,6 @@ Resources:
   EfsFileSystem:
     Type: AWS::EFS::FileSystem
     Properties:
-      Encrypted: true
       FileSystemTags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -445,9 +243,6 @@ Resources:
     Type: AWS::Kinesis::Stream
     Properties:
       ShardCount: 1
-      StreamEncryption:
-        EncryptionType: KMS
-        KeyId: alias/aws/kinesis
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -459,44 +254,7 @@ Resources:
   LogsLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      KmsKeyId: !GetAtt LogsLogGroupKmsKey.Arn
       RetentionInDays: 365
-      Tags:
-        - Key: Name
-          Value: !Ref 'TagName'
-        - Key: AppName
-          Value: !Ref 'TagAppName'
-        - Key: Env
-          Value: !Ref 'TagEnv'
-
-  LogsLogGroupKmsKey:
-    Type: AWS::KMS::Key
-    Properties:
-      EnableKeyRotation: true
-      KeyPolicy:
-        Id: key-default-1
-        Statement:
-          - Action: kms:*
-            Effect: Allow
-            Principal:
-              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
-            Resource: '*'
-            Sid: Enable IAM User Permissions
-          - Action:
-              - kms:Decrypt*
-              - kms:Describe*
-              - kms:Encrypt*
-              - kms:GenerateDataKey*
-              - kms:ReEncrypt*
-            Condition:
-              ArnLike:
-                kms:EncryptionContext:aws:logs:arn: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*'
-            Effect: Allow
-            Principal:
-              Service: !Sub 'logs.${AWS::Region}.amazonaws.com'
-            Resource: '*'
-        Version: "2012-10-17"
-      PendingWindowInDays: 7
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -509,10 +267,9 @@ Resources:
     DeletionPolicy: Delete
     Type: AWS::RDS::DBCluster
     Properties:
-      Engine: aurora
+      Engine: aurora-mysql
       MasterUserPassword: !Sub '{{resolve:secretsmanager:${RdsDbClusterSecretsManagerSecret}::password}}'
       MasterUsername: !Sub '{{resolve:secretsmanager:${RdsDbClusterSecretsManagerSecret}::username}}'
-      StorageEncrypted: true
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -556,7 +313,6 @@ Resources:
       MasterUserPassword: !Sub '{{resolve:secretsmanager:${RdsDbInstanceSecretsManagerSecret}::password}}'
       MasterUsername: !Sub '{{resolve:secretsmanager:${RdsDbInstanceSecretsManagerSecret}::username}}'
       PubliclyAccessible: false
-      StorageEncrypted: true
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -592,8 +348,7 @@ Resources:
     DeletionPolicy: Delete
     Type: AWS::RDS::GlobalCluster
     Properties:
-      Engine: aurora
-      StorageEncrypted: true
+      Engine: aurora-mysql
 
   RedshiftCluster:
     Type: AWS::Redshift::Cluster
@@ -601,7 +356,6 @@ Resources:
       AutomatedSnapshotRetentionPeriod: 0
       ClusterType: single-node
       DBName: testdb
-      Encrypted: true
       MasterUserPassword: !Sub '{{resolve:secretsmanager:${RedshiftClusterSecretsManagerSecret}::password}}'
       MasterUsername: !Sub '{{resolve:secretsmanager:${RedshiftClusterSecretsManagerSecret}::username}}'
       NodeType: dc2.large
@@ -640,10 +394,6 @@ Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: aws:kms
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -655,7 +405,6 @@ Resources:
   SnsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      KmsMasterKeyId: alias/aws/sns
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -667,7 +416,6 @@ Resources:
   SqsQueue:
     Type: AWS::SQS::Queue
     Properties:
-      KmsMasterKeyId: alias/aws/sqs
       SqsManagedSseEnabled: false
       Tags:
         - Key: Name
