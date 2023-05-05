@@ -98,6 +98,11 @@ public class PreCreateHookHandlerTest extends PreCreatePreUpdateHookHandlerCommo
     }
 
     @Test
+    public void testWhenTypeConfigurationModelIsNullAllDefaultValuesAreSet() {
+        whenTypeConfigurationModelIsNullAllDefaultValuesAreSet(getProxy(), getLogger(), handler);
+    }
+
+    @Test
     public void testAwsAutoScalingLaunchConfigurationImageIdAndInstanceIdMissing() {
         awsAutoScalingLaunchConfigurationImageIdAndInstanceIdMissing(getProxy(), getLogger(), handler);
     }
