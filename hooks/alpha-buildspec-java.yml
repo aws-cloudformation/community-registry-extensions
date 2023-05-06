@@ -9,18 +9,21 @@ phases:
       - echo Entered the install phase...
       - echo About to build $HOOK_PATH
       - export PATH="/usr/local/bin:$PATH"
+      - TYPE_NAME=$(python scripts/type_name.py $HOOK_PATH/.rpdk-config)
+      - TYPE_CLEAN_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr ‘[:upper:]’ ‘[:lower:]’)"
       - /usr/local/bin/dockerd-entrypoint.sh
       - cat /var/log/docker.log
-      - ENTRY_PATH=$(python scripts/entry.py $HOOK_PATH/.rpdk-config)
-      - echo ENTRY_PATH is $ENTRY_PATH
-      - cd $HOOK_PATH
+      - echo TYPE_CLEAN_NAME is $TYPE_CLEAN_NAME
+      - BUILD_FILE_NAME="${TYPE_CLEAN_NAME}.zip"
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
-      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-java-plugin.git@master
-      - pip install cfn_guard_rs_hook
+      - cd $HOOK_PATH
+      - ls /usr/local/bin
+      - pip freeze
       - cfn --version
+      - which sam
       - sam --version
-
+      - echo $PATH
   build:
     commands:
       - echo Entered the build phase...
@@ -37,3 +40,7 @@ phases:
     finally:
       - cat rpdk.log
       - if [ -f test/setup.yml ]; then rain rm $SETUP_STACK_NAME -y; fi
+artifacts:
+  files:
+    - $BUILD_FILE_NAME
+  name: extensions-build

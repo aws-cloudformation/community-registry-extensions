@@ -9,16 +9,14 @@ phases:
       - echo Entered the install phase...
       - echo About to build $HOOK_PATH
       - export PATH="/usr/local/bin:$PATH"
-      - /usr/local/bin/dockerd-entrypoint.sh
-      - cat /var/log/docker.log
-      - ENTRY_PATH=$(python scripts/entry.py $HOOK_PATH/.rpdk-config)
-      - RESOURCE_NAME=$(cat $HOOK_PATH/.rpdk-config | jq -r '.typeName')
-      - echo ENTRY_PATH is $ENTRY_PATH
-      - cd $HOOK_PATH
+      - TYPE_NAME=$(python scripts/type_name.py $HOOK_PATH/.rpdk-config)
+      - TYPE_CLEAN_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr ‘[:upper:]’ ‘[:lower:]’)"
+      - echo TYPE_CLEAN_NAME is $TYPE_CLEAN_NAME
+      - BUILD_FILE_NAME=$(cat TYPE_CLEAN_NAME | sed s/_/-/g)
+      - BUILD_FILE_NAME="${BUILD_FILE_NAME}.zip"
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
-      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-java-plugin.git@master
-      - pip install cfn_guard_rs_hook
+      - cd $HOOK_PATH
       - cfn --version
       - sam --version
   build:
@@ -30,8 +28,8 @@ phases:
       - cfn submit --set-default
       - HOOK_TYPE_ARN=$(aws cloudformation list-types --visibility PRIVATE --type HOOK --filters TypeNamePrefix=$RESOURCE_NAME --output json | jq -r '.TypeSummaries[0].TypeArn')
       - aws cloudformation set-type-configuration --configuration file://test/configuration.json --type-arn $HOOK_TYPE_ARN
-      - INTEG_SUCCEED_STACK_NAME="integ-succeed-$(echo $ENTRY_PATH | sed s/_/-/g)"
-      - INTEG_FAIL_STACK_NAME="integ-fail-$(echo $ENTRY_PATH | sed s/_/-/g)"
+      - INTEG_SUCCEED_STACK_NAME="integ-succeed-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
+      - INTEG_FAIL_STACK_NAME="integ-fail-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
       - rain deploy test/integ-succeed.yml $INTEG_SUCCEED_STACK_NAME -y
       - rain deploy test/integ-fail.yml $INTEG_FAIL_STACK_NAME -y || [ $? -eq 1 ]
     finally:
@@ -39,3 +37,7 @@ phases:
       - aws cloudformation set-type-configuration --configuration file://test/configuration-undo.json --type-arn $HOOK_TYPE_ARN
       - rain rm $INTEG_SUCCEED_STACK_NAME -y
       - rain rm $INTEG_FAIL_STACK_NAME -y
+artifacts:
+  files:
+    - $BUILD_FILE_NAME
+  name: extensions-build
