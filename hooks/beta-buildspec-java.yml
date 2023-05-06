@@ -26,7 +26,7 @@ phases:
       - cfn generate
       - mvn clean verify javadoc:javadoc
       - cfn submit --set-default
-      - HOOK_TYPE_ARN=$(aws cloudformation list-types --visibility PRIVATE --type HOOK --filters TypeNamePrefix=$RESOURCE_NAME --output json | jq -r '.TypeSummaries[0].TypeArn')
+      - HOOK_TYPE_ARN=$(aws cloudformation list-types --visibility PRIVATE --type HOOK --filters TypeNamePrefix=$TYPE_NAME --output json | jq -r '.TypeSummaries[0].TypeArn')
       - aws cloudformation set-type-configuration --configuration file://test/configuration.json --type-arn $HOOK_TYPE_ARN
       - INTEG_SUCCEED_STACK_NAME="integ-succeed-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
       - INTEG_FAIL_STACK_NAME="integ-fail-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
