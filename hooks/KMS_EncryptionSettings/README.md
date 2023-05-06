@@ -234,7 +234,7 @@ Notes:
 - example templates shown next:
     - assume this hook is configured with the default [Configuration options](#Configuration-options) values;
     - might include additional resource types on which a target resource would depend on, and that are added here to show additional context;
-- there are also templates called `integ-succeed.yml` and `integ-fail.yml` in the `test` directory, that can be used to create a stack for testing: resources described in that template are expected to be created successfully or not, respectively.
+- there are also templates called `integ-succeed.yml` and `integ-fail.yml` in the `test` directory, that can be used to create a stack for testing: resources described in these templates are expected to be created either successfully or not, respectively.
 
 ### AWS::AutoScaling::LaunchConfiguration
 Non-compliant (`Encrypted` in `BlockDeviceMappings` is set to `false`):
