@@ -78,7 +78,7 @@ Resources:
           Value: !Ref 'TagAppName'
         - Key: Env
           Value: !Ref 'TagEnv'
-      TrailName: !Sub '${AWS::Partition}-${AWS::AccountId}-${AWS::Region}-test-only-trail'
+      TrailName: !Sub 'Trail-integ-fail-awscommunity-kms-encryptionsettings-${AWS::Region}'
 
   CloudTrailTrailS3Bucket:
     Type: AWS::S3::Bucket
@@ -100,7 +100,7 @@ Resources:
           - Action: s3:GetBucketAcl
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AWS::Partition}-${AWS::AccountId}-${AWS::Region}-test-only-trail'
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/Trail-integ-fail-awscommunity-kms-encryptionsettings-${AWS::Region}'
             Effect: Allow
             Principal:
               Service: cloudtrail.amazonaws.com
@@ -109,7 +109,7 @@ Resources:
           - Action: s3:PutObject
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AWS::Partition}-${AWS::AccountId}-${AWS::Region}-test-only-trail'
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/Trail-integ-fail-awscommunity-kms-encryptionsettings-${AWS::Region}'
                 s3:x-amz-acl: bucket-owner-full-control
             Effect: Allow
             Principal:
@@ -286,6 +286,7 @@ Resources:
         GenerateStringKey: password
         PasswordLength: 30
         SecretStringTemplate: '{"username": "admin"}'
+      Name: RdsDbClusterSecret-integ-fail-awscommunity-kms-encryptionsettings
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -329,6 +330,7 @@ Resources:
         GenerateStringKey: password
         PasswordLength: 30
         SecretStringTemplate: '{"username": "admin"}'
+      Name: RdsDbInstanceSecret-integ-fail-awscommunity-kms-encryptionsettings
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -376,6 +378,7 @@ Resources:
         GenerateStringKey: password
         PasswordLength: 64
         SecretStringTemplate: '{"username": "admin"}'
+      Name: RedshiftClusterSecret-integ-fail-awscommunity-kms-encryptionsettings
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
