@@ -1,0 +1,429 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: This AWS CloudFormation template describes sample AWS resources with the purpose of testing the AwsCommunity::KMS::EncryptionSettings hook in an integration environment.
+
+Parameters:
+  InstanceType:
+    Description: Amazon EC2 instance type to use.
+    Type: String
+    AllowedValues:
+      - t2.micro
+      - t2.small
+    Default: t2.micro
+
+  LatestAmiId:
+    Description: Region-specific image to use.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  LaunchConfigurationInstanceType:
+    Description: Amazon EC2 instance type to use for the LaunchConfiguration resource.
+    Type: String
+    AllowedValues:
+      - a1.large
+    Default: a1.large
+
+  TagAppName:
+    Description: 'Value for the AppName tag; minimum length: 0, maximum: 100.'
+    Type: String
+    Default: AwsCommunityKmsEncryptionSettingsInteg
+    MaxLength: 100
+    MinLength: 0
+
+  TagEnv:
+    Description: Value for the Env tag.
+    Type: String
+    AllowedValues:
+      - dev
+      - alpha
+      - beta
+      - prod
+    Default: beta
+
+  TagName:
+    Description: 'Value for the Name tag; minimum length: 0, maximum: 100.'
+    Type: String
+    Default: AwsCommunityKmsEncryptionSettingsIntegResource
+    MaxLength: 100
+    MinLength: 0
+
+Resources:
+  AutoScalingLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sdm
+          Ebs:
+            VolumeSize: 1
+            VolumeType: gp3
+        - DeviceName: /dev/sdk
+          Ebs:
+            VolumeSize: 1
+            VolumeType: gp3
+      ImageId: !Ref 'LatestAmiId'
+      InstanceType: !Ref 'LaunchConfigurationInstanceType'
+
+  CloudTrailTrail:
+    Type: AWS::CloudTrail::Trail
+    Properties:
+      EventSelectors:
+        - IncludeManagementEvents: true
+          ReadWriteType: All
+      IsLogging: false
+      S3BucketName: !Ref 'CloudTrailTrailS3Bucket'
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+      TrailName: !Sub 'Trail-integ-fail-awscommunity-kms-encryptionsettings-${AWS::Region}'
+
+  CloudTrailTrailS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  CloudTrailTrailS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref 'CloudTrailTrailS3Bucket'
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetBucketAcl
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/Trail-integ-fail-awscommunity-kms-encryptionsettings-${AWS::Region}'
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Resource: !GetAtt CloudTrailTrailS3Bucket.Arn
+            Sid: AWSCloudTrailAclCheck20150319
+          - Action: s3:PutObject
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/Trail-integ-fail-awscommunity-kms-encryptionsettings-${AWS::Region}'
+                s3:x-amz-acl: bucket-owner-full-control
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Resource: !Sub '${CloudTrailTrailS3Bucket.Arn}/AWSLogs/${AWS::AccountId}/*'
+            Sid: AWSCloudTrailWrite20150319
+        Version: "2012-10-17"
+
+  DynamoDbGlobalTable:
+    Type: AWS::DynamoDB::GlobalTable
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: Book
+          AttributeType: S
+        - AttributeName: Author
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: Book
+          KeyType: HASH
+        - AttributeName: Author
+          KeyType: RANGE
+      Replicas:
+        - Region: !Ref 'AWS::Region'
+          TableClass: STANDARD
+          Tags:
+            - Key: Name
+              Value: !Ref 'TagName'
+            - Key: AppName
+              Value: !Ref 'TagAppName'
+            - Key: Env
+              Value: !Ref 'TagEnv'
+
+  DynamoDbTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: Book
+          AttributeType: S
+        - AttributeName: Author
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Book
+          KeyType: HASH
+        - AttributeName: Author
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sdm
+          Ebs:
+            VolumeSize: 1
+            VolumeType: gp3
+        - DeviceName: /dev/sdk
+          Ebs:
+            VolumeSize: 1
+            VolumeType: gp3
+      ImageId: !Ref 'LatestAmiId'
+      InstanceType: !Ref 'InstanceType'
+      PropagateTagsToVolumeOnCreation: true
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  Ec2LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        BlockDeviceMappings:
+          - DeviceName: /dev/sdm
+            Ebs:
+              VolumeSize: 1
+              VolumeType: gp3
+          - DeviceName: /dev/sdk
+            Ebs:
+              VolumeSize: 1
+              VolumeType: gp3
+        ImageId: !Ref 'LatestAmiId'
+        InstanceType: !Ref 'InstanceType'
+      TagSpecifications:
+        - ResourceType: launch-template
+          Tags:
+            - Key: Name
+              Value: !Ref 'TagName'
+            - Key: AppName
+              Value: !Ref 'TagAppName'
+            - Key: Env
+              Value: !Ref 'TagEnv'
+
+  Ec2Volume:
+    Type: AWS::EC2::Volume
+    Properties:
+      AvailabilityZone: !Sub '${AWS::Region}a'
+      Size: 1
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  EfsFileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      FileSystemTags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  KinesisStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 1
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  LogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 365
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  RdsDbCluster:
+    DeletionPolicy: Delete
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-mysql
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${RdsDbClusterSecretsManagerSecret}::password}}'
+      MasterUsername: !Sub '{{resolve:secretsmanager:${RdsDbClusterSecretsManagerSecret}::username}}'
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  RdsDbClusterSecretsManagerSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      GenerateSecretString:
+        ExcludeCharacters: '"@/'
+        GenerateStringKey: password
+        PasswordLength: 30
+        SecretStringTemplate: '{"username": "admin"}'
+      Name: RdsDbClusterSecret-integ-fail-awscommunity-kms-encryptionsettings
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  RdsDbClusterSecretsManagerSecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref 'RdsDbClusterSecretsManagerSecret'
+      TargetId: !Ref 'RdsDbCluster'
+      TargetType: AWS::RDS::DBCluster
+
+  RdsDbInstance:
+    DeletionPolicy: Delete
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      BackupRetentionPeriod: 0
+      DBInstanceClass: db.t3.small
+      DBName: testdbinstance
+      Engine: MySQL
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${RdsDbInstanceSecretsManagerSecret}::password}}'
+      MasterUsername: !Sub '{{resolve:secretsmanager:${RdsDbInstanceSecretsManagerSecret}::username}}'
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  RdsDbInstanceSecretsManagerSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      GenerateSecretString:
+        ExcludeCharacters: '"@/'
+        GenerateStringKey: password
+        PasswordLength: 30
+        SecretStringTemplate: '{"username": "admin"}'
+      Name: RdsDbInstanceSecret-integ-fail-awscommunity-kms-encryptionsettings
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  RdsDbInstanceSecretsManagerSecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref 'RdsDbInstanceSecretsManagerSecret'
+      TargetId: !Ref 'RdsDbInstance'
+      TargetType: AWS::RDS::DBInstance
+
+  RdsGlobalCluster:
+    DeletionPolicy: Delete
+    Type: AWS::RDS::GlobalCluster
+    Properties:
+      Engine: aurora-mysql
+
+  RedshiftCluster:
+    Type: AWS::Redshift::Cluster
+    Properties:
+      AutomatedSnapshotRetentionPeriod: 0
+      ClusterType: single-node
+      DBName: testdb
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${RedshiftClusterSecretsManagerSecret}::password}}'
+      MasterUsername: !Sub '{{resolve:secretsmanager:${RedshiftClusterSecretsManagerSecret}::username}}'
+      NodeType: dc2.large
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  RedshiftClusterSecretsManagerSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      GenerateSecretString:
+        ExcludeCharacters: '"''@/\'
+        GenerateStringKey: password
+        PasswordLength: 64
+        SecretStringTemplate: '{"username": "admin"}'
+      Name: RedshiftClusterSecret-integ-fail-awscommunity-kms-encryptionsettings
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  RedshiftClusterSecretsManagerSecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref 'RedshiftClusterSecretsManagerSecret'
+      TargetId: !Ref 'RedshiftCluster'
+      TargetType: AWS::Redshift::Cluster
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  SnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'
+
+  SqsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      SqsManagedSseEnabled: false
+      Tags:
+        - Key: Name
+          Value: !Ref 'TagName'
+        - Key: AppName
+          Value: !Ref 'TagAppName'
+        - Key: Env
+          Value: !Ref 'TagEnv'

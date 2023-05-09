@@ -34,9 +34,11 @@ Parameters:
     Description: Value for the Env tag.
     Type: String
     AllowedValues:
-      - Alpha
-      - Beta
-    Default: Beta
+      - dev
+      - alpha
+      - beta
+      - prod
+    Default: beta
 
   TagName:
     Description: 'Value for the Name tag; minimum length: 0, maximum: 100.'
@@ -79,7 +81,7 @@ Resources:
           Value: !Ref 'TagAppName'
         - Key: Env
           Value: !Ref 'TagEnv'
-      TrailName: !Sub '${AWS::Partition}-${AWS::AccountId}-${AWS::Region}-test-only-trail'
+      TrailName: !Sub 'Trail-integ-succeed-awscommunity-kms-encryptionsettings-${AWS::Region}'
 
   CloudTrailTrailEmptyIntegS3PrefixCleanupCustomResource:
     Type: Custom::CloudTrailTrailEmptyIntegS3PrefixCleanup
@@ -191,6 +193,7 @@ Resources:
                   - !Sub '${CloudTrailTrailS3Bucket.Arn}/AWSLogs/'
             Version: "2012-10-17"
           PolicyName: CloudTrailTrailEmptyIntegS3PrefixCleanupLambdaFunctionExecutionRole
+      RoleName: TrailS3Cleanup-integ-succeed-awscommunity-kms-encryptionsettings
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -229,7 +232,7 @@ Resources:
           - Action: kms:GenerateDataKey*
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AWS::Partition}-${AWS::AccountId}-${AWS::Region}-test-only-trail'
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/Trail-integ-succeed-awscommunity-kms-encryptionsettings-${AWS::Region}'
               StringLike:
                 kms:EncryptionContext:aws:cloudtrail:arn: !Sub 'arn:${AWS::Partition}:cloudtrail:*:${AWS::AccountId}:trail/*'
             Effect: Allow
@@ -290,7 +293,7 @@ Resources:
           - Action: s3:GetBucketAcl
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AWS::Partition}-${AWS::AccountId}-${AWS::Region}-test-only-trail'
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/Trail-integ-succeed-awscommunity-kms-encryptionsettings-${AWS::Region}'
             Effect: Allow
             Principal:
               Service: cloudtrail.amazonaws.com
@@ -299,7 +302,7 @@ Resources:
           - Action: s3:PutObject
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AWS::Partition}-${AWS::AccountId}-${AWS::Region}-test-only-trail'
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/Trail-integ-succeed-awscommunity-kms-encryptionsettings-${AWS::Region}'
                 s3:x-amz-acl: bucket-owner-full-control
             Effect: Allow
             Principal:
@@ -509,7 +512,7 @@ Resources:
     DeletionPolicy: Delete
     Type: AWS::RDS::DBCluster
     Properties:
-      Engine: aurora
+      Engine: aurora-mysql
       MasterUserPassword: !Sub '{{resolve:secretsmanager:${RdsDbClusterSecretsManagerSecret}::password}}'
       MasterUsername: !Sub '{{resolve:secretsmanager:${RdsDbClusterSecretsManagerSecret}::username}}'
       StorageEncrypted: true
@@ -529,6 +532,7 @@ Resources:
         GenerateStringKey: password
         PasswordLength: 30
         SecretStringTemplate: '{"username": "admin"}'
+      Name: RdsDbClusterSecret-integ-succeed-awscommunity-kms-encryptionsettings
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -573,6 +577,7 @@ Resources:
         GenerateStringKey: password
         PasswordLength: 30
         SecretStringTemplate: '{"username": "admin"}'
+      Name: RdsDbInstanceSecret-integ-succeed-awscommunity-kms-encryptionsettings
       Tags:
         - Key: Name
           Value: !Ref 'TagName'
@@ -592,7 +597,7 @@ Resources:
     DeletionPolicy: Delete
     Type: AWS::RDS::GlobalCluster
     Properties:
-      Engine: aurora
+      Engine: aurora-mysql
       StorageEncrypted: true
 
   RedshiftCluster:
@@ -622,6 +627,7 @@ Resources:
         GenerateStringKey: password
         PasswordLength: 64
         SecretStringTemplate: '{"username": "admin"}'
+      Name: RedshiftClusterSecret-integ-succeed-awscommunity-kms-encryptionsettings
       Tags:
         - Key: Name
           Value: !Ref 'TagName'

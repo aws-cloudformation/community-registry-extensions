@@ -101,6 +101,19 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  KMSEncryptionSettingsBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   HookEC2SecurityGroupRestrictedSSHBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -685,6 +698,125 @@ Resources:
       Roles:
         - !Ref HookEC2SecurityGroupRestrictedSSHBuildProjectRole
 
+  KMSEncryptionSettingsBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:DescribeImages
+              - ec2:DescribeInstances
+              - ec2:GetEbsEncryptionByDefault
+            Resource: "*"
+          - !If
+            - IsBeta
+            - Effect: Deny
+              Action:
+                - kms:*CustomKeyStore
+                - kms:CancelKeyDeletion
+                - kms:CreateAlias
+                - kms:Delete*
+                - kms:DeleteAlias
+                - kms:DisableKey*
+                - kms:Put*
+                - kms:ScheduleKeyDeletion
+                - kms:Update*
+              Resource: !GetAtt PipelineKey.Arn
+            - !Ref AWS::NoValue
+          - Effect: Allow
+            Action:
+              - kms:CancelKeyDeletion
+              - kms:Create*
+              - kms:CreateKey
+              - kms:Decrypt
+              - kms:Delete*
+              - kms:Describe*
+              - kms:Disable*
+              - kms:Enable*
+              - kms:Encrypt
+              - kms:GenerateDataKey*
+              - kms:Get*
+              - kms:List*
+              - kms:Put*
+              - kms:ReEncrypt*
+              - kms:Revoke*
+              - kms:ScheduleKeyDeletion
+              - kms:TagResource
+              - kms:UntagResource
+              - kms:Update*
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - application-autoscaling:*
+              - autoscaling:*
+              - dynamodb:*
+              - ec2:*Instance*
+              - ec2:*LaunchTemplate*
+              - ec2:*SecurityGroup*
+              - ec2:*Tags
+              - ec2:*Volume*
+              - ec2:Describe*
+              - ec2:GetEbsDefaultKmsKeyId
+              - elasticfilesystem:*
+              - kinesis:*
+              - lambda:*
+              - rds:*
+              - redshift:*
+              - s3:*
+              - secretsmanager:GetRandomPassword
+              - sns:*
+              - sqs:*
+              - ssm:GetParameters
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - logs:*
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:logs:*:${AWS::AccountId}:log-group:*CloudTrailTrailEmptyIntegS3PrefixCleanup:*'
+              - !Sub 'arn:${AWS::Partition}:logs:*:${AWS::AccountId}:log-group:*integ-*-awscommunity-kms-encryptionsettings*:*'
+          - Effect: Allow
+            Action:
+              - secretsmanager:*
+            Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:*:${AWS::AccountId}:secret:*Secret-integ-*-awscommunity-kms-encryptionsettings*'
+          - Effect: Allow
+            Action:
+              - secretsmanager:*
+            Resource: "*"
+            Condition:
+              StringLike:
+                secretsmanager:Name: '*Secret-integ-*-awscommunity-kms-encryptionsettings*'
+          - Effect: Allow
+            Action:
+              - cloudtrail:*
+            Resource: !Sub 'arn:${AWS::Partition}:cloudtrail:*:${AWS::AccountId}:trail/Trail-integ-*-awscommunity-kms-encryptionsettings-*'
+          - Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:DetachRolePolicy
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:GetRole
+              - iam:ListAttachedRolePolicies
+              - iam:ListEntitiesForPolicy
+              - iam:ListPolicies
+              - iam:ListPolicyTags
+              - iam:ListPolicyVersions
+              - iam:ListRolePolicies
+              - iam:ListRoleTags
+              - iam:ListRoles
+              - iam:TagRole
+              - iam:UntagRole
+              - iam:UpdateRole
+              - iam:UpdateRoleDescription
+            Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/TrailS3Cleanup-integ-*-awscommunity-kms-encryptionsettings'
+        Version: '2012-10-17'
+      PolicyName: kms-encryptionsettings-build-project-policy
+      Roles:
+        - !Ref KMSEncryptionSettingsBuildProjectRole
+
   S3BucketNotificationBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -1086,6 +1218,28 @@ Resources:
         BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
       TimeoutInMinutes: 480
 
+  KMSEncryptionSettingsBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-kms-encryptionsettings"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-hook"
+      ServiceRole: !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "hooks/${Env}-buildspec-java.yml"
+      TimeoutInMinutes: 480
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -1163,6 +1317,7 @@ Resources:
               - !GetAtt S3BucketModuleBuildProject.Arn
               - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
               - !GetAtt AlternateContactBuildProject.Arn
+              - !GetAtt KMSEncryptionSettingsBuildProject.Arn
           - Action:
               - kms:*
             Effect: Allow
@@ -1231,6 +1386,7 @@ Resources:
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
                 - !GetAtt S3BucketModuleBuildProjectRole.Arn
                 - !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
+                - !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -1562,6 +1718,25 @@ Resources:
                       "name": "HOOK_PATH",
                       "type": "PLAINTEXT",
                       "value": "hooks/S3_PublicAccessControlsRestricted"
+                    }
+                  ]
+              RunOrder: 3
+            - Name: KMSEncryptionSettings
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref KMSEncryptionSettingsBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/KMS_EncryptionSettings"
                     }
                   ]
               RunOrder: 3
