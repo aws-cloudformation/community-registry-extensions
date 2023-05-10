@@ -1,7 +1,7 @@
 {
   "typeName": "AwsCommunity::ApplicationAutoscaling::ScheduledAction",
   "description": "Application Autoscaling Scheduled Action.",
-  "sourceUrl": "https://github.com/johnpreston/awscommunity-applicationautoscaling-scheduledaction",
+  "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "EndTime": {
