@@ -21,7 +21,7 @@ from .models import ResourceHandlerRequest, ResourceModel
 # Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
-TYPE_NAME = "EWS::ApplicationAutoscaling::ScheduledAction"
+TYPE_NAME = "AwsCommunity::ApplicationAutoscaling::ScheduledAction"
 
 resource = Resource(TYPE_NAME, ResourceModel)
 test_entrypoint = resource.test_entrypoint

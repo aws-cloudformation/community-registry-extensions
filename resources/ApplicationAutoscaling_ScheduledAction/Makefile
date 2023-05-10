@@ -27,7 +27,7 @@ ifndef BUCKET
 BUCKET					:= cloudformationmanageduploadinfrast-artifactbucket-z003ezibhlio
 endif
 ifndef PYTHON_VERSION
-PYTHON_VERSION			:= python37
+PYTHON_VERSION			:= python38
 endif
 
 ifndef PYTHON_PACKAGE
@@ -35,7 +35,7 @@ PYTHON_PACKAGE 			:= awscommunity_applicationautoscaling_scheduledaction
 endif
 
 ifndef RES_NAME
-RES_NAME				:= "EWS::ApplicationAutoscaling::ScheduledAction"
+RES_NAME				:= "AwsCommunity::ApplicationAutoscaling::ScheduledAction"
 endif
 
 
@@ -103,13 +103,6 @@ python38	: dist docker-clean
 			--rm -it -v $(PWD):/app --entrypoint /bin/bash \
 			public.ecr.aws/lambda/python:3.8 \
 			-c "pip install pip -U; pip install /app/dist/*.whl -t /app/build"
-
-python37	: dist docker-clean
-			docker run --network=host \
-			--rm -it -v $(PWD):/app --entrypoint /bin/bash \
-			public.ecr.aws/lambda/python:3.7 \
-			-c "pip install pip -U; pip install /app/dist/*.whl -t /app/build"
-
 
 dist:		clean ## builds source and wheel package
 			poetry build
