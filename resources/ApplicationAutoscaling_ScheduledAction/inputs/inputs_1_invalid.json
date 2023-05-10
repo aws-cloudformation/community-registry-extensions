@@ -1,0 +1,14 @@
+{
+  "ScheduledActionName": "cfn-testing-resource",
+  "ServiceNamespace": "ecs",
+  "ScalableDimension": "ecs:service:DesiredCount",
+  "ScalableTargetAction": {
+    "MinCapacity": 0,
+    "MaxCapacity": 10
+  },
+  "Schedule": "at(2023-10-18T07:43:47)",
+  "StartTime": "2022-10-18T07:43:47",
+  "EndTime": "2023-10-18T08:43:47",
+  "Timezone": "Europe/London",
+  "ResourceId": "service/cfn-testing/cfn-testing-does-not-exist"
+}
