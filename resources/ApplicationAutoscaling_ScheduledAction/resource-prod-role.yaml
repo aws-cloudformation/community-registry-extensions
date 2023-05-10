@@ -13,7 +13,8 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: !Sub resources.cloudformation.${AWS::URLSuffix}
+              Service:
+                Fn::Sub: resources.cloudformation.${AWS::URLSuffix}
             Action: sts:AssumeRole
       Path: "/"
       Policies:

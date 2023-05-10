@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from typing import Any, MutableMapping, Optional, Union
 
 from cloudformation_cli_python_lib import (
@@ -18,9 +19,8 @@ from dateutil.parser import ParserError
 
 from .models import ResourceHandlerRequest, ResourceModel
 
-# Use this logger to forward log messages to CloudWatch Logs.
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.ERROR)
 TYPE_NAME = "AwsCommunity::ApplicationAutoscaling::ScheduledAction"
 
 resource = Resource(TYPE_NAME, ResourceModel)
@@ -57,18 +57,18 @@ def define_scalable_target_action(model) -> dict:
         target_action["MinCapacity"] = int(model.ScalableTargetAction.MinCapacity)
     if model.ScalableTargetAction.MaxCapacity:
         target_action["MaxCapacity"] = int(model.ScalableTargetAction.MaxCapacity)
+    if model.EndTime and isinstance(model.EndTime, str):
         try:
-            if model.EndTime and isinstance(model.EndTime, str):
-                action["EndTime"] = parser.parse(model.EndTime).isoformat()
+            action["EndTime"] = parser.parse(model.EndTime).isoformat()
         except ParserError as error:
             LOG.exception(error)
             LOG.error("EndTime")
-    try:
-        if model.StartTime and isinstance(model.StartTime, str):
+
+    if model.StartTime and isinstance(model.StartTime, str):
+        try:
             action["StartTime"] = parser.parse(model.StartTime).isoformat()
-    except ParserError as error:
-        LOG.exception(error)
-        raise ValueError()
+        except ParserError as error:
+            LOG.exception(error)
     if model.Timezone:
         action["Timezone"] = model.Timezone
     action["ScalableTargetAction"] = target_action
@@ -120,6 +120,7 @@ def create_handler(
                 f"Scheduled Action {model.ScheduledActionName} already exists for"
                 f" {model.ServiceNamespace}|{model.ResourceId}"
             )
+            LOG.debug("Rule {} already exists".format(model.ScheduledActionName))
             return progress
     except Exception as error:
         LOG.error("pre-create validation error")
@@ -127,10 +128,11 @@ def create_handler(
         return ProgressEvent(
             status=OperationStatus.FAILED,
             errorCode=HandlerErrorCode.InternalFailure,
-            message=f"Create - {repr(error)}",
+            message=f"Create error - {repr(error)}",
         )
     try:
         kwargs = define_scalable_target_action(model)
+        LOG.debug("API Args: {}".format(kwargs))
         application_autoscaling_client.put_scheduled_action(**kwargs)
         resource_r = rule_exists(session, model)
         primary_identifier = resource_r["ScheduledActionARN"]
@@ -138,7 +140,7 @@ def create_handler(
         progress.status = OperationStatus.SUCCESS
         progress.message = (
             "Successfully created Scheduled Action for"
-            f" {model.ServiceNamespace}|{model.ResourceId}"
+            f" {model.ResourceId}|{model.ScalableDimension}|{model.ServiceNamespace}"
         )
         return progress
     except application_autoscaling_client.exceptions.ObjectNotFoundException:
@@ -146,7 +148,7 @@ def create_handler(
             status=OperationStatus.FAILED,
             errorCode=HandlerErrorCode.NotFound,
             message=(
-                f"Scalable target {model.ServiceNamespace}|{model.ResourceId} not found"
+                f"Scalable target {model.ResourceId}|{model.ScalableDimension}|{model.ServiceNamespace} not found"
             ),
         )
     except Exception as error:

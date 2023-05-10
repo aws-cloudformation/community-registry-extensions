@@ -1,8 +1,8 @@
 {
     "artifact_type": "RESOURCE",
     "typeName": "AwsCommunity::ApplicationAutoscaling::ScheduledAction",
-    "language": "python38",
-    "runtime": "python3.8",
+    "language": "python39",
+    "runtime": "python3.9",
     "entrypoint": "awscommunity_applicationautoscaling_scheduledaction.handlers.resource",
     "testEntrypoint": "awscommunity_applicationautoscaling_scheduledaction.handlers.test_entrypoint",
     "settings": {

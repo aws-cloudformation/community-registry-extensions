@@ -1,12 +1,12 @@
 {
   "ScheduledActionName": "cfn-testing-resource",
-  "ServiceNamespace": "ecs",
-  "ScalableDimension": "ecs:service:DesiredCount",
+  "ServiceNamespace": "dynamodb",
+  "ScalableDimension": "dynamodb:table:ReadCapacityUnits",
   "ScalableTargetAction": {
-    "MinCapacity": 0,
-    "MaxCapacity": 10
+    "MinCapacity": 1,
+    "MaxCapacity": 4
   },
-  "Schedule": "at(2023-10-18T07:43:47)",
+  "Schedule": "cron(5 2 ? * FRI)",
   "Timezone": "Europe/London",
-  "ResourceId": "service/cfn-testing/cfn-testing"
+  "ResourceId": "table/awscommunityscheduledactiontesttable"
 }

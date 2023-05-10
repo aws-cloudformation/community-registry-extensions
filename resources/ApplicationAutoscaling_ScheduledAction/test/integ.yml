@@ -15,24 +15,7 @@ Metadata:
     GeneratedOn: '2022-11-12T16:19:17.393411'
     Version: '0.23.0.a0'
   Type: ComposeX
-  testTable:
-    Export:
-      Name: !Sub
-        - ${STACK_NAME}::testTable::TableName
-        - STACK_NAME: !If
-            - UseStackName
-            - !Ref 'AWS::StackName'
-            - !Ref 'RootStackName'
-    Value: !Ref 'testTable'
-  tableBArn:
-    Export:
-      Name: !Sub
-        - ${STACK_NAME}::testTable::Arn
-        - STACK_NAME: !If
-            - UseStackName
-            - !Ref 'AWS::StackName'
-            - !Ref 'RootStackName'
-    Value: !GetAtt 'testTable.Arn'
+
 Parameters:
   CostcentreTag:
     AllowedPattern: '[\x20-\x7E]+'
@@ -189,12 +172,16 @@ Resources:
 
   TestScaling:
     Type: AwsCommunity::ApplicationAutoscaling::ScheduledAction
+    DependsOn:
+      - tableBReadCapacityUnitsScalableTarget
     Properties:
-      ScheduledActionName: TestScaling
-      ServiceNamespace: dynamodb
-      ScalableDimension: dynamodb:index:ReadCapacityUnits
-      Schedule: rate(2 hours)
+      ScheduledActionName: !Sub
+        - '${RESOURCE}_SCALE_OUT'
+        - RESOURCE: !Ref testTable
+      ServiceNamespace: !Select [2, !Split [ "|", !Ref tableBReadCapacityUnitsScalableTarget ]]
+      ScalableDimension: !Select [1, !Split [ "|", !Ref tableBReadCapacityUnitsScalableTarget ]]
+      Schedule: cron(5 2 ? * FRI)
       ScalableTargetAction:
-        MinCapacity: 5
-        MaxCapacity: 1000
-      ResourceId: !Sub 'table/${testTable}'
+        MinCapacity: 1
+        MaxCapacity: 100
+      ResourceId: !Select [0, !Split [ "|", !Ref tableBReadCapacityUnitsScalableTarget ]]

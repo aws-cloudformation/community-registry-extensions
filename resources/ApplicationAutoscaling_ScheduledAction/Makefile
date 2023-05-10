@@ -27,7 +27,7 @@ ifndef BUCKET
 BUCKET					:= cloudformationmanageduploadinfrast-artifactbucket-z003ezibhlio
 endif
 ifndef PYTHON_VERSION
-PYTHON_VERSION			:= python38
+PYTHON_VERSION			:= python39
 endif
 
 ifndef PYTHON_PACKAGE
@@ -95,26 +95,19 @@ docker-clean:
 python39	: dist docker-clean
 			docker run --network=host \
 			--rm -it -v $(PWD):/app --entrypoint /bin/bash \
+			--workdir /app \
 			public.ecr.aws/lambda/python:3.9 \
-			-c "pip install pip -U; pip install -r /app/dist/*.whl -t /app/build"
-
-python38	: dist docker-clean
-			docker run --network=host \
-			--rm -it -v $(PWD):/app --entrypoint /bin/bash \
-			public.ecr.aws/lambda/python:3.8 \
 			-c "pip install pip -U; pip install /app/dist/*.whl -t /app/build"
 
 dist:		clean ## builds source and wheel package
 			poetry build
 
-requirements:	clean $(PYTHON_VERSION)
-			poetry update
+requirements:
 			poetry export --without-hashes > requirements.txt
-			pyclean build/
 
 conform	: ## Conform to a standard of coding syntax
 			isort --profile black src
-			black src tests
+			black src
 			find src -name "*.json" -type f  -exec sed -i '1s/^\xEF\xBB\xBF//' {} +
 
 
@@ -122,6 +115,8 @@ package:	dist $(PYTHON_VERSION)
 
 zip:			package
 				docker run --rm -it -v $(PWD):/app public.ecr.aws/amazonlinux/amazonlinux:2 /usr/bin/chown -R 1000:1000 /app/build
+
+				rm -rf ResourceProvider.zip
 
 				pyclean build
 				test -f ResourceProvider.zip && rm -rf ResourceProvider.zip || echo "Go for Zipping"
@@ -132,4 +127,4 @@ zip:			package
 
 upload-zip-s3:	zip
 				aws s3 ls s3://$(BUCKET)/$(PYTHON_PACKAGE)/$(PYTHON_PACKAGE).zip && aws s3 rm s3://$(BUCKET)/$(PYTHON_PACKAGE)/$(PYTHON_PACKAGE).zip || echo "File not found"
-				aws s3 cp $(PYTHON_PACKAGE).zip s3://$(BUCKET)/$(PYTHON_PACKAGE)/$(PYTHON_PACKAGE).zip
+				aws s3 cp $(PYTHON_PACKAGE).zip s3://$(BUCKET)/$(PYTHON_PACKAGE)/$(PYTHON_PACKAGE)-$$(date +%Y%m%d%H%M%S).zip
