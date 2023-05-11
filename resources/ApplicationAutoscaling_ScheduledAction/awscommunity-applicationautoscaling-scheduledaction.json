@@ -1,0 +1,113 @@
+{
+  "typeName": "AwsCommunity::ApplicationAutoscaling::ScheduledAction",
+  "description": "Application Autoscaling Scheduled Action.",
+  "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "EndTime": {
+      "type": "string"
+    },
+    "ResourceId": {
+      "type": "string",
+      "pattern": "[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+    },
+    "ScalableDimension": {
+      "type": "string"
+    },
+    "ScalableTargetAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "MaxCapacity"
+          ]
+        },
+        {
+          "required": [
+            "MinCapacity"
+          ]
+        }
+      ],
+      "properties": {
+        "MaxCapacity": {
+          "type": "number",
+          "minimum": 0
+        },
+        "MinCapacity": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "Schedule": {
+      "type": "string",
+      "pattern": "[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+    },
+    "ScheduledActionName": {
+      "type": "string",
+      "pattern": "(?!((^[ ]+.*)|(.*([\\u0000-\\u001f]|[\\u007f-\\u009f]|[:/|])+.*)|(.*[ ]+$))).+"
+    },
+    "ServiceNamespace": {
+      "type": "string"
+    },
+    "StartTime": {
+      "type": "string"
+    },
+    "Timezone": {
+      "type": "string",
+      "default": "UTC",
+      "pattern": "[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+    },
+    "ScheduledActionARN": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "ScalableDimension",
+    "ResourceId",
+    "ScheduledActionName",
+    "ServiceNamespace",
+    "Schedule",
+    "ScalableTargetAction"
+  ],
+  "readOnlyProperties": [
+    "/properties/ScheduledActionARN"
+  ],
+  "primaryIdentifier": [
+    "/properties/ScheduledActionARN"
+  ],
+  "createOnlyProperties": [
+    "/properties/ScheduledActionName",
+    "/properties/ResourceId",
+    "/properties/ScalableDimension",
+    "/properties/ServiceNamespace",
+    "/properties/ScheduledActionName"
+  ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "application-autoscaling:DescribeScheduledActions",
+        "application-autoscaling:PutScheduledAction"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "application-autoscaling:DescribeScheduledActions"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "application-autoscaling:DescribeScheduledActions",
+        "application-autoscaling:PutScheduledAction"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "application-autoscaling:DescribeScheduledActions",
+        "application-autoscaling:DeleteScheduledAction"
+      ]
+    }
+  }
+}

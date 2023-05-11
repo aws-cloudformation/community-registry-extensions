@@ -1,0 +1,12 @@
+{
+  "ScheduledActionName": "cfn-testing-resource",
+  "ServiceNamespace": "dynamodb",
+  "ScalableDimension": "dynamodb:table:ReadCapacityUnits",
+  "ScalableTargetAction": {
+    "MinCapacity": 1,
+    "MaxCapacity": 4
+  },
+  "Schedule": "cron(5 2 ? * FRI)",
+  "Timezone": "Europe/London",
+  "ResourceId": "table/awscommunityscheduledactiontesttable-does-not-exist"
+}
