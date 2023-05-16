@@ -6,7 +6,7 @@ Parameters:
     Description: The SSM document name. 
     Default: Resize-EBS-Volume
   VolumeSize: 
-    Type: Number
+    Type: String
     Description: The Size in GB of the Instance Volume. 
     Default: 50
 Resources:
@@ -22,7 +22,7 @@ Resources:
         description: "Command document to resize EBS volume."
         parameters:
           VolumeSize:
-            type: Integer
+            type: String
             description: "Size in GB to grow the volume"
             default: !Ref VolumeSize
         mainSteps:
