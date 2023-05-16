@@ -6,7 +6,7 @@ Parameters:
     Description: The SSM document name. 
     Default: Resize-EBS-Volume
   VolumeSize: 
-    Type: String
+    Type: Number
     Description: The Size in GB of the Instance Volume. 
     Default: 50
 Resources:
@@ -24,7 +24,8 @@ Resources:
           VolumeSize:
             type: String
             description: "Size in GB to grow the volume"
-            default: !Ref VolumeSize
+            default: !Sub "${VolumeSize}"
+            allowedPattern: ^(?:1(?:[0-5][0-9]{0,3}|[7-9][0-9]{0,2}|6(?:[0-2]{0,3}|[4-9][0-9]?|3(?:[0-7][0-9]?|8[0-4]?|9)?)?)?|[2-9][0-9]{0,3})$
         mainSteps:
         - action: "aws:runShellScript"
           name: "resizeEBSVolume"
