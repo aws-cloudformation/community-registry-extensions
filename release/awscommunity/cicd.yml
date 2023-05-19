@@ -256,6 +256,19 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+  
+  SSMDocumentEBSVolumeModuleBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   CloudFrontS3WebsiteModuleBuildProjectRole:
     Type: AWS::IAM::Role
@@ -1155,6 +1168,28 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "modules/${Env}-buildspec.yml"
       TimeoutInMinutes: 480
+  
+  SSMDocumentEBSVolumeModuleBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-ssm-document-ebsvolume-module"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: MODULE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-module"
+      ServiceRole: !GetAtt SSMDocumentEBSVolumeModuleBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "modules/${Env}-buildspec.yml"
+      TimeoutInMinutes: 480
 
   AlternateContactBuildProjectRole:
     Type: AWS::IAM::Role
@@ -1316,6 +1351,7 @@ Resources:
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
               - !GetAtt S3BucketModuleBuildProject.Arn
               - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
+              - !GetAtt SSMDocumentEBSVolumeModuleBuildProject.Arn
               - !GetAtt AlternateContactBuildProject.Arn
               - !GetAtt KMSEncryptionSettingsBuildProject.Arn
           - Action:
@@ -1386,6 +1422,7 @@ Resources:
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
                 - !GetAtt S3BucketModuleBuildProjectRole.Arn
                 - !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
+                - !GetAtt SSMDocumentEBSVolumeModuleBuildProjectRole.Arn
                 - !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
@@ -1661,6 +1698,25 @@ Resources:
                       "name": "MODULE_PATH",
                       "type": "PLAINTEXT",
                       "value": "modules/CloudFront_S3Website"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: SSMDocumentEBSVolumeModule
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref SSMDocumentEBSVolumeModuleBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "MODULE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "modules/SSM_Document_ResizeVolume"
                     }
                   ]
               RunOrder: 1
