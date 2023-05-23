@@ -1,13 +1,11 @@
 Parameters:
-
   Env:
     Type: String
 
 Resources:
-
   RegistrationTable:
-    UpdateReplacePolicy: Delete
     DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Type: AWS::DynamoDB::Table
     Metadata:
       Comment: |
@@ -19,19 +17,15 @@ Resources:
       TableName: !Sub "cep-lambda-invoker-reg-${Env}-${AWS::Region}-${AWS::AccountId}"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - 
-          AttributeName: "pk"
-          AttributeType: "S"
-        - 
-          AttributeName: "sk"
-          AttributeType: "S"
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
       KeySchema:
-        -
-          AttributeName: "pk"
-          KeyType: "HASH"
-        -
-          AttributeName: "sk"
-          KeyType: "RANGE"
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
 
   ComplianceLambdaRole:
     Type: AWS::IAM::Role
@@ -40,12 +34,12 @@ Resources:
       AssumeRolePolicyDocument:
         Statement:
           - Action:
-            - sts:AssumeRole
+              - sts:AssumeRole
             Effect: Allow
             Principal:
               Service:
-              - lambda.amazonaws.com
-        Version: 2012-10-17
+                - lambda.amazonaws.com
+        Version: "2012-10-17"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSLambdaExecute
       Path: /
@@ -68,7 +62,7 @@ Resources:
           def handler(event):
             print('ComplianceLambda1 was invoked')
             print(event)
-    
+
   RegistrationLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -76,24 +70,23 @@ Resources:
       AssumeRolePolicyDocument:
         Statement:
           - Action:
-            - sts:AssumeRole
+              - sts:AssumeRole
             Effect: Allow
             Principal:
               Service:
-              - lambda.amazonaws.com
-        Version: 2012-10-17
+                - lambda.amazonaws.com
+        Version: "2012-10-17"
       Policies:
-        -
-          PolicyName: lambdaexec
+        - PolicyName: lambdaexec
           PolicyDocument:
-            Version: 2012-10-17
+            Version: "2012-10-17"
             Statement:
               - Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Effect: Allow
-                Resource: "*"
+                Resource: '*'
               - Action:
                   - dynamodb:PutItem
                 Effect: Allow
@@ -116,11 +109,9 @@ Resources:
     Properties:
       FunctionName: !Sub "cep-lambda-invoker-reg-${Env}-${AWS::Region}-${AWS::AccountId}"
       Runtime: python3.9
-      Code: !Rain::S3 
-        Path: registration 
-        Zip: true
-        BucketProperty: S3Bucket
-        KeyProperty: S3Key
+      Code:
+        S3Bucket: rain-artifacts-755952356119-us-east-1
+        S3Key: b641a2e2c49bcfbf49b53ab4beefec5f0fac221823b71c0d290606c91f6bf201
       Role: !GetAtt RegistrationLambdaRole.Arn
       Handler: handler.handler
 
@@ -128,14 +119,11 @@ Resources:
     Type: AWS::CloudFormation::CustomResource
     Properties:
       ServiceToken: !GetAtt RegistrationLambda.Arn
-      RegistrationTableArn: !GetAtt RegistrationTable.Arn
+      RegistrationTable: !GetAtt RegistrationTable.Arn
       FunctionArn: !GetAtt ComplianceLambda1.Arn
-      Serial: 2
 
 Outputs:
-
   RegistrationTable:
+    Value: !Ref RegistrationTable
     Export:
       Name: CepLambdaInvokerRegistrationTable
-    Value: !Ref RegistrationTable
-

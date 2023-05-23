@@ -1,13 +1,4 @@
 {
-  "AWS::S3::Bucket": {
-    "resourceProperties": {
-      "VersioningConfiguration": {
-        "Status": "Enabled"
-      }
-    }
-  }
-}
-{
     "AWS::S3::AccessPoint": {
         "resourceProperties": {
             "Bucket": "TODO"
@@ -35,9 +26,7 @@
         "resourceProperties": {
             "StorageLensConfiguration": "TODO"
         }
-    }
-}
-{
+    },
     "AWS::Lambda::Alias": {
         "resourceProperties": {
             "Name": "TODO"
