@@ -7,3 +7,85 @@
     }
   }
 }
+{
+    "AWS::S3::AccessPoint": {
+        "resourceProperties": {
+            "Bucket": "TODO"
+        }
+    },
+    "AWS::S3::Bucket": {
+        "resourceProperties": {}
+    },
+    "AWS::S3::BucketPolicy": {
+        "resourceProperties": {
+            "PolicyDocument": "TODO"
+        }
+    },
+    "AWS::S3::MultiRegionAccessPoint": {
+        "resourceProperties": {
+            "Regions": "TODO"
+        }
+    },
+    "AWS::S3::MultiRegionAccessPointPolicy": {
+        "resourceProperties": {
+            "MrapName": "TODO"
+        }
+    },
+    "AWS::S3::StorageLens": {
+        "resourceProperties": {
+            "StorageLensConfiguration": "TODO"
+        }
+    }
+}
+{
+    "AWS::Lambda::Alias": {
+        "resourceProperties": {
+            "Name": "TODO"
+        }
+    },
+    "AWS::Lambda::CodeSigningConfig": {
+        "resourceProperties": {
+            "AllowedPublishers": "TODO"
+        }
+    },
+    "AWS::Lambda::EventInvokeConfig": {
+        "resourceProperties": {
+            "Qualifier": "TODO"
+        }
+    },
+    "AWS::Lambda::EventSourceMapping": {
+        "resourceProperties": {
+            "FunctionName": "TODO"
+        }
+    },
+    "AWS::Lambda::Function": {
+        "resourceProperties": {
+            "Role": "TODO"
+        }
+    },
+    "AWS::Lambda::LayerVersion": {
+        "resourceProperties": {
+            "Content": "TODO"
+        }
+    },
+    "AWS::Lambda::LayerVersionPermission": {
+        "resourceProperties": {
+            "Principal": "TODO"
+        }
+    },
+    "AWS::Lambda::Permission": {
+        "resourceProperties": {
+            "Principal": "TODO"
+        }
+    },
+    "AWS::Lambda::Url": {
+        "resourceProperties": {
+            "AuthType": "TODO"
+        }
+    },
+    "AWS::Lambda::Version": {
+        "resourceProperties": {
+            "FunctionName": "TODO"
+        }
+    }
+}

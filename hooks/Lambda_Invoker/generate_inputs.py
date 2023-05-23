@@ -1,8 +1,9 @@
 import boto3
 import json
+import sys
 from botocore.config import Config
 
-def get_resource_types(category: str = "AWS_TYPES"):
+def get_resource_types(prefix):
     """Return a list of resource types."""
 
     client = boto3.client("cloudformation")
@@ -11,38 +12,41 @@ def get_resource_types(category: str = "AWS_TYPES"):
         "DeprecatedStatus": "LIVE",
         "Type": "RESOURCE",
         "Filters": {
-            "Category": category,
+            "Category": "AWS_TYPES",
+            "TypeNamePrefix": prefix
         },
+        "Visibility": "PUBLIC"
     }
-
-    if category == "THIRD_PARTY":
-        visibility = None
-    elif category in ["AWS_TYPES","ACTIVATED"]:
-        visibility = "PUBLIC"
-    else:
-        visibility = "PRIVATE"
-
-    if visibility:
-        list_types_args["Visibility"] = visibility
 
     paginator = client.get_paginator("list_types")
     page_iterator = paginator.paginate(**list_types_args)
 
-    resource_types = []
+    resource_types = {}
     for page in page_iterator:
         type_summaries = page["TypeSummaries"]
-        resource_types += [
-            {
-                "type_name": type_summary["TypeName"],
-            }
-            for type_summary in type_summaries
-        ]
+        for type_summary in type_summaries:
+            name = type_summary["TypeName"]
+            resource_types[name] = {}
+            resource_types[name]["resourceProperties"] = {}
 
     # TODO - For each type, describe-type to get the schema.
     # Parse the schema to emit required properties
 
+    for name in resource_types:
+        args = {
+            "Type": "RESOURCE", 
+            "TypeName": name
+        }
+        res = client.describe_type(**args)
+        schema = json.loads(res["Schema"])
+        if "required" in schema:
+            req = schema["required"]
+            for r in req:
+                prop = schema["properties"][r]
+            resource_types[name]["resourceProperties"][r] = "TODO"
+
     return resource_types
 
 if __name__ == "__main__":
-    print(json.dumps(get_resource_types()))
+    print(json.dumps(get_resource_types(sys.argv[1]), indent=4))
 
