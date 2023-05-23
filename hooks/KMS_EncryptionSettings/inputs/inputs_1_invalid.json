@@ -167,7 +167,7 @@
     },
     "AWS::RDS::DBCluster": {
         "resourceProperties": {
-            "Engine": "aurora",
+            "Engine": "aurora-mysql",
             "MasterUserPassword": "testonly",
             "MasterUsername": "testonly"
         }
@@ -185,7 +185,7 @@
     },
     "AWS::RDS::GlobalCluster": {
         "resourceProperties": {
-            "Engine": "aurora"
+            "Engine": "aurora-mysql"
         }
     },
     "AWS::Redshift::Cluster": {

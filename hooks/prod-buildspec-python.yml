@@ -8,6 +8,8 @@ phases:
       - echo Entered the install phase...
       - echo About to build $HOOK_PATH
       - export PATH="/usr/local/bin:$PATH"
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
       - /usr/local/bin/dockerd-entrypoint.sh
       - cat /var/log/docker.log
       - ENTRY_PATH=$(python scripts/entry.py $HOOK_PATH/.rpdk-config)

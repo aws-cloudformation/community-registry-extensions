@@ -374,7 +374,7 @@ aws cloudformation create-stack \
   --region us-east-1 \
   --stack-name resource-lookup-setup \
   --template-body file://test/setup.yml \
-  --capabilities CAPABILITY_IAM
+  --capabilities CAPABILITY_NAMED_IAM
 
 aws cloudformation wait stack-create-complete \
   --region us-east-1 \
@@ -407,7 +407,7 @@ aws cloudformation create-stack \
   --region us-east-1 \
   --stack-name resource-lookup-integ \
   --template-body file://test/integ.yml \
-  --capabilities CAPABILITY_IAM
+  --capabilities CAPABILITY_NAMED_IAM
 
 aws cloudformation wait stack-create-complete \
   --region us-east-1 \

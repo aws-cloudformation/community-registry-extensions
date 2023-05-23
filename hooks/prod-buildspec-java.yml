@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+      java: corretto8
+    commands:
+      - echo Entered the install phase...
+      - echo About to build $HOOK_PATH
+      - export PATH="/usr/local/bin:$PATH"
+      - /usr/local/bin/dockerd-entrypoint.sh
+      - cat /var/log/docker.log
+      - TYPE_NAME=$(python scripts/type_name.py $HOOK_PATH/.rpdk-config)
+      - echo TYPE_NAME is $TYPE_NAME
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-java-plugin.git@master
+      - cd $HOOK_PATH
+      - pwd
+      - ls
+      - aws --version
+  build:
+    commands:
+      - echo Entered the build phase...
+      - mvn clean verify javadoc:javadoc
+      - ls -l ../../release
+      - ../../release/publish-regions.sh
+    finally:
+      - cat rpdk.log

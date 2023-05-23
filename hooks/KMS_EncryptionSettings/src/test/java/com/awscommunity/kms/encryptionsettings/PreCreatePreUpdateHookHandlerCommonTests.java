@@ -1,5 +1,8 @@
 package com.awscommunity.kms.encryptionsettings;
 
+import static com.awscommunity.kms.encryptionsettings.HookDefaultConfigurationValues.USE_GET_EBS_ENCRYPTION_BY_DEFAULT_AS_FALLBACK;
+import static com.awscommunity.kms.encryptionsettings.HookDefaultConfigurationValues.VALIDATE_AMI_BLOCK_DEVICE_MAPPING_ENCRYPTION_SETTINGS;
+import static com.awscommunity.kms.encryptionsettings.HookDefaultConfigurationValues.VALIDATE_BUCKET_KEY_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -172,6 +175,16 @@ public class PreCreatePreUpdateHookHandlerCommonTests extends AbstractTestBase {
         assertThatExceptionOfType(UnsupportedTargetException.class).isThrownBy(() -> {
             handler.handleRequest(proxy, request, null, logger, typeConfiguration);
         });
+    }
+
+    protected final void whenTypeConfigurationModelIsNullAllDefaultValuesAreSet(
+            final AmazonWebServicesClientProxy proxy, final Logger logger, final BaseHookHandlerStd handler) {
+        final TypeConfigurationModel typeConfiguration = handler.setTypeConfigurationDefaultValues(null);
+        assertThat(typeConfiguration.getUseGetEbsEncryptionByDefaultAsFallback())
+                .isEqualTo(USE_GET_EBS_ENCRYPTION_BY_DEFAULT_AS_FALLBACK);
+        assertThat(typeConfiguration.getValidateAmiBlockDeviceMappingEncryptionSettings())
+                .isEqualTo(VALIDATE_AMI_BLOCK_DEVICE_MAPPING_ENCRYPTION_SETTINGS);
+        assertThat(typeConfiguration.getValidateBucketKeyEnabled()).isEqualTo(VALIDATE_BUCKET_KEY_ENABLED);
     }
 
     protected final void awsAutoScalingLaunchConfigurationImageIdAndInstanceIdMissing(

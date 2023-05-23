@@ -13,6 +13,7 @@ phases:
       - cat /var/log/docker.log
       - TYPE_NAME=$(python scripts/type_name.py $RESOURCE_PATH/.rpdk-config)
       - echo TYPE_NAME is $TYPE_NAME
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-java-plugin.git@master
       - cd $RESOURCE_PATH
       - pwd

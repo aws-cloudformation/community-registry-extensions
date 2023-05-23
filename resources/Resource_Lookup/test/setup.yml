@@ -7,16 +7,16 @@ Parameters:
     Description: Name of the environment you plan to use.
     Type: String
     AllowedValues:
-      - Alpha
-      - Beta
-      - Prod
-    Default: Alpha
+      - dev
+      - alpha
+      - beta
+      - prod
+    Default: alpha
 
 Resources:
   ResourceLookupRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: "awscommunity-resource-lookup-setup"
       AssumeRolePolicyDocument:
         Statement:
           - Action: sts:AssumeRole
@@ -27,6 +27,7 @@ Resources:
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/ReadOnlyAccess'
       Path: /
+      RoleName: !Sub 'awscommunity-resource-lookup-setup-${Env}-${AWS::Region}'
       Tags:
         - Key: Name
           Value: AwsCommunityResourceLookup-LookupRole
@@ -47,7 +48,7 @@ Resources:
         - Key: Env
           Value: !Ref 'Env'
         - Key: Owner
-          Value: contract-test-only-test-team-alpha
+          Value: !Sub 'contract-test-only-test-team-${Env}'
 
 Outputs:
   ResourceLookupRoleArn:

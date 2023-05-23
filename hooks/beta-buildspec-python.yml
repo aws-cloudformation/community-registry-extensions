@@ -14,6 +14,7 @@ phases:
       - RESOURCE_NAME=$(cat $HOOK_PATH/.rpdk-config | jq -r '.typeName')
       - echo ENTRY_PATH is $ENTRY_PATH
       - cd $HOOK_PATH
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git@master
       - pip install cfn_guard_rs_hook
       - cfn --version

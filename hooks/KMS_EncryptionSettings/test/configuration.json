@@ -1,0 +1,13 @@
+{
+    "CloudFormationConfiguration": {
+        "HookConfiguration": {
+            "TargetStacks": "ALL",
+            "FailureMode": "FAIL",
+            "Properties": {
+                "UseGetEbsEncryptionByDefaultAsFallback": "no",
+                "ValidateAmiBlockDeviceMappingEncryptionSettings": "no",
+                "ValidateBucketKeyEnabled": "no"
+            }
+        }
+    }
+}

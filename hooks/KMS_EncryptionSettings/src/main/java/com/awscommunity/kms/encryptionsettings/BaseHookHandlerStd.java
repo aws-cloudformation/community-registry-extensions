@@ -93,13 +93,28 @@ public abstract class BaseHookHandlerStd extends BaseHookHandler<CallbackContext
 
     /**
      * Sets default values for the input `TypeConfigurationModel` object if relevant
-     * configuration values in the object are set to null.
+     * configuration values in the object are set to null, or if
+     * `TypeConfigurationModel` itself is null.
      *
      * @param typeConfiguration
      *            A {@link TypeConfigurationModel} object.
      * @return typeConfiguration A {@link TypeConfigurationModel} object.
      */
-    private TypeConfigurationModel setTypeConfigurationDefaultValues(final TypeConfigurationModel typeConfiguration) {
+    protected TypeConfigurationModel setTypeConfigurationDefaultValues(final TypeConfigurationModel typeConfiguration) {
+        if (typeConfiguration == null) {
+            final TypeConfigurationModel typeConfigurationModel = new TypeConfigurationModel();
+
+            typeConfigurationModel
+                    .setUseGetEbsEncryptionByDefaultAsFallback(USE_GET_EBS_ENCRYPTION_BY_DEFAULT_AS_FALLBACK);
+
+            typeConfigurationModel.setValidateAmiBlockDeviceMappingEncryptionSettings(
+                    VALIDATE_AMI_BLOCK_DEVICE_MAPPING_ENCRYPTION_SETTINGS);
+
+            typeConfigurationModel.setValidateBucketKeyEnabled(VALIDATE_BUCKET_KEY_ENABLED);
+
+            return typeConfigurationModel;
+        }
+
         if (typeConfiguration.getUseGetEbsEncryptionByDefaultAsFallback() == null) {
             typeConfiguration.setUseGetEbsEncryptionByDefaultAsFallback(USE_GET_EBS_ENCRYPTION_BY_DEFAULT_AS_FALLBACK);
         }

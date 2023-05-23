@@ -1,0 +1,43 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+      java: corretto8
+    commands:
+      - echo Entered the install phase...
+      - echo About to build $HOOK_PATH
+      - export PATH="/usr/local/bin:$PATH"
+      - TYPE_NAME=$(python scripts/type_name.py $HOOK_PATH/.rpdk-config)
+      - TYPE_CLEAN_NAME="$(echo $TYPE_NAME | sed s/::/-/g | tr ‘[:upper:]’ ‘[:lower:]’)"
+      - echo TYPE_CLEAN_NAME is $TYPE_CLEAN_NAME
+      - BUILD_FILE_NAME=$(cat TYPE_CLEAN_NAME | sed s/_/-/g)
+      - BUILD_FILE_NAME="${BUILD_FILE_NAME}.zip"
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-java-plugin.git@master
+      - cd $HOOK_PATH
+      - cfn --version
+      - sam --version
+  build:
+    commands:
+      - echo Entered the build phase...
+      - cfn validate
+      - cfn generate
+      - mvn clean verify javadoc:javadoc
+      - cfn submit --set-default
+      - HOOK_TYPE_ARN=$(aws cloudformation list-types --visibility PRIVATE --type HOOK --filters TypeNamePrefix=$TYPE_NAME --output json | jq -r '.TypeSummaries[0].TypeArn')
+      - aws cloudformation set-type-configuration --configuration file://test/configuration.json --type-arn $HOOK_TYPE_ARN
+      - INTEG_SUCCEED_STACK_NAME="integ-succeed-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
+      - INTEG_FAIL_STACK_NAME="integ-fail-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
+      - rain deploy test/integ-succeed.yml $INTEG_SUCCEED_STACK_NAME -y
+      - rain deploy test/integ-fail.yml $INTEG_FAIL_STACK_NAME -y || [ $? -eq 1 ]
+    finally:
+      - cat rpdk.log
+      - aws cloudformation set-type-configuration --configuration file://test/configuration-undo.json --type-arn $HOOK_TYPE_ARN
+      - rain rm $INTEG_SUCCEED_STACK_NAME -y
+      - rain rm $INTEG_FAIL_STACK_NAME -y
+artifacts:
+  files:
+    - $BUILD_FILE_NAME
+  name: extensions-build

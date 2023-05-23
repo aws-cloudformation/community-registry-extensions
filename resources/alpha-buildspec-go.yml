@@ -14,6 +14,7 @@ phases:
       - cat /var/log/docker.log
       - echo TYPE_CLEAN_NAME is $TYPE_CLEAN_NAME
       - BUILD_FILE_NAME="${TYPE_CLEAN_NAME}.zip"
+      - pip install git+https://github.com/aws-cloudformation/cloudformation-cli.git@master
       - pip install git+https://github.com/aws-cloudformation/cloudformation-cli-go-plugin.git@master
       - cd $RESOURCE_PATH
       - ls /usr/local/bin

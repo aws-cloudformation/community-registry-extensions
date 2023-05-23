@@ -234,7 +234,7 @@ Notes:
 - example templates shown next:
     - assume this hook is configured with the default [Configuration options](#Configuration-options) values;
     - might include additional resource types on which a target resource would depend on, and that are added here to show additional context;
-- there is also a template called `integ.yml` in the `test` directory, that can be used to create a stack for testing: resources described in that template are expected to be created successfully.
+- there are also templates called `integ-succeed.yml` and `integ-fail.yml` in the `test` directory, that can be used to create a stack for testing: resources described in these templates are expected to be created either successfully or not, respectively.
 
 ### AWS::AutoScaling::LaunchConfiguration
 Non-compliant (`Encrypted` in `BlockDeviceMappings` is set to `false`):
@@ -1197,7 +1197,7 @@ To extend this hook with additional resource types whose KMS-related, user-speci
 - if you plan to add hook configuration options:
     - update the [usage](#Usage) and [configuration options](#Configuration-options) sections on this file accordingly, and follow the alphabetical order for entries in [configuration options](#Configuration-options);
     - do the same for the `type_config.json` file, that you can find at the root level of the project;
-- update the content of the template called `integ.yml` in the `test` directory by adding the new resource: follow the alphabetical order of the relevant resource type: assign the logical ID of the resource a name that includes the second and the third segment of the resource type name, without the `::` delimiters and in pascal case (e.g., `S3Bucket` for `AWS::S3::Bucket`).  Resources described in that template are expected to be created successfully: reflect this intent in the template;
+- update the contents of the templates called `integ-succeed.yml` and `integ-fail.yml` in the `test` directory, by adding the new resource: follow the alphabetical order of the relevant resource type: assign the logical ID of the resource a name that includes the second and the third segment of the resource type name, without the `::` delimiters and in pascal case (e.g., `S3Bucket` for `AWS::S3::Bucket`).  Resources described in these templates are expected to be created either successfully or not, respectively: reflect these intents in both templates;
 - update the [example templates](#Example-templates) section on this file accordingly:
     - follow the alphabetical order of the relevant resource type;
     - add both use cases for both _Non-compliant_ and _Compliant_ cases, and add a brief description on why resources will be found to be _Non-compliant_ or _Compliant_;

@@ -1,0 +1,187 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  UseStackName: !Equals
+    - !Ref 'RootStackName'
+    - self
+Description: Root template for DynamoDB tables
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Tagging
+        Parameters:
+          - CostcentreTag
+  Properties:
+    GeneratedOn: '2022-11-12T16:19:17.393411'
+    Version: '0.23.0.a0'
+  Type: ComposeX
+
+Parameters:
+  CostcentreTag:
+    AllowedPattern: '[\x20-\x7E]+'
+    ConstraintDescription: Must be ASCII
+    Default: lambda
+    MaxLength: 128
+    MinLength: 2
+    Type: String
+  RootStackName:
+    Default: self
+    Description: When part of a combined deployment, represents to the top stack name
+    Type: String
+Resources:
+  testTable:
+    Metadata:
+      Properties:
+        Version: '0.23.0.a0'
+        ecs_composex::module: ecs_composex.dynamodb
+      Type: ComposeX
+    Properties:
+      TableName: awscommunityscheduledactiontesttable
+      AttributeDefinitions:
+        - AttributeName: ArtistId
+          AttributeType: S
+        - AttributeName: Concert
+          AttributeType: S
+        - AttributeName: TicketSales
+          AttributeType: S
+      BillingMode: PROVISIONED
+      GlobalSecondaryIndexes:
+        - IndexName: GSI
+          KeySchema:
+            - AttributeName: TicketSales
+              KeyType: HASH
+          Projection:
+            ProjectionType: KEYS_ONLY
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      KeySchema:
+        - AttributeName: ArtistId
+          KeyType: HASH
+        - AttributeName: Concert
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      Tags:
+        - Key: CreatedByComposex
+          Value: true
+        - Key: Name
+          Value: testTable
+        - Key: ResourceName
+          Value: testTable
+        - Key: RootStackName
+          Value: !Ref 'RootStackName'
+        - Key: compose-x::version
+          Value: '0.23.0.a0'
+        - Key: costcentre
+          Value: !Ref 'CostcentreTag'
+    Type: AWS::DynamoDB::Table
+  tableBReadCapacityUnitsIndexGSIScalableTarget:
+    Properties:
+      MaxCapacity: 100
+      MinCapacity: 10
+      ResourceId: !Sub 'table/${testTable}/index/GSI'
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.${AWS::URLSuffix}/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable'
+      ScalableDimension: dynamodb:index:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+  tableBReadCapacityUnitsIndexGSIScalableTargetScalingPolicy:
+    DependsOn:
+      - tableBReadCapacityUnitsIndexGSIScalableTarget
+    Properties:
+      PolicyName: ReadCapacityUnitsAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref 'tableBReadCapacityUnitsIndexGSIScalableTarget'
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBReadCapacityUtilization
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        TargetValue: 70.0
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+  tableBReadCapacityUnitsScalableTarget:
+    Properties:
+      MaxCapacity: 100
+      MinCapacity: 10
+      ResourceId: !Sub 'table/${testTable}'
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.${AWS::URLSuffix}/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable'
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+  tableBReadCapacityUnitsScalableTargetScalingPolicy:
+    DependsOn:
+      - tableBReadCapacityUnitsScalableTarget
+    Properties:
+      PolicyName: ReadCapacityUnitsAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref 'tableBReadCapacityUnitsScalableTarget'
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBReadCapacityUtilization
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        TargetValue: 70.0
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+  tableBWriteCapacityUnitsIndexGSIScalableTarget:
+    Properties:
+      MaxCapacity: 70
+      MinCapacity: 10
+      ResourceId: !Sub 'table/${testTable}/index/GSI'
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.${AWS::URLSuffix}/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable'
+      ScalableDimension: dynamodb:index:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+  tableBWriteCapacityUnitsIndexGSIScalableTargetScalingPolicy:
+    DependsOn:
+      - tableBWriteCapacityUnitsIndexGSIScalableTarget
+    Properties:
+      PolicyName: WriteCapacityUnitsAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref 'tableBWriteCapacityUnitsIndexGSIScalableTarget'
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+        ScaleInCooldown: 120
+        ScaleOutCooldown: 60
+        TargetValue: 70.0
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+  tableBWriteCapacityUnitsScalableTarget:
+    Properties:
+      MaxCapacity: 70
+      MinCapacity: 10
+      ResourceId: !Sub 'table/${testTable}'
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.${AWS::URLSuffix}/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable'
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+  tableBWriteCapacityUnitsScalableTargetScalingPolicy:
+    DependsOn:
+      - tableBWriteCapacityUnitsScalableTarget
+    Properties:
+      PolicyName: WriteCapacityUnitsAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref 'tableBWriteCapacityUnitsScalableTarget'
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+        ScaleInCooldown: 120
+        ScaleOutCooldown: 60
+        TargetValue: 70.0
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+
+  TestScaling:
+    Type: AwsCommunity::ApplicationAutoscaling::ScheduledAction
+    DependsOn:
+      - tableBReadCapacityUnitsScalableTarget
+    Properties:
+      ScheduledActionName: !Sub
+        - '${RESOURCE}_SCALE_OUT'
+        - RESOURCE: !Ref testTable
+      ServiceNamespace: !Select [2, !Split [ "|", !Ref tableBReadCapacityUnitsScalableTarget ]]
+      ScalableDimension: !Select [1, !Split [ "|", !Ref tableBReadCapacityUnitsScalableTarget ]]
+      Schedule: cron(5 2 ? * FRI)
+      ScalableTargetAction:
+        MinCapacity: 1
+        MaxCapacity: 100
+      ResourceId: !Select [0, !Split [ "|", !Ref tableBReadCapacityUnitsScalableTarget ]]

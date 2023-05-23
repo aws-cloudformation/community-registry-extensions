@@ -1,7 +1,7 @@
 {
     "JmesPathQuery": "Tags[?Key=='Owner'&&Value=='contract-test-only-test-team-alpha']",
     "ResourceLookupRoleArn": "{{ResourceLookupRoleArn}}",
-    "LookupSerialNumber": "2",
+    "LookupSerialNumber": "1",
     "Tags": {
         "Environment": "DEV",
         "Name": "Test-only"

@@ -7,9 +7,9 @@ Parameters:
     Description: Name of the environment.
     Type: String
     AllowedValues:
-      - Alpha
-      - Beta
       - dev
+      - alpha
+      - beta
       - prod
     Default: dev
 
