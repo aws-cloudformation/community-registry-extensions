@@ -1518,7 +1518,7 @@ Resources:
                         "value": "resources/S3_BucketNotification"
                       }
                     ]
-                RunOrder: 1
+                RunOrder: 2
               - !Ref AWS::NoValue
                 #            - Name: CloudFrontWebAclAssociation
                 #              InputArtifacts:
@@ -1538,7 +1538,7 @@ Resources:
                 #                      "value": "resources/CloudFront_WebACLAssociation"
                 #                    }
                 #                  ]
-                #              RunOrder: 1
+                #              RunOrder: 2
             - Name: S3DeleteBucketContents
               InputArtifacts:
                 - Name: extensions-source
@@ -1557,7 +1557,7 @@ Resources:
                       "value": "resources/S3_DeleteBucketContents"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: ResourceLookup
               InputArtifacts:
                 - Name: extensions-source
@@ -1576,7 +1576,7 @@ Resources:
                       "value": "resources/Resource_Lookup"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: DynamoDBItem
               InputArtifacts:
                 - Name: extensions-source
@@ -1600,7 +1600,7 @@ Resources:
                       "value": "resources/DynamoDB_Item"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: TimeStatic
               InputArtifacts:
                 - Name: extensions-source
@@ -1624,7 +1624,7 @@ Resources:
                       "value": "resources/Time_Static"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: TimeSleep
               InputArtifacts:
                 - Name: extensions-source
@@ -1648,7 +1648,7 @@ Resources:
                       "value": "resources/Time_Sleep"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: TimeOffset
               InputArtifacts:
                 - Name: extensions-source
@@ -1672,7 +1672,7 @@ Resources:
                       "value": "resources/Time_Offset"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: Account_AlternateContact
               InputArtifacts:
                 - Name: extensions-source
@@ -1691,7 +1691,7 @@ Resources:
                       "value": "resources/Account_AlternateContact"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: S3BucketModule
               InputArtifacts:
                 - Name: extensions-source
@@ -1710,7 +1710,7 @@ Resources:
                       "value": "modules/S3_Bucket"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: CloudFrontS3Website
               InputArtifacts:
                 - Name: extensions-source
@@ -1729,7 +1729,7 @@ Resources:
                       "value": "modules/CloudFront_S3Website"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: S3BucketVersioningEnabled
               InputArtifacts:
                 - Name: extensions-source
@@ -1748,7 +1748,7 @@ Resources:
                       "value": "hooks/S3_BucketVersioningEnabled"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 3
             - Name: HookEC2SecurityGroupRestrictedSSH
               InputArtifacts:
                 - Name: extensions-source
@@ -1767,7 +1767,7 @@ Resources:
                       "value": "hooks/EC2_SecurityGroupRestrictedSSH"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 3
             - Name: HookS3PublicAccessControlsRestricted
               InputArtifacts:
                 - Name: extensions-source
@@ -1786,7 +1786,7 @@ Resources:
                       "value": "hooks/S3_PublicAccessControlsRestricted"
                     }
                   ]
-              RunOrder: 3
+              RunOrder: 4
             - Name: KMSEncryptionSettings
               InputArtifacts:
                 - Name: extensions-source
@@ -1805,7 +1805,7 @@ Resources:
                       "value": "hooks/KMS_EncryptionSettings"
                     }
                   ]
-              RunOrder: 3
+              RunOrder: 4
             - Name: ApplicationAutoscalingScheduledAction
               InputArtifacts:
                 - Name: extensions-source
@@ -1863,7 +1863,7 @@ Resources:
                 #                      "value": "hooks/CloudFront_LoggingEnabled"
                 #                    }
                 #                  ]
-                #              RunOrder: 1
+                #              RunOrder: 2
 
   PublishBuildBucketRole:
     Type: AWS::IAM::Role
