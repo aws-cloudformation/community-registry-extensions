@@ -1,7 +1,8 @@
+"Handlers for the Application Autoscaling Scheduled Action extension"
+#pylint:disable=W0613
 from __future__ import annotations
 
 import logging
-import sys
 from typing import Any, MutableMapping, Optional, Union
 
 from cloudformation_cli_python_lib import (
@@ -11,8 +12,6 @@ from cloudformation_cli_python_lib import (
     ProgressEvent,
     Resource,
     SessionProxy,
-    exceptions,
-    identifier_utils,
 )
 from dateutil import parser
 from dateutil.parser import ParserError
@@ -28,6 +27,7 @@ test_entrypoint = resource.test_entrypoint
 
 
 def rule_exists(session: SessionProxy, model) -> Union[dict, None]:
+    "Check if a rule exists"
     if not model:
         return None
     exists_query_r = session.client(
@@ -45,6 +45,7 @@ def rule_exists(session: SessionProxy, model) -> Union[dict, None]:
 
 
 def define_scalable_target_action(model) -> dict:
+    "Configure the scalable target action"
     action: dict = {
         "ScheduledActionName": model.ScheduledActionName,
         "ServiceNamespace": model.ServiceNamespace,
@@ -78,6 +79,7 @@ def define_scalable_target_action(model) -> dict:
 def must_exist(
     session: SessionProxy, model, progress: ProgressEvent, context: str
 ) -> Union[ProgressEvent, None]:
+    "Check to make sure a rule exists"
     if not model:
         return None
     try:
@@ -90,7 +92,7 @@ def must_exist(
             )
             return progress
     except Exception as error:
-        LOG.error(f"{context} pre-validation error")
+        LOG.error("%s pre-validation error", context)
         LOG.exception(error)
         return ProgressEvent(
             status=OperationStatus.FAILED,
@@ -106,6 +108,7 @@ def create_handler(
     request: ResourceHandlerRequest,
     callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
+    "Create handler"
     model = request.desiredResourceState
     progress: ProgressEvent = ProgressEvent(
         status=OperationStatus.IN_PROGRESS,
@@ -120,7 +123,8 @@ def create_handler(
                 f"Scheduled Action {model.ScheduledActionName} already exists for"
                 f" {model.ServiceNamespace}|{model.ResourceId}"
             )
-            LOG.debug("Rule {} already exists".format(model.ScheduledActionName))
+            msg = f"Rule {model.ScheduledActionName} already exists"
+            LOG.debug(msg)
             return progress
     except Exception as error:
         LOG.error("pre-create validation error")
@@ -132,7 +136,8 @@ def create_handler(
         )
     try:
         kwargs = define_scalable_target_action(model)
-        LOG.debug("API Args: {}".format(kwargs))
+        msg = f"API Args: {kwargs}"
+        LOG.debug(msg)
         application_autoscaling_client.put_scheduled_action(**kwargs)
         resource_r = rule_exists(session, model)
         primary_identifier = resource_r["ScheduledActionARN"]
@@ -148,7 +153,8 @@ def create_handler(
             status=OperationStatus.FAILED,
             errorCode=HandlerErrorCode.NotFound,
             message=(
-                f"Scalable target {model.ResourceId}|{model.ScalableDimension}|{model.ServiceNamespace} not found"
+                f"Scalable target {model.ResourceId}|{model.ScalableDimension}"+\
+                f"|{model.ServiceNamespace} not found"
             ),
         )
     except Exception as error:
@@ -167,6 +173,7 @@ def update_handler(
     request: ResourceHandlerRequest,
     callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
+    "Update handler"
     model = request.desiredResourceState
     progress: ProgressEvent = ProgressEvent(
         status=OperationStatus.IN_PROGRESS,
@@ -198,6 +205,7 @@ def delete_handler(
     request: ResourceHandlerRequest,
     callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
+    "Delete handler"
     model = request.desiredResourceState
     progress: ProgressEvent = ProgressEvent(
         status=OperationStatus.IN_PROGRESS,
@@ -233,6 +241,7 @@ def read_handler(
     request: ResourceHandlerRequest,
     callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
+    "Read handler"
     model = request.desiredResourceState
     progress = ProgressEvent(status=OperationStatus.IN_PROGRESS, resourceModel=model)
     cannot_proceed = must_exist(session, model, progress, "Read")
@@ -250,6 +259,7 @@ def list_handler(
     request: ResourceHandlerRequest,
     callback_context: MutableMapping[str, Any],
 ) -> ProgressEvent:
+    "List handler"
     return ProgressEvent(
         status=OperationStatus.SUCCESS,
         resourceModels=[],
