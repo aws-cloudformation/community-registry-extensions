@@ -850,6 +850,7 @@ Resources:
               - application-autoscaling:DeleteScheduledAction
               - application-autoscaling:DescribeScheduledActions
               - application-autoscaling:PutScheduledAction
+              - application-autoscaling:DescribeScalableTargets
             Effect: Allow
             Resource: "*"
           - Action:
