@@ -1,5 +1,8 @@
 Resources:
-  Time:
-    Type: AwsCommunity::Time::Static
-    Properties:
-      Time: "2023-03-31T18:51:56Z"
+    Time:
+        Type: AwsCommunity::Time::Static
+        Properties:
+            Time: "2023-03-31T18:51:56Z"
+Outputs:
+    Time:
+        Value: !GetAtt Time.Utc
