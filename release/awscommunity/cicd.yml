@@ -1822,7 +1822,7 @@ Resources:
                       "value": "resources/ApplicationAutoscaling_ScheduledAction"
                     }
                   ]
-              RunOrder: 3
+              RunOrder: 1
         - !If
           - IsBeta
           - Name: CopyBuildToProd
