@@ -15,7 +15,7 @@
         "endpoint_url": null,
         "region": null,
         "target_schemas": [],
-        "use_docker": false,
+        "use_docker": true,
         "protocolVersion": "2.0.0"
     }
 }

@@ -283,6 +283,19 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  ApplicationAutoscalingScheduledActionBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   S3BucketNotificationBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -817,6 +830,33 @@ Resources:
       Roles:
         - !Ref KMSEncryptionSettingsBuildProjectRole
 
+  ApplicationAutoscalingScheduledActionBuildProjectRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt ApplicationAutoscalingScheduledActionBuildProject.Arn
+          - Action:
+              - application-autoscaling:DeleteScheduledAction
+              - application-autoscaling:DescribeScheduledActions
+              - application-autoscaling:PutScheduledAction
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: application-autoscaling-scheduledaction-build-project-policy
+      Roles:
+        - !Ref ApplicationAutoscalingScheduledActionBuildProjectRole
+
   S3BucketNotificationBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -1240,6 +1280,28 @@ Resources:
         BuildSpec: !Sub "hooks/${Env}-buildspec-java.yml"
       TimeoutInMinutes: 480
 
+  ApplicationAutoscalingScheduledActionBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-app-autosc-sched"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt ApplicationAutoscalingScheduledActionBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+      TimeoutInMinutes: 480
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -1318,6 +1380,7 @@ Resources:
               - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
               - !GetAtt AlternateContactBuildProject.Arn
               - !GetAtt KMSEncryptionSettingsBuildProject.Arn
+              - !GetAtt ApplicationAutoscalingScheduledActionBuildProject.Arn
           - Action:
               - kms:*
             Effect: Allow
@@ -1387,6 +1450,7 @@ Resources:
                 - !GetAtt S3BucketModuleBuildProjectRole.Arn
                 - !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
                 - !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
+                - !GetAtt ApplicationAutoscalingScheduledActionBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -1737,6 +1801,25 @@ Resources:
                       "name": "HOOK_PATH",
                       "type": "PLAINTEXT",
                       "value": "hooks/KMS_EncryptionSettings"
+                    }
+                  ]
+              RunOrder: 3
+            - Name: ApplicationAutoscalingScheduledAction
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref ApplicationAutoscalingScheduledActionBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/ApplicationAutoscaling_ScheduledAction"
                     }
                   ]
               RunOrder: 3
