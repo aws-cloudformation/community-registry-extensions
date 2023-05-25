@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -23,6 +22,7 @@ func buildSsmParameterString(model *Model) string {
 
 // Create handles the Create event from the Cloudformation service.
 func Create(req handler.Request, _ *Model, currentModel *Model) (handler.ProgressEvent, error) {
+
 	// If Time isn't specified we use now
 	if currentModel.Time == nil {
 		now := timeToString(time.Now())
@@ -65,10 +65,11 @@ func Create(req handler.Request, _ *Model, currentModel *Model) (handler.Progres
 
 // Read handles the Read event from the Cloudformation service.
 func Read(req handler.Request, prevModel *Model, currentModel *Model) (handler.ProgressEvent, error) {
+
 	// See if the SSM parameter exists to determine if the resource exists
 	ssmParameter := buildSsmParameterString(currentModel)
 	svc := ssm.New(req.Session)
-	t, err := svc.GetParameter(&ssm.GetParameterInput{
+	p, err := svc.GetParameter(&ssm.GetParameterInput{
 		Name: &ssmParameter,
 	})
 
@@ -81,7 +82,7 @@ func Read(req handler.Request, prevModel *Model, currentModel *Model) (handler.P
 	}
 
 	// convert a timestamp into the model so we have all the attributes
-	err = json.Unmarshal([]byte(*t.Parameter.Value), currentModel)
+	err = json.Unmarshal([]byte(*p.Parameter.Value), currentModel)
 	if err != nil {
 		return handler.ProgressEvent{
 			OperationStatus:  handler.Failed,
@@ -89,7 +90,6 @@ func Read(req handler.Request, prevModel *Model, currentModel *Model) (handler.P
 			Message:          "Error decoding SSM parameter value",
 		}, nil
 	}
-	timeToModel(currentModel)
 
 	response := handler.ProgressEvent{
 		OperationStatus: handler.Success,
@@ -131,7 +131,7 @@ func Update(req handler.Request, prevModel *Model, currentModel *Model) (handler
 
 // Delete handles the Delete event from the Cloudformation service.
 func Delete(req handler.Request, prevModel *Model, currentModel *Model) (handler.ProgressEvent, error) {
-	log.Println("Start Delete")
+
 	// See if the SSM parameter exists to determine if the resource exists
 	ssmParameter := buildSsmParameterString(currentModel)
 	svc := ssm.New(req.Session)
@@ -190,8 +190,6 @@ func timeToModel(m *Model) error {
 	m.Second = &second
 	m.Unix = &unix
 	m.Year = &year
-
-	log.Printf("%+v", m)
 
 	return nil
 }
