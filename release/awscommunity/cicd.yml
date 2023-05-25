@@ -847,10 +847,7 @@ Resources:
             Resource:
               - !GetAtt ApplicationAutoscalingScheduledActionBuildProject.Arn
           - Action:
-              - application-autoscaling:DeleteScheduledAction
-              - application-autoscaling:DescribeScheduledActions
-              - application-autoscaling:PutScheduledAction
-              - application-autoscaling:DescribeScalableTargets
+              - application-autoscaling:*
             Effect: Allow
             Resource: "*"
           - Action:
