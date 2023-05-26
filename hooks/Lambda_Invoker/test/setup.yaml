@@ -2,6 +2,7 @@ Parameters:
 
   Env:
     Type: String
+    Default: alpha
 
 Resources:
 

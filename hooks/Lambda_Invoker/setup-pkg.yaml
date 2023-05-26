@@ -111,7 +111,7 @@ Resources:
       Runtime: python3.9
       Code:
         S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: b641a2e2c49bcfbf49b53ab4beefec5f0fac221823b71c0d290606c91f6bf201
+        S3Key: 76955422f147424fc95e278b9f47c3832600c50b539014945f0f915a26288938
       Role: !GetAtt RegistrationLambdaRole.Arn
       Handler: handler.handler
 
@@ -119,8 +119,9 @@ Resources:
     Type: AWS::CloudFormation::CustomResource
     Properties:
       ServiceToken: !GetAtt RegistrationLambda.Arn
-      RegistrationTable: !GetAtt RegistrationTable.Arn
+      RegistrationTableArn: !GetAtt RegistrationTable.Arn
       FunctionArn: !GetAtt ComplianceLambda1.Arn
+      Serial: 2
 
 Outputs:
   RegistrationTable:
