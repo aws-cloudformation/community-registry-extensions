@@ -1,5 +1,5 @@
 "This custom resource lambda is used from setup.yaml to register a sample Lambda"
-
+#pylint:disable=W0613
 import boto3
 from crhelper import CfnResource
 
@@ -7,7 +7,7 @@ helper = CfnResource()
 
 @helper.create
 @helper.update
-def create_reg(event, _):
+def create_reg(event, context):
     "Create the registration entry in the table"
     print("create_reg called")
     print(event)
@@ -28,7 +28,7 @@ def create_reg(event, _):
 
 
 @helper.delete
-def delete_reg(_, __):
+def delete_reg(event, context):
     "Delete the registration entry from the table"
     print("delete_reg called")
 

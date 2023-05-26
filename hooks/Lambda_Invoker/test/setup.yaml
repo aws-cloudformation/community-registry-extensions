@@ -66,7 +66,7 @@ Resources:
       Code:
         ZipFile: |
           import boto3
-          def handler(event):
+          def handler(event, context):
             print('ComplianceLambda1 was invoked')
             print(event)
     
@@ -118,7 +118,7 @@ Resources:
       FunctionName: !Sub "cep-lambda-invoker-reg-${Env}-${AWS::Region}-${AWS::AccountId}"
       Runtime: python3.9
       Code: !Rain::S3 
-        Path: registration 
+        Path: ../registration 
         Zip: true
         BucketProperty: S3Bucket
         KeyProperty: S3Key

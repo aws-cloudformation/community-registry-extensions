@@ -1,8 +1,9 @@
 "Handler functions for the Lambda Invoker hook"
 #pylint:disable=W0613
+
 import logging
-import json
 import traceback
+
 from cloudformation_cli_python_lib import (
     HandlerErrorCode,
     Hook,
@@ -14,7 +15,7 @@ from cloudformation_cli_python_lib import (
 )
 
 from .models import TypeConfigurationModel
-from invoker import invoke_lambdas
+from .invoker import invoke_lambdas
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -28,6 +29,7 @@ test_entrypoint = hook.test_entrypoint
 def pre_create_handler(session, request, callback_context, type_configuration):
     "Called before creating a resource"
     target_model = request.hookContext.targetModel
+    target_name = request.hookContext.targetName
     progress = ProgressEvent(status=OperationStatus.IN_PROGRESS)
 
     try:
@@ -46,8 +48,12 @@ def pre_create_handler(session, request, callback_context, type_configuration):
             logger.debug("table_arn: %s", table_arn)
             table_name = table_arn.split(":table/")[1]
             logger.debug("table_name: %s", table_name)
+            target = {
+                "resource_name": target_name, 
+                "resource_properties": resource_properties
+            }
+            logger.debug("target: %s", target)
 
-            target = json.dumps(dict(target_model))
             errs = invoke_lambdas(ddb, lam, target, logger, table_name)
             
             # If anything failed, append all error messages to the progress event message

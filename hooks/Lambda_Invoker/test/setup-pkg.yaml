@@ -1,6 +1,7 @@
 Parameters:
   Env:
     Type: String
+    Default: alpha
 
 Resources:
   RegistrationTable:
@@ -111,7 +112,7 @@ Resources:
       Runtime: python3.9
       Code:
         S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 76955422f147424fc95e278b9f47c3832600c50b539014945f0f915a26288938
+        S3Key: 7d2d5dd8cd41e182cdbfd0ca99d463a7709fcc3a65e62b196d00f6edcfc40b9a
       Role: !GetAtt RegistrationLambdaRole.Arn
       Handler: handler.handler
 
