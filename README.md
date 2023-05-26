@@ -39,6 +39,7 @@ first be activated using the instructions
 |Name|Type|Version|Description|
 |----|----|-------|-----------|
 |[AwsCommunity::Account::AlternateContact](./resources/Account_AlternateContact)|Resource|Prod|An alternate contact attached to an Amazon Web Services account|
+|[AwsCommunity::ApplicationAutoscaling::ScheduledAction](./resources/ApplicationAutoscaling_ScheduledAction)|Resource|Prod|Application Autoscaling Scheduled Action|
 |[AwsCommunity::CloudFront::LoggingEnabled](./hooks/CloudFront_LoggingEnabled)|Hook|Alpha|Validate that a CloudFront distribution has logging enabled|
 |[AwsCommunity::CloudFront::S3Website::MODULE](./modules/CloudFront_S3Website/)|Module|Prod|CloudFront backed by an S3 bucket with Route53 integration|
 |[AwsCommunity::DynamoDB::Item](./resources/DynamoDB_Item)|Resource|Prod|Manage the lifecycle of items in a DynamoDB table|

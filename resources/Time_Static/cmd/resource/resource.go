@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -36,13 +37,15 @@ func Create(req handler.Request, _ *Model, currentModel *Model) (handler.Progres
 	// Save the unique identifier in SSM if it exists its a duplicate
 	ssmParameter := buildSsmParameterString(currentModel)
 	svc := ssm.New(req.Session)
+	jsonData, _ := json.Marshal(currentModel)
 	_, err := svc.PutParameter(&ssm.PutParameterInput{
 		Name:      &ssmParameter,
-		Value:     &id,
+		Value:     aws.String(string(jsonData)),
 		Overwrite: aws.Bool(false),
 		Tier:      aws.String("Standard"),
 		Type:      aws.String("String"),
 	})
+
 	if err != nil {
 		return handler.ProgressEvent{
 			OperationStatus:  handler.Failed,
@@ -66,9 +69,10 @@ func Read(req handler.Request, prevModel *Model, currentModel *Model) (handler.P
 	// See if the SSM parameter exists to determine if the resource exists
 	ssmParameter := buildSsmParameterString(currentModel)
 	svc := ssm.New(req.Session)
-	_, err := svc.GetParameter(&ssm.GetParameterInput{
+	p, err := svc.GetParameter(&ssm.GetParameterInput{
 		Name: &ssmParameter,
 	})
+
 	if err != nil {
 		return handler.ProgressEvent{
 			OperationStatus:  handler.Failed,
@@ -78,7 +82,14 @@ func Read(req handler.Request, prevModel *Model, currentModel *Model) (handler.P
 	}
 
 	// convert a timestamp into the model so we have all the attributes
-	timeToModel(currentModel)
+	err = json.Unmarshal([]byte(*p.Parameter.Value), currentModel)
+	if err != nil {
+		return handler.ProgressEvent{
+			OperationStatus:  handler.Failed,
+			HandlerErrorCode: cloudformation.HandlerErrorCodeInternalFailure,
+			Message:          "Error decoding SSM parameter value",
+		}, nil
+	}
 
 	response := handler.ProgressEvent{
 		OperationStatus: handler.Success,
