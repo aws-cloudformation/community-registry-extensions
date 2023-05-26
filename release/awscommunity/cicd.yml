@@ -825,6 +825,12 @@ Resources:
               - iam:UpdateRole
               - iam:UpdateRoleDescription
             Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/TrailS3Cleanup-integ-*-awscommunity-kms-encryptionsettings'
+          - Effect: Allow
+            Action: 
+              - iam:CreateServiceLinkedRole
+              - iam:DeleteServiceLinkedRole
+              - iam:GetServiceLinkedRoleDeletionStatus
+            Resource: "*"
         Version: '2012-10-17'
       PolicyName: kms-encryptionsettings-build-project-policy
       Roles:
@@ -854,6 +860,10 @@ Resources:
               - dynamodb:*
             Effect: Allow
             Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/awscommunityscheduledactiontesttable"
+          - Action: 
+              - iam:CreateServiceLinkedRole
+            Effect: Allow
+            Resource: "*"
         Version: '2012-10-17'
       PolicyName: application-autoscaling-scheduledaction-build-project-policy
       Roles:
