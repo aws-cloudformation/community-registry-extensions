@@ -283,6 +283,19 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  ApplicationAutoscalingScheduledActionBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   S3BucketNotificationBuildProjectPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -812,10 +825,49 @@ Resources:
               - iam:UpdateRole
               - iam:UpdateRoleDescription
             Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/TrailS3Cleanup-integ-*-awscommunity-kms-encryptionsettings'
+          - Effect: Allow
+            Action: 
+              - iam:CreateServiceLinkedRole
+              - iam:DeleteServiceLinkedRole
+              - iam:GetServiceLinkedRoleDeletionStatus
+            Resource: "*"
         Version: '2012-10-17'
       PolicyName: kms-encryptionsettings-build-project-policy
       Roles:
         - !Ref KMSEncryptionSettingsBuildProjectRole
+
+  ApplicationAutoscalingScheduledActionBuildProjectRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt ApplicationAutoscalingScheduledActionBuildProject.Arn
+          - Action:
+              - application-autoscaling:*
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - dynamodb:*
+            Effect: Allow
+            Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/awscommunityscheduledactiontesttable"
+          - Action: 
+              - iam:CreateServiceLinkedRole
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: application-autoscaling-scheduledaction-build-project-policy
+      Roles:
+        - !Ref ApplicationAutoscalingScheduledActionBuildProjectRole
 
   S3BucketNotificationBuildProject:
     Type: AWS::CodeBuild::Project
@@ -1240,6 +1292,28 @@ Resources:
         BuildSpec: !Sub "hooks/${Env}-buildspec-java.yml"
       TimeoutInMinutes: 480
 
+  ApplicationAutoscalingScheduledActionBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-app-autosc-sched"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: RESOURCE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-resource"
+      ServiceRole: !GetAtt ApplicationAutoscalingScheduledActionBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "resources/${Env}-buildspec-python.yml"
+      TimeoutInMinutes: 480
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -1318,6 +1392,7 @@ Resources:
               - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
               - !GetAtt AlternateContactBuildProject.Arn
               - !GetAtt KMSEncryptionSettingsBuildProject.Arn
+              - !GetAtt ApplicationAutoscalingScheduledActionBuildProject.Arn
           - Action:
               - kms:*
             Effect: Allow
@@ -1387,6 +1462,7 @@ Resources:
                 - !GetAtt S3BucketModuleBuildProjectRole.Arn
                 - !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
                 - !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
+                - !GetAtt ApplicationAutoscalingScheduledActionBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -1452,7 +1528,7 @@ Resources:
                         "value": "resources/S3_BucketNotification"
                       }
                     ]
-                RunOrder: 1
+                RunOrder: 2
               - !Ref AWS::NoValue
                 #            - Name: CloudFrontWebAclAssociation
                 #              InputArtifacts:
@@ -1472,7 +1548,7 @@ Resources:
                 #                      "value": "resources/CloudFront_WebACLAssociation"
                 #                    }
                 #                  ]
-                #              RunOrder: 1
+                #              RunOrder: 2
             - Name: S3DeleteBucketContents
               InputArtifacts:
                 - Name: extensions-source
@@ -1491,7 +1567,7 @@ Resources:
                       "value": "resources/S3_DeleteBucketContents"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: ResourceLookup
               InputArtifacts:
                 - Name: extensions-source
@@ -1510,7 +1586,7 @@ Resources:
                       "value": "resources/Resource_Lookup"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: DynamoDBItem
               InputArtifacts:
                 - Name: extensions-source
@@ -1534,7 +1610,7 @@ Resources:
                       "value": "resources/DynamoDB_Item"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: TimeStatic
               InputArtifacts:
                 - Name: extensions-source
@@ -1558,7 +1634,7 @@ Resources:
                       "value": "resources/Time_Static"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: TimeSleep
               InputArtifacts:
                 - Name: extensions-source
@@ -1582,7 +1658,7 @@ Resources:
                       "value": "resources/Time_Sleep"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: TimeOffset
               InputArtifacts:
                 - Name: extensions-source
@@ -1606,7 +1682,7 @@ Resources:
                       "value": "resources/Time_Offset"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: Account_AlternateContact
               InputArtifacts:
                 - Name: extensions-source
@@ -1625,7 +1701,7 @@ Resources:
                       "value": "resources/Account_AlternateContact"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: S3BucketModule
               InputArtifacts:
                 - Name: extensions-source
@@ -1644,7 +1720,7 @@ Resources:
                       "value": "modules/S3_Bucket"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: CloudFrontS3Website
               InputArtifacts:
                 - Name: extensions-source
@@ -1663,7 +1739,7 @@ Resources:
                       "value": "modules/CloudFront_S3Website"
                     }
                   ]
-              RunOrder: 1
+              RunOrder: 2
             - Name: S3BucketVersioningEnabled
               InputArtifacts:
                 - Name: extensions-source
@@ -1682,7 +1758,7 @@ Resources:
                       "value": "hooks/S3_BucketVersioningEnabled"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 3
             - Name: HookEC2SecurityGroupRestrictedSSH
               InputArtifacts:
                 - Name: extensions-source
@@ -1701,7 +1777,7 @@ Resources:
                       "value": "hooks/EC2_SecurityGroupRestrictedSSH"
                     }
                   ]
-              RunOrder: 2
+              RunOrder: 3
             - Name: HookS3PublicAccessControlsRestricted
               InputArtifacts:
                 - Name: extensions-source
@@ -1720,7 +1796,7 @@ Resources:
                       "value": "hooks/S3_PublicAccessControlsRestricted"
                     }
                   ]
-              RunOrder: 3
+              RunOrder: 4
             - Name: KMSEncryptionSettings
               InputArtifacts:
                 - Name: extensions-source
@@ -1739,7 +1815,26 @@ Resources:
                       "value": "hooks/KMS_EncryptionSettings"
                     }
                   ]
-              RunOrder: 3
+              RunOrder: 4
+            - Name: ApplicationAutoscalingScheduledAction
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref ApplicationAutoscalingScheduledActionBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "resources/ApplicationAutoscaling_ScheduledAction"
+                    }
+                  ]
+              RunOrder: 1
         - !If
           - IsBeta
           - Name: CopyBuildToProd
@@ -1778,7 +1873,7 @@ Resources:
                 #                      "value": "hooks/CloudFront_LoggingEnabled"
                 #                    }
                 #                  ]
-                #              RunOrder: 1
+                #              RunOrder: 2
 
   PublishBuildBucketRole:
     Type: AWS::IAM::Role
