@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: AWS CloudFormation template to resize EBS volume.
+Description: AWS SSM Document to resize EBS volumes and grow the filesystem on them.
 Parameters:
   DocumentName:
     Type: String
