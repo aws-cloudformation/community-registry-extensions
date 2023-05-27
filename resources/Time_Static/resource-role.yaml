@@ -33,7 +33,7 @@ Resources:
                 - "ssm:DeleteParameter"
                 - "ssm:GetParameter"
                 - "ssm:PutParameter"
-                Resource: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/CloudFormation/AwsCommunity/Time/Static/*"
+                Resource: "*"
 Outputs:
   ExecutionRoleArn:
     Value:
