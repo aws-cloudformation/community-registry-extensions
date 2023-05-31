@@ -16,6 +16,7 @@
         "region": null,
         "target_schemas": [],
         "import_path": "github.com/aws-cloudformation/awscommunity-registry-extensions/resources/Time_Offset",
-        "protocolVersion": "2.0.0"
+        "protocolVersion": "2.0.0",
+        "pluginVersion": "2.0.4"
     }
 }
