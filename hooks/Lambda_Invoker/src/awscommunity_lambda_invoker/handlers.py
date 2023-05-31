@@ -41,8 +41,6 @@ def pre_create_handler(session, request, callback_context, type_configuration):
             ddb = session.client("dynamodb")
             lam = session.client("lambda")
 
-            # TODO
-
             logger.debug("About to query DDB for all Lambda Arns")
             table_arn = type_configuration.RegistrationTableArn
             logger.debug("table_arn: %s", table_arn)

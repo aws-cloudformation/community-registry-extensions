@@ -27,12 +27,21 @@ def invoke_lambdas(ddb, lam, target, logger, table_name):
     errs = []
     for arn in lambda_arns:
         try:
-            lam.invoke(
+            resp = lam.invoke(
                 FunctionName=arn.split(":function:")[1],
                 Payload=json.dumps(target),
             )
+            print(resp)
+            # The invoke function returns 200 if the code raises an exception
+            if resp["FunctionError"]:
+                payload = resp["Payload"]
+                j = json.loads(payload.read().decode("utf-8"))
+                print(j)
+                errs.append(j["errorMessage"])
         except Exception as lamex:
+            # This indicates a system error, not a compliance check error
             errs.append(str(lamex))
+    print("About to return errs:", errs)
     return errs
 
 
@@ -48,6 +57,7 @@ def main():
     with open("../../inputs/inputs_1_pre_create.json", "r", encoding="UTF-8") as f:
         targets = json.load(f)
     name = "AWS::S3::AccessPoint"
+    print("About to test ", name)
     target_props = targets[name]["resourceProperties"]
     target = {
         "resource_name": name,
@@ -58,7 +68,19 @@ def main():
         for err in errs:
             print(err)
     else:
-        print("Success")
+        print("Success for type:", name)
+
+    print("About to test failure case")
+    target = {
+        "resource_name": "TEST::TEST::FAIL",
+        "resource_properties": {}
+    }
+    errs = invoke_lambdas(ddb, lam, target, logger, os.environ["DDB_TABLE_NAME"])
+    if errs:
+        for err in errs:
+            print(err)
+    else:
+        print("Success for FAIL case")
 
 
 if __name__ == "__main__":

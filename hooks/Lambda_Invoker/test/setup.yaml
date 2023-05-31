@@ -69,6 +69,8 @@ Resources:
           def handler(event, context):
             print('ComplianceLambda1 was invoked')
             print(event)
+            if event["resource_name"] == "TEST::TEST::FAIL":
+              raise Exception("Failed")
     
   RegistrationLambdaRole:
     Type: AWS::IAM::Role
