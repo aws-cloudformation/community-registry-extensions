@@ -71,6 +71,8 @@ Resources:
             print(event)
             if event["resource_name"] == "TEST::TEST::FAIL":
               raise Exception("Failed")
+            if "FAIL" in event["resource_properties"]:
+              raise Exception("Resource failed")
     
   RegistrationLambdaRole:
     Type: AWS::IAM::Role

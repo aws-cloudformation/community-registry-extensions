@@ -33,13 +33,14 @@ def invoke_lambdas(ddb, lam, target, logger, table_name):
             )
             print(resp)
             # The invoke function returns 200 if the code raises an exception
-            if resp["FunctionError"]:
+            if "FunctionError" in resp and resp["FunctionError"]:
                 payload = resp["Payload"]
                 j = json.loads(payload.read().decode("utf-8"))
                 print(j)
                 errs.append(j["errorMessage"])
         except Exception as lamex:
             # This indicates a system error, not a compliance check error
+            print("Caught lamex:", str(lamex))
             errs.append(str(lamex))
     print("About to return errs:", errs)
     return errs
