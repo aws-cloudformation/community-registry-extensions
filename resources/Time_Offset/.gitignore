@@ -15,3 +15,5 @@ vender/
 sam-tests/
 .hypothesis/
 /awscommunity-time-offset.zip
+
+.venv

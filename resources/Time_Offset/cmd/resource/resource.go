@@ -146,13 +146,31 @@ func Update(req handler.Request, prevModel *Model, currentModel *Model) (handler
 		return handler.ProgressEvent{
 			OperationStatus:  handler.Failed,
 			Message:          err.Error(),
-			HandlerErrorCode: cloudformation.HandlerErrorCodeAlreadyExists,
+			HandlerErrorCode: cloudformation.HandlerErrorCodeInternalFailure,
 			ResourceModel:    nil,
 		}, nil
 	}
 
 	// convert a timestamp into the model so we have all the attributes
 	timeToModel(currentModel, t)
+
+	// Save the unique identifier in SSM if it exists its a duplicate
+	jsonData, _ := json.Marshal(currentModel)
+	_, err = svc.PutParameter(&ssm.PutParameterInput{
+		Name:      &ssmParameter,
+		Value:     aws.String(string(jsonData)),
+		Overwrite: aws.Bool(true),
+		Tier:      aws.String("Standard"),
+		Type:      aws.String("String"),
+	})
+	if err != nil {
+		return handler.ProgressEvent{
+			OperationStatus:  handler.Failed,
+			Message:          err.Error(),
+			HandlerErrorCode: cloudformation.HandlerErrorCodeInternalFailure,
+			ResourceModel:    nil,
+		}, nil
+	}
 
 	response := handler.ProgressEvent{
 		OperationStatus: handler.Success,
