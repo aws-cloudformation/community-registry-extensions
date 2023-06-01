@@ -872,7 +872,7 @@ Resources:
           - Action:
               - dynamodb:*
             Effect: Allow
-            Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/awscommunityscheduledactiontesttable"
+            Resource: !Sub "arn:aws:dynamodb:*:${AWS::AccountId}:table/awscommunityscheduledactiontesttable"
           - Action: 
               - iam:CreateServiceLinkedRole
             Effect: Allow
