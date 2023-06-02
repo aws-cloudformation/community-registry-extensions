@@ -51,10 +51,6 @@ Resources:
             Effect: Allow
             Resource: "*"
           - Action:
-              - ssm:*
-            Effect: Allow
-            Resource: "*"
-          - Action:
               - kms:CreateKey
               - kms:DeleteKey
               - kms:Create*

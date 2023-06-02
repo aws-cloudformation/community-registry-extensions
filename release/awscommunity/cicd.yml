@@ -512,6 +512,35 @@ Resources:
       PolicyName: cloudfront-s3-website-build-project-policy
       Roles:
         - !Ref CloudFrontS3WebsiteModuleBuildProjectRole
+  
+  SSMDocumentEBSVolumeBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: 
+            - ssm:ListDocuments
+            - ssm:ListDocumentVersions
+            - ssm:DescribeDocument
+            - ssm:DeleteDocument
+            - ssm:GetDocument
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - codebuild:StartBuild
+              - codebuild:BatchGetBuilds
+              - codebuild:StopBuild
+              - codebuild:RetryBuild
+              - codebuild:StartBuildBatch
+              - codebuild:RetryBuildBatch
+              - codebuild:StopBuildBatch
+            Effect: Allow
+            Resource:
+              - !GetAtt SSMDocumentEBSVolumeModuleBuildProject.Arn
+        Version: '2012-10-17'
+      PolicyName: ssm-document-ebs-volume-build-project-policy
+      Roles:
+        - !Ref SSMDocumentEBSVolumeModuleBuildProjectRole
 
   TimeStaticBuildProjectRolePolicy:
     Type: AWS::IAM::Policy
