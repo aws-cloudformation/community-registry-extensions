@@ -22,15 +22,29 @@ logger.setLevel(logging.DEBUG)
 
 TYPE_NAME = "AwsCommunity::Lambda::Invoker"
 
+SUPPORTED_PREFIXES = ["AWS::Lambda::", "AWS::S3::"] # TODO - Add the rest
+
 hook = Hook(TYPE_NAME, TypeConfigurationModel)
 test_entrypoint = hook.test_entrypoint
 
-@hook.handler(HookInvocationPoint.CREATE_PRE_PROVISION)
-def pre_create_handler(session, request, callback_context, type_configuration):
-    "Called before creating a resource"
+def _handler(session, request, type_configuration, op):
+    "Handle creates, updates, and deletes"
     target_model = request.hookContext.targetModel
     target_name = request.hookContext.targetName
     progress = ProgressEvent(status=OperationStatus.IN_PROGRESS)
+
+    # Check to make sure we support this type
+    supported = False
+    for s in SUPPORTED_PREFIXES:
+        if target_name.startswith(s):
+            supported = True
+            break
+    if not supported:
+        return ProgressEvent(
+            status=OperationStatus.FAILED,
+            errorCode=HandlerErrorCode.UnsupportedTarget,
+            message=f"Invalid type: {target_name}, "
+        )
 
     try:
         # Read the Resource Hook's target properties
@@ -48,7 +62,8 @@ def pre_create_handler(session, request, callback_context, type_configuration):
             logger.debug("table_name: %s", table_name)
             target = {
                 "resource_name": target_name, 
-                "resource_properties": resource_properties
+                "resource_properties": resource_properties,
+                "operation": op
             }
             logger.debug("target: %s", target)
 
@@ -73,29 +88,21 @@ def pre_create_handler(session, request, callback_context, type_configuration):
 
     return progress
 
+
+@hook.handler(HookInvocationPoint.CREATE_PRE_PROVISION)
+def pre_create_handler(session, request, callback_context, type_configuration):
+    "Called before creating a resource"
+    return _handler(session, request, type_configuration, "create")
+
 @hook.handler(HookInvocationPoint.UPDATE_PRE_PROVISION)
 def pre_update_handler(session, request, callback_context, type_configuration):
     "Called before updating a resource"
-    target_model = request.hookContext.targetModel
-    progress = ProgressEvent(status=OperationStatus.IN_PROGRESS)
-    try:
-        # Read the Resource Hook's target current properties and previous properties
-        resource_properties = target_model.get("resourceProperties")
-        logger.debug(resource_properties)
-        previous_properties = target_model.get("previousResourceProperties")
-        logger.debug(previous_properties)
-
-        progress.status = OperationStatus.SUCCESS
-
-    except Exception as e:
-        return failure(HandlerErrorCode.InternalFailure, str(e), traceback.format_exc())
-
-    return progress
+    return _handler(session, request, type_configuration, "update")
 
 @hook.handler(HookInvocationPoint.DELETE_PRE_PROVISION)
 def pre_delete_handler(session, request, callback_context, type_configuration):
     "Called before deleting a resource"
-    return ProgressEvent(status=OperationStatus.SUCCESS)
+    return _handler(session, request, type_configuration, "delete")
 
 def failure(handler_error_code, error_message, traceback_content):
     "Log an error, and return a ProgressEvent indicating a failure."

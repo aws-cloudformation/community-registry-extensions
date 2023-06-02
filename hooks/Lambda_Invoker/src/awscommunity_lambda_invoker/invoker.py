@@ -22,9 +22,9 @@ def invoke_lambdas(ddb, lam, target, logger, table_name):
 
     logger.debug("Found %s lambda arns", len(lambda_arns))
 
-    # Invoke each Lambda Arn and send in the resource properties
     logger.debug(target)
     errs = []
+    # Invoke each Lambda Arn and send in the resource properties
     for arn in lambda_arns:
         try:
             resp = lam.invoke(
@@ -42,6 +42,7 @@ def invoke_lambdas(ddb, lam, target, logger, table_name):
             # This indicates a system error, not a compliance check error
             print("Caught lamex:", str(lamex))
             errs.append(str(lamex))
+
     print("About to return errs:", errs)
     return errs
 
