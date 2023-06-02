@@ -18,15 +18,11 @@ Resources:
       TableName: !Sub "cep-lambda-invoker-reg-${Env}-${AWS::Region}-${AWS::AccountId}"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: pk
-          AttributeType: S
-        - AttributeName: sk
+        - AttributeName: lambda_arn
           AttributeType: S
       KeySchema:
-        - AttributeName: pk
+        - AttributeName: lambda_arn
           KeyType: HASH
-        - AttributeName: sk
-          KeyType: RANGE
 
   ComplianceLambdaRole:
     Type: AWS::IAM::Role
@@ -116,7 +112,7 @@ Resources:
       Runtime: python3.9
       Code:
         S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: 7d2d5dd8cd41e182cdbfd0ca99d463a7709fcc3a65e62b196d00f6edcfc40b9a
+        S3Key: 148f8a4b60439add66c81edc342cb7771faea25f7e34eb6d18ab8344c798ec97
       Role: !GetAtt RegistrationLambdaRole.Arn
       Handler: handler.handler
 

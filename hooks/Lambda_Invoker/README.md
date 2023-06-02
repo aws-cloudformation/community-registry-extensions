@@ -12,9 +12,7 @@ so that developers catch problems with their templates sooner.
 To use this hook, you must create a DynamoDB table to use for registering your
 compliance Lambda functions. The table can be created with the following
 CloudFormation or manually via the CLI or AWS console. It must have a primary
-key consiting of two attributes, 'pk' and 'sk'. The 'pk' field is the Lambda
-Arn. The 'sk' field is a string used to order the invocation of those
-functions.
+key consiting of one attribute, 'lambda\_arn'.
 
 ```yaml
   RegistrationTable:
@@ -23,18 +21,12 @@ functions.
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - 
-          AttributeName: "pk"
-          AttributeType: "S"
-        - 
-          AttributeName: "sk"
+          AttributeName: "lambda_arn"
           AttributeType: "S"
       KeySchema:
         -
-          AttributeName: "pk"
+          AttributeName: "lambda_arn"
           KeyType: "HASH"
-        -
-          AttributeName: "sk"
-          KeyType: "RANGE"
 ```
 
 The compliance Lambda functions will be invoked with a payload that looks like this:
@@ -44,9 +36,14 @@ The compliance Lambda functions will be invoked with a payload that looks like t
     "resource_name": "AWS::S3::Bucket",
     "resource_properties": {
         "BucketName": "ABC"
-    }
+    }, 
+    "operation": "create|update|delete"
 }
 ```
 
-It's up to you to create and maintain those Lambda functions.
+It's up to you to create and maintain those Lambda functions. If the resource 
+fails your compliance checks, raise an Exception in your Lambda function.
+The Hook will summarize all function errors in the error message returned by 
+CloudFormation when the stack operation fails.
+
 

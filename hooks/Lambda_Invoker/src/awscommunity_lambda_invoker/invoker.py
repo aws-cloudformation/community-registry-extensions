@@ -16,7 +16,7 @@ def invoke_lambdas(ddb, lam, target, logger, table_name):
     resp = ddb.scan(TableName=table_name)
     items = resp["Items"]
     for item in items:
-        lambda_arn = item["pk"]["S"]
+        lambda_arn = item["lambda_arn"]["S"]
         logger.debug(lambda_arn)
         lambda_arns.append(lambda_arn)
 
