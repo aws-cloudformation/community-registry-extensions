@@ -5,22 +5,6 @@
         "Parameters": {
             "type": "object",
             "properties": {
-                "DocumentName": {
-                    "type": "object",
-                    "properties": {
-                        "Type": {
-                            "type": "string"
-                        },
-                        "Description": {
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "Type",
-                        "Description"
-                    ],
-                    "description": "The SSM document name."
-                },
                 "VolumeSize": {
                     "type": "object",
                     "properties": {
