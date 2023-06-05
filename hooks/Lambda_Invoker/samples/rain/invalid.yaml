@@ -1,0 +1,11 @@
+Description: |
+  This template should fail to deploy after installing the compliance checks
+  with `deploy.sh`. 
+
+Resources:
+
+  BadBucket:
+    Type: AWS::S3::Bucket
+    Metadata:
+      Comment: This bucket does not enable version or access logs
+

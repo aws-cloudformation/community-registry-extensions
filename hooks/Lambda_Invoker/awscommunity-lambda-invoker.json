@@ -22,7 +22,7 @@
             "permissions": [
                 "lambda:InvokeFunction", 
                 "dynamodb:GetItem", 
-                "dynamodb:Query"
+                "dynamodb:Scan"
             ]
         },
         "preUpdate": {
@@ -33,7 +33,7 @@
             "permissions": [
                 "lambda:InvokeFunction", 
                 "dynamodb:GetItem", 
-                "dynamodb:Query"
+                "dynamodb:Scan"
             ]
         },
         "preDelete": {
@@ -44,7 +44,7 @@
             "permissions": [
                 "lambda:InvokeFunction", 
                 "dynamodb:GetItem", 
-                "dynamodb:Query"
+                "dynamodb:Scan"
             ]
         }
     },

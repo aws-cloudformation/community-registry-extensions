@@ -33,7 +33,7 @@ Resources:
               - Effect: Allow
                 Action:
                 - "dynamodb:GetItem"
-                - "dynamodb:Query"
+                - "dynamodb:Scan"
                 - "lambda:InvokeFunction"
                 Resource: "*"
 Outputs:

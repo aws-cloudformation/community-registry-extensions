@@ -27,6 +27,7 @@ Resources:
   ModuleExtension:
     Metadata:
       Extends: AWS::Lambda::Function
+      Comment: Resource type extension is a feature of rain modules
     Properties:
       Runtime: python3.9
       Role: !GetAtt LambdaRole.Arn
@@ -34,9 +35,13 @@ Resources:
 
   RegistrationItem:
     Type: AwsCommunity::DynamoDB::Item
-    Metadata: This resource puts an item into the registration table
+    Metadata: 
+      Comment: This resource puts an item into the registration table
     Properties:
       TableName: !Ref RegistrationTable
+      Item:
+        lambda_arn:
+          S: !GetAtt ModuleExtension.Arn
       Keys:
         - AttributeName: "lambda_arn"
           AttributeType: "S"

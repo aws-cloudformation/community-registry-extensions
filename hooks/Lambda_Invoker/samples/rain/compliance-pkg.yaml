@@ -1,0 +1,116 @@
+Description: "This template interacts with the AwsCommunity::Lambda::Invoker hook, \nwhich is a single, central hook that invokes a series of Lambda functions\nto evaluate the compliance of stack operations. This template depends on \nthe AwsCommunity::DynamoDB::Item extension to be activated first. \n"
+
+Resources:
+  RegistrationTable:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::DynamoDB::Table
+    Metadata:
+      Comment: "This table holds a list of Lambda Arns that will be invoked in\norder by the AwsCommunity::Lambda::Invoker hook before \nCREATE, UPDATE, and DELETE operations.\n"
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: lambda_arn
+          AttributeType: S
+      KeySchema:
+        - AttributeName: lambda_arn
+          KeyType: HASH
+
+  BucketEncryptionCheck:
+    Type: AWS::Lambda::Function
+    Metadata:
+      Comment: Resource type extension is a feature of rain modules
+    Properties:
+      Runtime: python3.9
+      Role: !GetAtt BucketEncryptionCheckLambdaRole.Arn
+      Handler: index.handler
+      Code:
+        ZipFile: |
+          import boto3
+          def handler(event, context):
+            print(event)
+            if event["resource_name"] != "AWS::S3::Bucket":
+              return
+            if event["operation"] not in ["create", "update"]:
+              return
+            if "BucketEncryption" not in event["resource_properties"]:
+              raise Exception("Expected BucketEncryption")
+
+  BucketEncryptionCheckLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+      Path: /
+
+  BucketEncryptionCheckRegistrationItem:
+    Type: AwsCommunity::DynamoDB::Item
+    Metadata:
+      Comment: This resource puts an item into the registration table
+    Properties:
+      TableName: !Ref RegistrationTable
+      Item:
+        lambda_arn:
+          S: !GetAtt BucketEncryptionCheck.Arn
+      Keys:
+        - AttributeName: lambda_arn
+          AttributeType: S
+          AttributeValue: !GetAtt BucketEncryptionCheck.Arn
+
+  BucketVersioningCheck:
+    Type: AWS::Lambda::Function
+    Metadata:
+      Comment: Resource type extension is a feature of rain modules
+    Properties:
+      Runtime: python3.9
+      Role: !GetAtt BucketVersioningCheckLambdaRole.Arn
+      Handler: index.handler
+      Code:
+        ZipFile: |
+          import boto3
+          def handler(event, context):
+            print(event)
+            #TODO
+  BucketVersioningCheckLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+      Path: /
+
+  BucketVersioningCheckRegistrationItem:
+    Type: AwsCommunity::DynamoDB::Item
+    Metadata:
+      Comment: This resource puts an item into the registration table
+    Properties:
+      TableName: !Ref RegistrationTable
+      Item:
+        lambda_arn:
+          S: !GetAtt BucketVersioningCheck.Arn
+      Keys:
+        - AttributeName: lambda_arn
+          AttributeType: S
+          AttributeValue: !GetAtt BucketVersioningCheck.Arn
+
+Outputs:
+  RegistrationTableArn:
+    Value: !GetAtt RegistrationTable.Arn
+

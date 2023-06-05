@@ -34,7 +34,12 @@ Resources:
           import boto3
           def handler(event, context):
             print(event)
-            #TODO
+            if event["resource_name"] != "AWS::S3::Bucket":
+              return
+            if event["operation"] not in ["create", "update"]:
+              return
+            if "BucketEncryption" not in event["resource_properties"]:
+              raise Exception("Expected BucketEncryption")
 
   BucketVersioningCheck:
     Type: !Rain::Module module.yaml
@@ -45,4 +50,8 @@ Resources:
           def handler(event, context):
             print(event)
             #TODO
+
+Outputs:
+  RegistrationTableArn:
+    Value: !GetAtt RegistrationTable.Arn
 

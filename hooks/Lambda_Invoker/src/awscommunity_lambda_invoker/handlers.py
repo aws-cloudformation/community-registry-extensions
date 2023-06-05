@@ -33,6 +33,10 @@ def _handler(session, request, type_configuration, op):
     target_name = request.hookContext.targetName
     progress = ProgressEvent(status=OperationStatus.IN_PROGRESS)
 
+    logger.debug("_handler")
+    logger.debug(target_name)
+    logger.debug(target_model)
+
     # Check to make sure we support this type
     supported = False
     for s in SUPPORTED_PREFIXES:
@@ -71,11 +75,13 @@ def _handler(session, request, type_configuration, op):
             
             # If anything failed, append all error messages to the progress event message
             if errs:
+                logger.debug("invoke_lambdas returned errors")
                 progress.status = OperationStatus.FAILED
                 progress.errorCode = HandlerErrorCode.NonCompliant
                 progress.message = ""
                 for err in errs:
                     progress.message += err + "\n"
+                logger.debug("message: %s", progress.message)
                 return progress
 
         else:
@@ -84,6 +90,7 @@ def _handler(session, request, type_configuration, op):
         progress.status = OperationStatus.SUCCESS
 
     except Exception as e:
+        logger.debug("Uncaught exception")
         return failure(HandlerErrorCode.InternalFailure, str(e), traceback.format_exc())
 
     return progress
@@ -92,6 +99,7 @@ def _handler(session, request, type_configuration, op):
 @hook.handler(HookInvocationPoint.CREATE_PRE_PROVISION)
 def pre_create_handler(session, request, callback_context, type_configuration):
     "Called before creating a resource"
+    logger.debug("In pre_create_handler")
     return _handler(session, request, type_configuration, "create")
 
 @hook.handler(HookInvocationPoint.UPDATE_PRE_PROVISION)
