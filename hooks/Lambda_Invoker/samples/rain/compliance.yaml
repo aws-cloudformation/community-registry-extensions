@@ -12,9 +12,9 @@ Resources:
     Type: AWS::DynamoDB::Table
     Metadata:
       Comment: |
-        This table holds a list of Lambda Arns that will be invoked in
-        order by the AwsCommunity::Lambda::Invoker hook before 
-        CREATE, UPDATE, and DELETE operations.
+        This table holds a list of Lambda Arns that will be invoked by the
+        AwsCommunity::Lambda::Invoker hook before CREATE, UPDATE, and DELETE
+        operations.
     Properties:
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
@@ -28,6 +28,12 @@ Resources:
 
   BucketEncryptionCheck:
     Type: !Rain::Module module.yaml
+    Metadata:
+      Comment: | 
+        This resource inherits from AWS::Lambda::Function to create the function and 
+        register it with the DynamoDB table above. It makes a simple check to see 
+        if the BucketEncryption property is set, if the resource being checked is
+        an AWS::S3::Bucket.
     Properties:
       Code: 
         ZipFile: |
@@ -41,15 +47,19 @@ Resources:
             if "BucketEncryption" not in event["resource_properties"]:
               raise Exception("Expected BucketEncryption")
 
-  BucketVersioningCheck:
+  CheckWithDependencies:
     Type: !Rain::Module module.yaml
+    Metadata:
+      Comment: | 
+        This resource inherits from AWS::Lambda::Function to create the function and 
+        register it with the DynamoDB table above. This check demonstrates the ability 
+        to deploy a Python lambda function with dependencies.
     Properties:
-      Code: 
-        ZipFile: |
-          import boto3
-          def handler(event, context):
-            print(event)
-            #TODO
+      Code: !Rain::S3 
+        Path: lambda/dist 
+        Zip: true
+        BucketProperty: S3Bucket
+        KeyProperty: S3Key
 
 Outputs:
   RegistrationTableArn:

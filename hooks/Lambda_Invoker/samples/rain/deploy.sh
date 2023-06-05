@@ -15,6 +15,11 @@ if [ "$TYPE_NAME" != "AwsCommunity::Lambda::Invoker" ]; then
 fi
 export STACK_NAME=lambda-invoker-rain-sample
 
+# Install dependencies for the Python lambda function
+mkdir -p samples/rain/lambda/dist
+pip install -r samples/rain/lambda/requirements.txt --upgrade -t samples/rain/lambda/dist/ 
+cp samples/rain/lambda/*py samples/rain/lambda/dist
+
 # Package the template
 rain pkg -x samples/rain/compliance.yaml > samples/rain/compliance-pkg.yaml
 

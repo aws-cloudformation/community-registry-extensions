@@ -6,7 +6,10 @@ Resources:
     UpdateReplacePolicy: Delete
     Type: AWS::DynamoDB::Table
     Metadata:
-      Comment: "This table holds a list of Lambda Arns that will be invoked in\norder by the AwsCommunity::Lambda::Invoker hook before \nCREATE, UPDATE, and DELETE operations.\n"
+      Comment: |
+        This table holds a list of Lambda Arns that will be invoked by the
+        AwsCommunity::Lambda::Invoker hook before CREATE, UPDATE, and DELETE
+        operations.
     Properties:
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
@@ -19,7 +22,7 @@ Resources:
   BucketEncryptionCheck:
     Type: AWS::Lambda::Function
     Metadata:
-      Comment: Resource type extension is a feature of rain modules
+      Comment: "This resource inherits from AWS::Lambda::Function to create the function and \nregister it with the DynamoDB table above. It makes a simple check to see \nif the BucketEncryption property is set, if the resource being checked is\nan AWS::S3::Bucket.\n"
     Properties:
       Runtime: python3.9
       Role: !GetAtt BucketEncryptionCheckLambdaRole.Arn
@@ -66,21 +69,19 @@ Resources:
           AttributeType: S
           AttributeValue: !GetAtt BucketEncryptionCheck.Arn
 
-  BucketVersioningCheck:
+  CheckWithDependencies:
     Type: AWS::Lambda::Function
     Metadata:
-      Comment: Resource type extension is a feature of rain modules
+      Comment: "This resource inherits from AWS::Lambda::Function to create the function and \nregister it with the DynamoDB table above. This check demonstrates the ability \nto deploy a Python lambda function with dependencies.\n"
     Properties:
       Runtime: python3.9
-      Role: !GetAtt BucketVersioningCheckLambdaRole.Arn
+      Role: !GetAtt CheckWithDependenciesLambdaRole.Arn
       Handler: index.handler
       Code:
-        ZipFile: |
-          import boto3
-          def handler(event, context):
-            print(event)
-            #TODO
-  BucketVersioningCheckLambdaRole:
+        S3Bucket: rain-artifacts-755952356119-us-east-1
+        S3Key: fd2aaca4e425740a873001d04d6120dcbd0a3c0083a28d68e214c4cbc6efc629
+
+  CheckWithDependenciesLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -96,7 +97,7 @@ Resources:
         - arn:aws:iam::aws:policy/AWSLambdaExecute
       Path: /
 
-  BucketVersioningCheckRegistrationItem:
+  CheckWithDependenciesRegistrationItem:
     Type: AwsCommunity::DynamoDB::Item
     Metadata:
       Comment: This resource puts an item into the registration table
@@ -104,11 +105,11 @@ Resources:
       TableName: !Ref RegistrationTable
       Item:
         lambda_arn:
-          S: !GetAtt BucketVersioningCheck.Arn
+          S: !GetAtt CheckWithDependencies.Arn
       Keys:
         - AttributeName: lambda_arn
           AttributeType: S
-          AttributeValue: !GetAtt BucketVersioningCheck.Arn
+          AttributeValue: !GetAtt CheckWithDependencies.Arn
 
 Outputs:
   RegistrationTableArn:

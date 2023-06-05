@@ -2,7 +2,7 @@
     "CloudFormationConfiguration": {
         "HookConfiguration": {
             "TargetStacks": "ALL",
-            "FailureMode": "FAIL",
+            "FailureMode": "WARN",
             "Properties": {
                 "RegistrationTableArn": "REGISTRATION_TABLE_ARN"
             }

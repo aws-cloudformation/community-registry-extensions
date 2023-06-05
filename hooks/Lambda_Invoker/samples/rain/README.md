@@ -7,6 +7,14 @@ write to check templates before they are deployed. These lambda functions can
 also be easily invoked by template developers before deployment, to catch errors
 early.
 
+## WARNING
+
+The type configuration for the sample is set to WARN on failures. If you change 
+that to FAIL, this sample will cause any subsequent CloudFormation deployments in 
+your account to fail if they are not compliant with the checks in `compliance.yaml`.
+Don't deploy this in a production account, and be sure to clean up resources 
+using the `destroy.sh` script when you are done evaluating the solution.
+
 ## Pre-requisites
 
 Make sure you have activated the public resource type `AwsCommunity::DynamoDB::Item` 
@@ -37,4 +45,23 @@ This is a rain, module, which is a snippet of CloudFormation that inherits from
 CloudFormation registry extensions must be configured when they are registered. This 
 file is used to tell the hook the Arn of the DynamoDB table that contains a list of
 your compliance lambda functions.
+
+### destroy.sh
+
+Clean up resources created by deploy.sh
+
+### lambda/*
+
+This directory has a Python lambda function with dependencies, to demonstrate how 
+a more complex function can be deployed with CloudFormation and rain.
+
+### invalid.yaml
+
+After deploying the solution, this template should fail if you try to deploy it.
+
+### valid.yaml
+
+After deploying the solution, this template should succeed if you try to deploy it.
+
+
 
