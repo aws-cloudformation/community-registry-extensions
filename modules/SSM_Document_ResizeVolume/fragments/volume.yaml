@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS SSM Document to resize EBS volumes and grow the filesystem on them.
+Parameters:
+  VolumeSize: 
+    Type: Number
+    Description: The Size in GB of the Instance Volume. 
+    Default: 50
+Resources:
+ ResizeEBSVolumeDoc:
+    Type: AWS::SSM::Document
+    Properties:
+      DocumentFormat: YAML
+      DocumentType: Command
+      Name: Resize-EBS-Volume
+      TargetType: /AWS::EC2::Instance
+      Content:
+        schemaVersion: "2.2"
+        description: "Command document to resize EBS volume."
+        parameters:
+          VolumeSize:
+            type: String
+            description: "Size in GB to grow the volume"
+            default: !Sub "${VolumeSize}"
+            allowedPattern: ^(?:1(?:[0-5][0-9]{0,3}|[7-9][0-9]{0,2}|6(?:[0-2]{0,3}|[4-9][0-9]?|3(?:[0-7][0-9]?|8[0-4]?|9)?)?)?|[2-9][0-9]{0,3})$
+        mainSteps:
+        - action: "aws:runShellScript"
+          name: "resizeVolume"
+          inputs:
+            runCommand:
+            - "date"
+            - "SIZE_PARAM={{VolumeSize}}"
+            - "export SIZE=${SIZE_PARAM:-20}"
+            - "export INSTANCEID=$(curl http://169.254.169.254/latest/meta-data/instance-id)"
+            - "echo \"INSTANCEID: $INSTANCEID\""
+            - "export AWS_REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/\\(.*\\)[a-z]/\\1/')"
+            - "echo \"AWS_REGION: $AWS_REGION\""
+            - "export AWS_DEFAULT_REGION=$AWS_REGION"
+            - "export VOLUMEID=$(aws ec2 describe-instances --instance-id $INSTANCEID --query 'Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId' --output text)"
+            - "echo \"VOLUMEID: $VOLUMEID\""
+            - "aws ec2 modify-volume --volume-id $VOLUMEID --size $SIZE"
+            - "while [ \"$(aws ec2 describe-volumes-modifications --volume-id $VOLUMEID --filters Name=modification-state,Values='optimizing','completed' --query 'length(VolumesModifications)' --output text)\" != \"1\" ]; do"
+            - "  sleep 1"
+            - "done"
+        - action: "aws:runShellScript"
+          name: "extendFileSystem"
+          inputs:
+            runCommand:
+            - "if [[ -e \"/dev/xvda\" && $(readlink -f /dev/xvda) = \"/dev/xvda\" ]]; then"
+            - "  growpart /dev/xvda 1"
+            - "  STR=$(cat /etc/os-release)"
+            - "  SUB='VERSION_ID=\"2\"'"
+            - "  if [[ \"$STR\" == *\"$SUB\"* ]]; then"
+            - "    xfs_growfs -d /"
+            - "  else"
+            - "    resize2fs /dev/xvda1"
+            - "  fi"
+            - "else"
+            - "  growpart /dev/nvme0n1 1"
+            - "  STR=$(cat /etc/os-release)"
+            - "  SUB='VERSION_ID=\"2\"'"
+            - "  if [[ \"$STR\" == *\"$SUB\"* ]]; then"
+            - "    xfs_growfs -d /"
+            - "  else"
+            - "    resize2fs /dev/nvme0n1p1"
+            - "  fi"
+            - "fi"
