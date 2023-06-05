@@ -44,8 +44,8 @@ first be activated using the instructions
 |[AwsCommunity::CloudFront::S3Website::MODULE](./modules/CloudFront_S3Website/)|Module|Prod|CloudFront backed by an S3 bucket with Route53 integration|
 |[AwsCommunity::DynamoDB::Item](./resources/DynamoDB_Item)|Resource|Prod|Manage the lifecycle of items in a DynamoDB table|
 |[AwsCommunity::EC2::SecurityGroupRestrictedSSH](./hooks/EC2_SecurityGroupRestrictedSSH)|Hook|Prod|Restrict SSH traffic from 0.0.0.0/0|
-|[AwsCommunity::KMS::EncryptionSettings](./hooks/KMS_EncryptionSettings)|Hook|Alpha|Validates AWS KMS encryption-related, user-provided configuration settings for a number of AWS resources|
-|[AwsCommunity::Resource::Lookup](./resources/Resource_Lookup)|Resource|Alpha|Uses AWS Cloud Control API to lookup a resource of a given type (such as, AWS::EC2::VPC)|
+|[AwsCommunity::KMS::EncryptionSettings](./hooks/KMS_EncryptionSettings)|Hook|Prod|Validates AWS KMS encryption-related, user-provided configuration settings for a number of AWS resources|
+|[AwsCommunity::Resource::Lookup](./resources/Resource_Lookup)|Resource|Prod|Uses AWS Cloud Control API to lookup a resource of a given type (such as, AWS::EC2::VPC)|
 |[AwsCommunity::S3::Bucket::MODULE](./modules/S3_Bucket/)|Module|Prod|Create a standard S3 bucket|
 |[AwsCommunity::S3::BucketAccessControlsRestricted](./hooks/S3_PublicAccessControlsRestricted)|Hook|Prod|Validates S3 Bucket is configured to block public access|
 |[AwsCommunity::S3::BucketNotification](./resources/S3_BucketNotification)|Resource|Alpha|Configure bucket notifications|
