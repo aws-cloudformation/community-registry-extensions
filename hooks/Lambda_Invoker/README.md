@@ -33,7 +33,7 @@ The compliance Lambda functions will be invoked with a payload that looks like t
 
 ```json
 {
-    "resource_name": "AWS::S3::Bucket",
+    "type_name": "AWS::S3::Bucket",
     "resource_properties": {
         "BucketName": "ABC"
     }, 

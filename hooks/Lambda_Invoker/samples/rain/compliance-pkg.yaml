@@ -32,7 +32,7 @@ Resources:
           import boto3
           def handler(event, context):
             print(event)
-            if event["resource_name"] != "AWS::S3::Bucket":
+            if event["type_name"] != "AWS::S3::Bucket":
               return
             if event["operation"] not in ["create", "update"]:
               return
@@ -79,7 +79,7 @@ Resources:
       Handler: index.handler
       Code:
         S3Bucket: rain-artifacts-755952356119-us-east-1
-        S3Key: fd2aaca4e425740a873001d04d6120dcbd0a3c0083a28d68e214c4cbc6efc629
+        S3Key: 9a2b8931bae9cfc6ff5e6cf80f82d577cac4d022f72532dbae97e0ef0ee76f88
 
   CheckWithDependenciesLambdaRole:
     Type: AWS::IAM::Role

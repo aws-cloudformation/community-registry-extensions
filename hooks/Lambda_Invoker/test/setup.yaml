@@ -63,7 +63,7 @@ Resources:
           def handler(event, context):
             print('ComplianceLambda1 was invoked')
             print(event)
-            if event["resource_name"] == "TEST::TEST::FAIL":
+            if event["type_name"] == "TEST::TEST::FAIL":
               raise Exception("Failed")
             if "FAIL" in event["resource_properties"]:
               raise Exception("Resource failed")

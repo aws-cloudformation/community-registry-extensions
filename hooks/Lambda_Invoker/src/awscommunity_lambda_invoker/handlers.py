@@ -65,7 +65,7 @@ def _handler(session, request, type_configuration, op):
             table_name = table_arn.split(":table/")[1]
             logger.debug("table_name: %s", table_name)
             target = {
-                "resource_name": target_name, 
+                "type_name": target_name, 
                 "resource_properties": resource_properties,
                 "operation": op
             }

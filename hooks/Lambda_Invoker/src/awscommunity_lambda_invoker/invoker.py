@@ -62,7 +62,7 @@ def main():
     print("About to test ", name)
     target_props = targets[name]["resourceProperties"]
     target = {
-        "resource_name": name,
+        "type_name": name,
         "resource_properties": target_props
     }
     errs = invoke_lambdas(ddb, lam, target, logger, os.environ["DDB_TABLE_NAME"])
@@ -74,7 +74,7 @@ def main():
 
     print("About to test failure case")
     target = {
-        "resource_name": "TEST::TEST::FAIL",
+        "type_name": "TEST::TEST::FAIL",
         "resource_properties": {}
     }
     errs = invoke_lambdas(ddb, lam, target, logger, os.environ["DDB_TABLE_NAME"])

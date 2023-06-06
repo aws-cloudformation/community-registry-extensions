@@ -11,7 +11,7 @@ def handler(event, context):
         
         # The event has the following properties:
         #
-        # event["resource_name"]         e.g. AWS::S3::Bucket
+        # event["type_name"]             e.g. AWS::S3::Bucket
         # event["operation"]             create|update|delete
         # event["resource_properties"]   {}
 

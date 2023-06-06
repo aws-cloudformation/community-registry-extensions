@@ -69,5 +69,10 @@ After deploying the solution, this template should fail if you try to deploy it.
 
 After deploying the solution, this template should succeed if you try to deploy it.
 
+### validate.py
+
+Validates the templates by directly invoking the Lambda functions. This could be 
+used by a template developer to make sure code is compliant before actually 
+deploying the stack.
 
 
