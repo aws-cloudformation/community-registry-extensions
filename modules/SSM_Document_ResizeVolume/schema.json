@@ -1,0 +1,46 @@
+{
+    "typeName": "AwsCommunity::SSM::ResizeVolume::MODULE",
+    "description": "Schema for Module Fragment of type AwsCommunity::SSM::ResizeVolume::MODULE",
+    "properties": {
+        "Parameters": {
+            "type": "object",
+            "properties": {
+                "VolumeSize": {
+                    "type": "object",
+                    "properties": {
+                        "Type": {
+                            "type": "string"
+                        },
+                        "Description": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "Type",
+                        "Description"
+                    ],
+                    "description": "The Size in GB of the Instance Volume."
+                }
+            }
+        },
+        "Resources": {
+            "properties": {
+                "ResizeEBSVolumeDoc": {
+                    "type": "object",
+                    "properties": {
+                        "Type": {
+                            "type": "string",
+                            "const": "AWS::SSM::Document"
+                        },
+                        "Properties": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "type": "object",
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": true
+}

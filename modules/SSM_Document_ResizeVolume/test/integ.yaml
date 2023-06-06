@@ -1,0 +1,6 @@
+Resources:
+  ResizeVolumeDocument: 
+    Type: AwsCommunity::SSM::ResizeVolume::MODULE
+    Properties:
+      DocumentName: Resize-EBS-Volume
+      VolumeSize: 30
