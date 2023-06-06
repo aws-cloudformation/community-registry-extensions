@@ -396,7 +396,7 @@ preferred-modules=
 [EXCEPTIONS]
 
 # Exceptions that will emit a warning when caught.
-overgeneral-exceptions=buitlins.BaseException,
+overgeneral-exceptions=builtins.BaseException,
                        builtins.Exception
 
 
