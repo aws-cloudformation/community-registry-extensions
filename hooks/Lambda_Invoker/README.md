@@ -11,7 +11,7 @@ so that developers catch problems with their templates sooner.
 
 To use this hook, you must create a DynamoDB table to use for registering your
 compliance Lambda functions. The table can be created with the following
-CloudFormation or manually via the CLI or AWS console. It must have a primary
+CloudFormation template snippet, or manually via the CLI or AWS console. It must have a primary
 key consiting of one attribute, 'lambda\_arn'.
 
 ```yaml
