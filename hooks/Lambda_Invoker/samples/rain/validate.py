@@ -2,7 +2,7 @@
 This module is a 'shift left' effort to allow a developer to directly invoke
 the compliance lambda functions, to make sure their code is valid before 
 trying an actual CloudFormation deployment. It scans the registration table 
-to get the list of lambda function arns, decomposes the template into 
+to get the list of Lambda function ARNs, decomposes the template into 
 resources, and submits each of them separately, to mimic the behavior of 
 CloudFormation when it invokes the hook.
 
