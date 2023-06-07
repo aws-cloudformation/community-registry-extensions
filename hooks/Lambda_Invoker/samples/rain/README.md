@@ -43,7 +43,7 @@ This script assumes you are privately registering the hook. It packages and depl
 
 ### module.yaml
 
-This is a rain, module, which is a snippet of CloudFormation that inherits from 
+This is a rain module, which is a snippet of CloudFormation that inherits from 
 `AWS::Lambda::Function` to simplify the code in `compliance.yaml`.
 
 ### type-config.json
