@@ -2,7 +2,7 @@ Description: |
   This is a Rain module that installs a compliance check that will run 
   on all CloudFormation stacks in the environment where it is installed.
   This module is invoked from `compliance.yaml` to create a lambda 
-  function and add the arn to the registration table. This module 
+  function and add the ARN to the registration table. This module 
   extends AWS::Lambda::Function, so you can override function properties
   in the parent template.
 

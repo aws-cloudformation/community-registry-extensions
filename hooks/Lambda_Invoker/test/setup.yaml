@@ -14,7 +14,7 @@ Resources:
       Comment: |
         This table is created during the testing of the hook. It is also an
         example of the table that you need to create in order to configure the
-        hook. The table holds a list of Lambda Arns that will be invoked in
+        hook. The table holds a list of ARNs of Lambda functions that will be invoked in
         order by the hook before CREATE, UPDATE, and DELETE operations.
     Properties:
       TableName: !Sub "cep-lambda-invoker-reg-${Env}-${AWS::Region}-${AWS::AccountId}"
@@ -103,7 +103,7 @@ Resources:
     Type: AWS::Lambda::Function
     Metadata:
       Comment: |
-        This Lambda will be called by a custom resource when this template is
+        This Lambda function will be called by a custom resource when this template is
         deployed, in order to put the name of ComplianceLambda1 into
         RegistrationTable. Ideally you would use AwsCommunity::DynamoDB::Item
         to do this, but since we also publish that resource in the same
