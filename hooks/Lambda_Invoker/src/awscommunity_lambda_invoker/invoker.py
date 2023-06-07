@@ -8,7 +8,7 @@ import boto3
 
 def invoke_lambdas(ddb, lam, target, logger, table_name):
     """
-    Read the lambda arns from the Dynamo table and invoke them all.
+    Read Lambda function ARNs from the DynamoDB table and invoke them all.
     Returns an array of error messages from the lambdas called.
     """
     # Query the DDB table for all Lambda Arns
