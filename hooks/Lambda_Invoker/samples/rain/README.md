@@ -49,7 +49,7 @@ This is a rain, module, which is a snippet of CloudFormation that inherits from
 ### type-config.json
 
 CloudFormation registry extensions must be configured when they are registered. This 
-file is used to tell the hook the Arn of the DynamoDB table that contains a list of
+file is used to tell the hook the ARN of the DynamoDB table that contains a list of
 your compliance lambda functions.
 
 ### destroy.sh
