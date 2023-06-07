@@ -9,7 +9,7 @@ so that developers catch problems with their templates sooner.
 
 ## Configuration
 
-To use this hook, you must create a DynamoDB table to use for registering your
+To use this hook, you must create an Amazon DynamoDB table to use for registering your
 compliance Lambda functions. The table can be created with the following
 CloudFormation template snippet, or manually via the CLI or AWS console. It must have a primary
 key consiting of one attribute, 'lambda\_arn'.
