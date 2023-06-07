@@ -103,7 +103,7 @@ Resources:
     Type: AWS::Lambda::Function
     Metadata:
       Comment: |
-        This Lambda will be called by a custom resource when this template is
+        This Lambda function will be called by a custom resource when this template is
         deployed, in order to put the name of ComplianceLambda1 into
         RegistrationTable. Ideally you would use AwsCommunity::DynamoDB::Item
         to do this, but since we also publish that resource in the same
