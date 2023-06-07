@@ -1,6 +1,6 @@
 {
     "typeName": "AwsCommunity::Lambda::Invoker",
-    "description": "This hook offloads compliance checks to Lambda functions that you create and control separately from the hook. It reads a list of Lambda function Arns from a DynamoDB table that you create, and calls them one by one. If any of them fail, the hook invocation fails.",
+    "description": "This hook offloads compliance checks to Lambda functions that you create and control separately from the hook. It reads a list of Lambda function ARNs from a DynamoDB table that you create, and calls them one by one. If any of them fail, the hook invocation fails.",
     "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/hooks/Lambda_Invoker",
     "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/hooks/Lambda_Invoker",
     "typeConfiguration": {
