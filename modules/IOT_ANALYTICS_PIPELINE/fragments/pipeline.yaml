@@ -1,0 +1,203 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: IoT Analytics pipeline 
+Metadata: 
+  AWS::CloudFormation::Interface:
+    ParameterGroups: 
+      - 
+        Label: 
+          default: "Pipeline Configuration"
+        Parameters: 
+          - Project
+          - TopicName
+      - 
+        Label: 
+          default: "Choose how long to store your raw data"
+        Parameters: 
+          - UnlimitedStorage
+          - RetentionPeriod
+      -
+        Label: 
+          default: "Pipeline Tags"
+        Parameters: 
+          - Environment
+Parameters:
+  TopicName:
+    Type: String
+    Description: IoT Topic Name that your devices will send messages to.
+    Default: iot-device-data
+  Project:
+    Type: String
+    Description: The name of the pipeline; value used in 'Project' tag.
+    Default: iot_analytics
+  UnlimitedStorage:
+    Type: String
+    Description: If true, message data is kept indefinitely. For 'yes' value, RetentionPeriod will be ignored.
+    AllowedValues: ['yes', 'no']
+    Default: 'no'
+  RetentionPeriod:
+    Type: Number
+    Description: The number of days that message data is kept.
+    Default: 90
+  Environment:
+    Type: String
+    Description: Environment name value used in 'Environment' tag.
+    Default: Dev
+Conditions:
+  Unlimited: !Or
+    - !Equals [!Ref UnlimitedStorage, 'yes']
+    - !Equals [!Ref RetentionPeriod, 0]
+Resources:
+  TopicRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub send_to_iot_analytics_${Project}_pipeline
+      TopicRulePayload:
+        Description: Sends IoT device data to IoT Analytics Channel
+        Sql: !Sub SELECT * FROM "${TopicName}"
+        Actions:
+          - IotAnalytics:
+              ChannelName: !Ref Channel
+              RoleArn: !GetAtt TopicRuleRole.Arn
+  Channel:
+    Type: AWS::IoTAnalytics::Channel
+    Properties:
+      ChannelName: !Sub ${Project}_channel
+      RetentionPeriod:
+        Unlimited: !If [Unlimited, true, false]
+        NumberOfDays: !If [Unlimited, !Ref AWS::NoValue, !Ref RetentionPeriod]
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+  Pipeline:
+    Type: AWS::IoTAnalytics::Pipeline
+    Properties:
+      PipelineName: !Sub ${Project}_pipeline
+      PipelineActivities:
+        - Channel:
+            Name: Channel
+            ChannelName: !Ref Channel
+            Next: Datastore
+          Datastore:
+            Name: Datastore
+            DatastoreName: !Ref Datastore
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+  Datastore:
+    Type: AWS::IoTAnalytics::Datastore
+    Properties:
+      DatastoreName: !Sub ${Project}_data_store
+      RetentionPeriod:
+        Unlimited: !If [Unlimited, true, false]
+        NumberOfDays: !If [Unlimited, !Ref AWS::NoValue, !Ref RetentionPeriod]
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+  Dataset:
+    Type: AWS::IoTAnalytics::Dataset
+    Properties:
+      Actions:
+        - ActionName: SqlAction
+          QueryAction:
+            SqlQuery: !Sub 'select * from ${Datastore}'
+      DatasetName: !Sub ${Project}_data_set
+      RetentionPeriod:
+        Unlimited: !If [Unlimited, true, false]
+        NumberOfDays: !If [Unlimited, !Ref AWS::NoValue, !Ref RetentionPeriod]
+      ContentDeliveryRules:
+        - Destination:
+            S3DestinationConfiguration:
+              Bucket: !Ref DataSetContentS3Bucket
+              RoleArn: !GetAtt DataSetContentS3BucketRole.Arn
+              Key: 'dataset/!{iotanalytics:scheduleTime}/!{iotanalytics:versionId}.csv'
+      Triggers:
+        - Schedule:
+            ScheduleExpression: cron(0/30 * * * ? *)
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+  DataSetContentS3Bucket:
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+
+  DataSetContentS3BucketRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - iotanalytics.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: 'DataSetContentS3BucketPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:GetBucketLocation
+                - s3:GetObject
+                - s3:ListBucket
+                - s3:ListBucketMulti
+                - s3:ListMultipartUp
+                - s3:AbortMultipartU
+                - s3:PutObject
+                - s3:DeleteObject
+              Resource:
+                - !Sub '${DataSetContentS3Bucket.Arn}'
+                - !Sub '${DataSetContentS3Bucket.Arn}/*'
+  
+  TopicRuleRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - iot.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: IoTTopicRulePolicyIoTAnalyticsChannel
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              Effect: Allow
+              Action:
+                - iotanalytics:BatchPutMessage
+              Resource: !Join
+                - ''
+                - - !Sub 'arn:aws:iotanalytics:${AWS::Region}:${AWS::AccountId}:channel/'
+                  - !Ref Channel
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment

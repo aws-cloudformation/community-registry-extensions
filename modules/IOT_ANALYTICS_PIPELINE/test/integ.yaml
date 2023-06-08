@@ -1,0 +1,6 @@
+Resources:
+  IotAnalayticsPipeline: 
+    Type: AwsCommunity::IotAnalytics::Pipeline::MODULE
+    Properties:
+      Project: iot_analytics_test
+      RetentionPeriod: 30
