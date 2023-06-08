@@ -1,5 +1,5 @@
 Resources:
-  ResizeVolumeDocument: 
+  IotAnalayticsPipeline: 
     Type: AwsCommunity::IOTAalytics::Pipeline::MODULE
     Properties:
       Project: iot_analytics_test
