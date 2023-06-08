@@ -277,6 +277,27 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+    
+  IotAnalyticsPipelineModuleBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+            - ssm:ListDocuments
+            - ssm:ListDocumentVersions
+            - ssm:DescribeDocument
+            - ssm:DeleteDocument
+            - ssm:GetDocument
+            Effect: Allow
+            Resource: "*"
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   CloudFrontS3WebsiteModuleBuildProjectRole:
     Type: AWS::IAM::Role
@@ -1251,6 +1272,28 @@ Resources:
         BuildSpec: !Sub "modules/${Env}-buildspec.yml"
       TimeoutInMinutes: 480
 
+IotAnalyticsPipelineModuleBuildProject:
+  Type: AWS::CodeBuild::Project
+  Properties:
+    Name: !Sub "${PrefixLower}-${Env}-iot-analytics-pipeline-module"
+    Artifacts:
+      Type: CODEPIPELINE
+    Environment:
+      ComputeType: BUILD_GENERAL1_LARGE
+      Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+      ImagePullCredentialsType: SERVICE_ROLE
+      PrivilegedMode: true
+      Type: LINUX_CONTAINER
+      EnvironmentVariables:
+      - Name: MODULE_PATH
+        Type: PLAINTEXT
+        Value: "placeholder-for-path-to-module"
+    ServiceRole: !GetAtt IotAnalyticsPipelineModuleBuildProjectRole.Arn
+    Source:
+      Type: CODEPIPELINE
+      BuildSpec: !Sub "modules/${Env}-buildspec.yml"
+    TimeoutInMinutes: 480
+
   AlternateContactBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1434,6 +1477,7 @@ Resources:
               - !GetAtt S3BucketModuleBuildProject.Arn
               - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
               - !GetAtt SSMDocumentEBSVolumeModuleBuildProject.Arn
+              - !GetAtt IotAnalyticsPipelineModuleBuildProject.Arn
               - !GetAtt AlternateContactBuildProject.Arn
               - !GetAtt KMSEncryptionSettingsBuildProject.Arn
               - !GetAtt ApplicationAutoscalingScheduledActionBuildProject.Arn
@@ -1506,6 +1550,7 @@ Resources:
                 - !GetAtt S3BucketModuleBuildProjectRole.Arn
                 - !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
                 - !GetAtt SSMDocumentEBSVolumeModuleBuildProjectRole.Arn
+                - !GetAtt IotAnalyticsPipelineModuleBuildProjectRole.Arn
                 - !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
                 - !GetAtt ApplicationAutoscalingScheduledActionBuildProjectRole.Arn
             Resource: "*"
@@ -1801,6 +1846,25 @@ Resources:
                       "name": "MODULE_PATH",
                       "type": "PLAINTEXT",
                       "value": "modules/SSM_Document_ResizeVolume"
+                    }
+                  ]
+              RunOrder: 2
+            - Name: IotAnalyticsPipelineModule
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref IotAnalyticsPipelineModuleBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "MODULE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "modules/IOT_ANALYTICS_PIPELINE"
                     }
                   ]
               RunOrder: 2
