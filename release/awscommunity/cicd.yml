@@ -284,11 +284,20 @@ Resources:
       AssumeRolePolicyDocument:
         Statement:
           - Action:
-            - ssm:ListDocuments
-            - ssm:ListDocumentVersions
-            - ssm:DescribeDocument
-            - ssm:DeleteDocument
-            - ssm:GetDocument
+            - iotanalytics:*
+            - iot:CreateTopicRule
+            - iot:DeleteTopicRule
+            - iot:ReplaceTopicRule
+            - iot:ListTopicRules
+            - iot:GetTopicRule
+            - iot:EnableTopicRule
+            - iot:DisableTopicRule
+            - iot:CreateTopicRuleDestination
+            - iot:DeleteTopicRuleDestination
+            - iot:UpdateTopicRuleDestination
+            - iot:GetTopicRuleDestination
+            - iot:ConfirmTopicRuleDestination
+            - iot:ListTopicRuleDestinations
             Effect: Allow
             Resource: "*"
           - Action: sts:AssumeRole
