@@ -1,6 +1,6 @@
 {
-    "typeName": "AwsCommunity::IOTAalytics::Pipeline::MODULE",
-    "description": "Schema for Module Fragment of type AwsCommunity::IOTAalytics::Pipeline::MODULE",
+    "typeName": "AwsCommunity::IotAnalytics::Pipeline::MODULE",
+    "description": "Schema for Module Fragment of type AwsCommunity::IotAnalytics::Pipeline::MODULE",
     "properties": {
         "Parameters": {
             "type": "object",
