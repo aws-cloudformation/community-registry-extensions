@@ -47,6 +47,8 @@ first be activated using the instructions
 |[AwsCommunity::KMS::EncryptionSettings](./hooks/KMS_EncryptionSettings)|Hook|Prod|Validates AWS KMS encryption-related, user-provided configuration settings for a number of AWS resources|
 |[AwsCommunity::Resource::Lookup](./resources/Resource_Lookup)|Resource|Prod|Uses AWS Cloud Control API to lookup a resource of a given type (such as, AWS::EC2::VPC)|
 |[AwsCommunity::S3::Bucket::MODULE](./modules/S3_Bucket/)|Module|Prod|Create a standard S3 bucket|
+|[AwsCommunity::SSM::ResizeVolume::MODULE](./modules/SSM_Document_ResizeVolume/)|Module|Prod|Create AWS SSM document to resize EBS volume and grow the filesystem on them|
+|[AwsCommunity::IotAnalytics::Pipeline::MODULE](./modules/IOT_ANALYTICS_PIPELINE/)|Module|Prod|Create an IOT analytics pipeline|
 |[AwsCommunity::S3::BucketAccessControlsRestricted](./hooks/S3_PublicAccessControlsRestricted)|Hook|Prod|Validates S3 Bucket is configured to block public access|
 |[AwsCommunity::S3::BucketNotification](./resources/S3_BucketNotification)|Resource|Alpha|Configure bucket notifications|
 |[AwsCommunity::S3::BucketVersioningEnabled](./hooks/S3_BucketVersioningEnabled)|Hook|Prod|Validate that an AWS::S3::Bucket has versioning enabled|
