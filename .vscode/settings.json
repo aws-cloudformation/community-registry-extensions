@@ -1,0 +1,6 @@
+{
+    "pylint.args": [
+        "--rcfile",
+        "./config/.pylintrc"
+    ]
+}

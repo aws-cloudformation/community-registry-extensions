@@ -1,0 +1,67 @@
+Description: |
+  This template interacts with the AwsCommunity::Lambda::Invoker hook, 
+  which is a single, central hook that invokes a series of Lambda functions
+  to evaluate the compliance of stack operations. This template depends on 
+  the AwsCommunity::DynamoDB::Item extension to be activated first. 
+
+Resources:
+
+  RegistrationTable:
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Type: AWS::DynamoDB::Table
+    Metadata:
+      Comment: |
+        This table holds a list of Lambda Arns that will be invoked by the
+        AwsCommunity::Lambda::Invoker hook before CREATE, UPDATE, and DELETE
+        operations.
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - 
+          AttributeName: "lambda_arn"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "lambda_arn"
+          KeyType: "HASH"
+
+  BucketEncryptionCheck:
+    Type: !Rain::Module module.yaml
+    Metadata:
+      Comment: | 
+        This resource inherits from AWS::Lambda::Function to create the function and 
+        register it with the DynamoDB table above. It makes a simple check to see 
+        if the BucketEncryption property is set, if the resource being checked is
+        an AWS::S3::Bucket.
+    Properties:
+      Code: 
+        ZipFile: |
+          import boto3
+          def handler(event, context):
+            print(event)
+            if event["type_name"] != "AWS::S3::Bucket":
+              return
+            if event["operation"] not in ["create", "update"]:
+              return
+            if "BucketEncryption" not in event["resource_properties"]:
+              raise Exception("Expected BucketEncryption")
+
+  CheckWithDependencies:
+    Type: !Rain::Module module.yaml
+    Metadata:
+      Comment: | 
+        This resource inherits from AWS::Lambda::Function to create the function and 
+        register it with the DynamoDB table above. This check demonstrates the ability 
+        to deploy a Python lambda function with dependencies.
+    Properties:
+      Code: !Rain::S3 
+        Path: lambda/dist 
+        Zip: true
+        BucketProperty: S3Bucket
+        KeyProperty: S3Key
+
+Outputs:
+  RegistrationTableArn:
+    Value: !GetAtt RegistrationTable.Arn
+

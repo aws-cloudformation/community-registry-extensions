@@ -1,0 +1,12 @@
+{
+    "CloudFormationConfiguration": {
+        "HookConfiguration": {
+            "TargetStacks": "ALL",
+            "FailureMode": "WARN",
+            "Properties": {
+                "RegistrationTableArn": "REGISTRATION_TABLE_ARN"
+            }
+        }
+    }
+}
+

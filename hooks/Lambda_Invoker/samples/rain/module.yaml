@@ -1,0 +1,51 @@
+Description: |
+  This is a Rain module that installs a compliance check that will run 
+  on all CloudFormation stacks in the environment where it is installed.
+  This module is invoked from `compliance.yaml` to create a lambda 
+  function and add the ARN to the registration table. This module 
+  extends AWS::Lambda::Function, so you can override function properties
+  in the parent template.
+
+Resources:
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+            - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+      Path: /
+
+  ModuleExtension:
+    Metadata:
+      Extends: AWS::Lambda::Function
+      Comment: Resource type extension is a feature of rain modules
+    Properties:
+      Runtime: python3.9
+      Role: !GetAtt LambdaRole.Arn
+      Handler: index.handler
+
+  RegistrationItem:
+    Type: AwsCommunity::DynamoDB::Item
+    Metadata: 
+      Comment: This resource puts an item into the registration table
+    Properties:
+      TableName: !Ref RegistrationTable
+      Item:
+        lambda_arn:
+          S: !GetAtt ModuleExtension.Arn
+      Keys:
+        - AttributeName: "lambda_arn"
+          AttributeType: "S"
+          AttributeValue: !GetAtt ModuleExtension.Arn
+
+
+

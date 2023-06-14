@@ -1,0 +1,11 @@
+{
+    "properties": {
+        "RegistrationTableArn": {
+            "description": "Arn for the DynamoDB table that will hold the list of Lambda functions to invoke. The table must have a partition key called 'pk', and sort key called 'sk'. Entries should have a single additional attribute called 'lambda_arn'. You must create the table as a prerequisite to installing this hook.",
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "definitions": {},
+    "typeName": "AwsCommunity::Lambda::Invoker"
+}

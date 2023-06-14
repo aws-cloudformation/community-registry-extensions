@@ -1,0 +1,97 @@
+{
+    "AWS::S3::AccessPoint": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "Bucket": "TODO"
+        }
+    },
+    "AWS::S3::Bucket": {
+        "resourceProperties": {
+            "FAIL": "FAIL"
+        }
+    },
+    "AWS::S3::BucketPolicy": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "PolicyDocument": "TODO"
+        }
+    },
+    "AWS::S3::MultiRegionAccessPoint": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "Regions": "TODO"
+        }
+    },
+    "AWS::S3::MultiRegionAccessPointPolicy": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "MrapName": "TODO"
+        }
+    },
+    "AWS::S3::StorageLens": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "StorageLensConfiguration": "TODO"
+        }
+    },
+    "AWS::Lambda::Alias": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "Name": "TODO"
+        }
+    },
+    "AWS::Lambda::CodeSigningConfig": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "AllowedPublishers": "TODO"
+        }
+    },
+    "AWS::Lambda::EventInvokeConfig": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "Qualifier": "TODO"
+        }
+    },
+    "AWS::Lambda::EventSourceMapping": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "FunctionName": "TODO"
+        }
+    },
+    "AWS::Lambda::Function": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "Role": "TODO"
+        }
+    },
+    "AWS::Lambda::LayerVersion": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "Content": "TODO"
+        }
+    },
+    "AWS::Lambda::LayerVersionPermission": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "Principal": "TODO"
+        }
+    },
+    "AWS::Lambda::Permission": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "Principal": "TODO"
+        }
+    },
+    "AWS::Lambda::Url": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "AuthType": "TODO"
+        }
+    },
+    "AWS::Lambda::Version": {
+        "resourceProperties": {
+            "FAIL": "FAIL",
+            "FunctionName": "TODO"
+        }
+    }
+}

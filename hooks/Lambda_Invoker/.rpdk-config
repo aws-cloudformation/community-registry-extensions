@@ -1,0 +1,23 @@
+{
+    "artifact_type": "HOOK",
+    "typeName": "AwsCommunity::Lambda::Invoker",
+    "language": "python39",
+    "runtime": "python3.9",
+    "entrypoint": "awscommunity_lambda_invoker.handlers.hook",
+    "testEntrypoint": "awscommunity_lambda_invoker.handlers.test_entrypoint",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "artifact_type": null,
+        "endpoint_url": null,
+        "region": null,
+        "target_schemas": [],
+        "profile": null,
+        "use_docker": true,
+        "no_docker": false,
+        "protocolVersion": "2.0.0"
+    }
+}
