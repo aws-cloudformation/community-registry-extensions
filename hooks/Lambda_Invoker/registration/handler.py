@@ -1,4 +1,8 @@
-"This AWS Lambda-backed custom resource is used from setup.yaml to register a sample Lambda function."
+"""
+This AWS Lambda-backed custom resource is used from setup.yaml 
+to register a sample Lambda function.
+"""
+
 #pylint:disable=W0613
 import boto3
 from crhelper import CfnResource

@@ -13,6 +13,7 @@ def invoke_lambdas(ddb, lam, target, logger, table_name):
     """
     # Query the DDB table for all Lambda Arns
     lambda_arns = []
+    logger.debug("About to scan %s", table_name)
     resp = ddb.scan(TableName=table_name)
     items = resp["Items"]
     for item in items:

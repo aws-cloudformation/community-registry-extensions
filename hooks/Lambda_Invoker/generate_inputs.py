@@ -3,8 +3,13 @@ import json
 import sys
 from botocore.config import Config
 
-def get_resource_types(prefix):
+def get_resource_types(args):
     """Return a list of resource types."""
+
+    prefix = args[0]
+    fail = False
+    if len(args) and args[1] == "fail":
+        fail = True
 
     client = boto3.client("cloudformation")
 
@@ -29,9 +34,6 @@ def get_resource_types(prefix):
             resource_types[name] = {}
             resource_types[name]["resourceProperties"] = {}
 
-    # TODO - For each type, describe-type to get the schema.
-    # Parse the schema to emit required properties
-
     for name in resource_types:
         args = {
             "Type": "RESOURCE", 
@@ -44,9 +46,11 @@ def get_resource_types(prefix):
             for r in req:
                 prop = schema["properties"][r]
             resource_types[name]["resourceProperties"][r] = "TODO"
+        if fail:
+            resource_types[name]["resourceProperties"]["FAIL"] = "FAIL"
 
     return resource_types
 
 if __name__ == "__main__":
-    print(json.dumps(get_resource_types(sys.argv[1]), indent=4))
+    print(json.dumps(get_resource_types(sys.argv[1:]), indent=4))
 
