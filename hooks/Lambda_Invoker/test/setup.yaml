@@ -95,6 +95,7 @@ Resources:
                 Resource: "*"
               - Action:
                   - dynamodb:PutItem
+                  - dynamodb:DeleteItem
                 Effect: Allow
                 Resource: !GetAtt RegistrationTable.Arn
       Path: /
@@ -125,6 +126,7 @@ Resources:
 
   RegistrationCustom:
     Type: AWS::CloudFormation::CustomResource
+    DependsOn: RegistrationLambda
     Properties:
       ServiceToken: !GetAtt RegistrationLambda.Arn
       RegistrationTableArn: !GetAtt RegistrationTable.Arn
