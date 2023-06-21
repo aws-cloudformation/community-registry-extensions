@@ -22,7 +22,7 @@ logger.setLevel(logging.DEBUG)
 
 TYPE_NAME = "AwsCommunity::Lambda::Invoker"
 
-SUPPORTED_PREFIXES = ["AWS::Lambda::", "AWS::S3::", "AWS::EC2::"]
+SUPPORTED_PREFIXES = ["AWS::"]
 
 hook = Hook(TYPE_NAME, TypeConfigurationModel)
 test_entrypoint = hook.test_entrypoint

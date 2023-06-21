@@ -30,13 +30,13 @@ def set_or_none(value: Optional[Sequence[T]]) -> Optional[AbstractSet[T]]:
 
 @dataclass
 class AwsEc2Networkaclentry(BaseModel):
-    Id: Optional[str]
     PortRange: Optional["_PortRange"]
     NetworkAclId: Optional[str]
     RuleAction: Optional[str]
     CidrBlock: Optional[str]
     Egress: Optional[bool]
     RuleNumber: Optional[int]
+    Id: Optional[str]
     Ipv6CidrBlock: Optional[str]
     Protocol: Optional[int]
     Icmp: Optional["_Icmp"]
@@ -51,13 +51,13 @@ class AwsEc2Networkaclentry(BaseModel):
         dataclasses = {n: o for n, o in getmembers(sys.modules[__name__]) if isclass(o)}
         recast_object(cls, json_data, dataclasses)
         return cls(
-            Id=json_data.get("Id"),
             PortRange=PortRange._deserialize(json_data.get("PortRange")),
             NetworkAclId=json_data.get("NetworkAclId"),
             RuleAction=json_data.get("RuleAction"),
             CidrBlock=json_data.get("CidrBlock"),
             Egress=json_data.get("Egress"),
             RuleNumber=json_data.get("RuleNumber"),
+            Id=json_data.get("Id"),
             Ipv6CidrBlock=json_data.get("Ipv6CidrBlock"),
             Protocol=json_data.get("Protocol"),
             Icmp=Icmp._deserialize(json_data.get("Icmp")),

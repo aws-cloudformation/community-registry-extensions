@@ -16,9 +16,7 @@
     "handlers": {
         "preCreate": {
             "targetNames": [
-                "AWS::Lambda::*",
-                "AWS::S3::*", 
-                "AWS::EC2::*"
+                "AWS::*::*"
             ],
             "permissions": [
                 "lambda:InvokeFunction", 
@@ -28,9 +26,7 @@
         },
         "preUpdate": {
             "targetNames": [
-                "AWS::Lambda::*",
-                "AWS::S3::*",
-                "AWS::EC2::*"
+                "AWS::*::*"
             ],
             "permissions": [
                 "lambda:InvokeFunction", 
@@ -40,9 +36,7 @@
         },
         "preDelete": {
             "targetNames": [
-                "AWS::Lambda::*",
-                "AWS::S3::*",
-                "AWS::EC2::*"
+                "AWS::*::*"
             ],
             "permissions": [
                 "lambda:InvokeFunction", 

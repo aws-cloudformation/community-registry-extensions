@@ -31,7 +31,6 @@ def set_or_none(value: Optional[Sequence[T]]) -> Optional[AbstractSet[T]]:
 @dataclass
 class AwsEc2Volumeattachment(BaseModel):
     VolumeId: Optional[str]
-    Id: Optional[str]
     InstanceId: Optional[str]
     Device: Optional[str]
 
@@ -46,7 +45,6 @@ class AwsEc2Volumeattachment(BaseModel):
         recast_object(cls, json_data, dataclasses)
         return cls(
             VolumeId=json_data.get("VolumeId"),
-            Id=json_data.get("Id"),
             InstanceId=json_data.get("InstanceId"),
             Device=json_data.get("Device"),
         )
