@@ -1,5 +1,5 @@
 "Handler functions for the Lambda Invoker hook"
-#pylint:disable=W0613
+# pylint:disable=W0613
 
 import logging
 import traceback
@@ -22,10 +22,11 @@ logger.setLevel(logging.DEBUG)
 
 TYPE_NAME = "AwsCommunity::Lambda::Invoker"
 
-SUPPORTED_PREFIXES = ["AWS::Lambda::", "AWS::S3::"] # TODO - Add the rest
+SUPPORTED_PREFIXES = ["AWS::"]
 
 hook = Hook(TYPE_NAME, TypeConfigurationModel)
 test_entrypoint = hook.test_entrypoint
+
 
 def _handler(session, request, type_configuration, op):
     "Handle creates, updates, and deletes"
@@ -47,7 +48,7 @@ def _handler(session, request, type_configuration, op):
         return ProgressEvent(
             status=OperationStatus.FAILED,
             errorCode=HandlerErrorCode.UnsupportedTarget,
-            message=f"Invalid type: {target_name}, "
+            message=f"Invalid type: {target_name}, ",
         )
 
     try:
@@ -65,14 +66,14 @@ def _handler(session, request, type_configuration, op):
             table_name = table_arn.split(":table/")[1]
             logger.debug("table_name: %s", table_name)
             target = {
-                "type_name": target_name, 
+                "type_name": target_name,
                 "resource_properties": resource_properties,
-                "operation": op
+                "operation": op,
             }
             logger.debug("target: %s", target)
 
             errs = invoke_lambdas(ddb, lam, target, logger, table_name)
-            
+
             # If anything failed, append all error messages to the progress event message
             if errs:
                 logger.debug("invoke_lambdas returned errors")
@@ -102,15 +103,18 @@ def pre_create_handler(session, request, callback_context, type_configuration):
     logger.debug("In pre_create_handler")
     return _handler(session, request, type_configuration, "create")
 
+
 @hook.handler(HookInvocationPoint.UPDATE_PRE_PROVISION)
 def pre_update_handler(session, request, callback_context, type_configuration):
     "Called before updating a resource"
     return _handler(session, request, type_configuration, "update")
 
+
 @hook.handler(HookInvocationPoint.DELETE_PRE_PROVISION)
 def pre_delete_handler(session, request, callback_context, type_configuration):
     "Called before deleting a resource"
     return _handler(session, request, type_configuration, "delete")
+
 
 def failure(handler_error_code, error_message, traceback_content):
     "Log an error, and return a ProgressEvent indicating a failure."

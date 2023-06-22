@@ -35,7 +35,7 @@ class AwsLambdaLayerversion(BaseModel):
     Description: Optional[str]
     LayerName: Optional[str]
     Content: Optional["_Content"]
-    Id: Optional[str]
+    LayerVersionArn: Optional[str]
     CompatibleArchitectures: Optional[Sequence[str]]
 
     @classmethod
@@ -53,7 +53,7 @@ class AwsLambdaLayerversion(BaseModel):
             Description=json_data.get("Description"),
             LayerName=json_data.get("LayerName"),
             Content=Content._deserialize(json_data.get("Content")),
-            Id=json_data.get("Id"),
+            LayerVersionArn=json_data.get("LayerVersionArn"),
             CompatibleArchitectures=json_data.get("CompatibleArchitectures"),
         )
 

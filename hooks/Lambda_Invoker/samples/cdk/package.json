@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "aws-cdk": "^2.84.0",
+    "cdk-import": "^0.2.543"
+  }
+}

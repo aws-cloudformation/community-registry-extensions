@@ -1,7 +1,7 @@
 {
   "typeName": "AwsCommunity::DynamoDB::Item",
   "description": "This resource will manage the lifecycle of items in a DynamoDB table",
-  "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+  "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions.git",
   "definitions": {
     "MapAttribute": {
       "patternProperties": {
