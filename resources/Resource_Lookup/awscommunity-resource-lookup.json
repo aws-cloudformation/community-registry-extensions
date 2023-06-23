@@ -1,6 +1,6 @@
 {
     "typeName": "AwsCommunity::Resource::Lookup",
-    "description": "This resource uses AWS Cloud Control API to perform a lookup of a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account and current region, based on a query you specify.  If only one match is found, this resource returns the primary identifier of the resource (in the `AWS::EC2::VPC` example, the ID of the VPC), that you can then reference in your template with the `Fn::GetAtt` intrinsic function.  Specify resource type search targets that are supported by Cloud Control API.",
+    "description": "This resource uses AWS Cloud Control API to perform a lookup of a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account and current region, based on a query you specify.  If only one match is found, this resource returns the primary ID of the resource (in the `AWS::EC2::VPC` example, the VPC ID) and the resource properties, that you can then reference in your template with the `Fn::GetAtt` intrinsic function.  Specify resource type search targets that are supported by Cloud Control API.",
     "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/resources/Resource_Lookup",
     "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/blob/main/resources/Resource_Lookup/README.md",
     "properties": {
@@ -47,6 +47,10 @@
         "ResourceIdentifier": {
             "description": "The resource identifier.  For example, the ID of a VPC if you looked up an `AWS::EC2::VPC` resource type for which only one match was found.",
             "type": "string"
+        },
+        "ResourceProperties": {
+            "description": "The resource properties.  For example, the properties of a VPC if you looked up an `AWS::EC2::VPC` resource type for which only one match was found.",
+            "type": "string"
         }
     },
     "additionalProperties": false,
@@ -57,11 +61,11 @@
     ],
     "readOnlyProperties": [
         "/properties/ResourceIdentifier",
-        "/properties/ResourceLookupId"
+        "/properties/ResourceLookupId",
+        "/properties/ResourceProperties"
     ],
     "writeOnlyProperties": [
         "/properties/JmesPathQuery",
-        "/properties/ResourceLookupRoleArn",
         "/properties/ResourceModel",
         "/properties/LookupSerialNumber"
     ],
@@ -103,6 +107,7 @@
         },
         "read": {
             "permissions": [
+                "cloudformation:GetResource",
                 "ssm:GetParameter",
                 "ssm:GetParameters",
                 "ssm:ListTagsForResource"

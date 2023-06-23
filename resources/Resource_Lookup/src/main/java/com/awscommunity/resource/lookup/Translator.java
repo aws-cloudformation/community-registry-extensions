@@ -6,7 +6,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import software.amazon.awssdk.services.cloudcontrol.CloudControlClient;
 import software.amazon.awssdk.services.cloudcontrol.model.GetResourceRequest;
+import software.amazon.awssdk.services.cloudcontrol.model.GetResourceResponse;
 import software.amazon.awssdk.services.cloudcontrol.model.ListResourcesRequest;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.AddTagsToResourceRequest;
@@ -85,12 +87,18 @@ public final class Translator {
             final Map<String, String> tags) {
         final String parameterName = model.getResourceLookupId();
         final String typeName = model.getTypeName();
-        // Before storing typeName and resourceIdentifier as a Parameter Store parameter
-        // value delimited by a comma, escape comma(s) that might be present in
-        // resourceIdentifier; an example is the resource identifier for
-        // `AWS::IAM::Role`, whereas a comma is allowed in the role name.
+
+        // Before storing typeName and resourceIdentifier as a
+        // Parameter Store parameter value delimited by a comma,
+        // escape comma(s) that might be present in
+        // resourceIdentifier; an example is the resource identifier
+        // for `AWS::IAM::Role`, whereas a comma is allowed in the
+        // role name. The same applies to the resource role ARN.
         final String resourceIdentifier = LookupHelper.escapeCommaDelimiters(model.getResourceIdentifier());
-        final String parameterValue = typeName + "," + resourceIdentifier;
+        final String resourceLookupRoleArn = LookupHelper.escapeCommaDelimiters(model.getResourceLookupRoleArn());
+
+        // Compose the parameter value.
+        final String parameterValue = typeName + "," + resourceIdentifier + "," + resourceLookupRoleArn;
 
         final PutParameterRequest putParameterRequest = PutParameterRequest.builder().type(ParameterType.STRING)
                 .name(parameterName).value(parameterValue).description(parameterName)
@@ -122,27 +130,35 @@ public final class Translator {
     }
 
     /**
-     * Translates from a {@link GetParameterResponse}.
+     * Returns the model by consuming from Parameter Store and Cloud Control API.
      *
      * @param getParameterResponse
      *            {@link GetParameterResponse}
      * @param proxySsmClient
      *            {@link ProxyClient} for {@link SsmClient}
+     * @param proxyCloudControlClient
+     *            {@link ProxyClient} for {@link CloudControlClient}
      * @return ResourceModel {@link ResourceModel}
      */
-    public static ResourceModel translateFromGetParameterResponse(final GetParameterResponse getParameterResponse,
-            final ProxyClient<SsmClient> proxySsmClient) {
+    public static ResourceModel getModel(final GetParameterResponse getParameterResponse,
+            final ProxyClient<SsmClient> proxySsmClient,
+            final ProxyClient<CloudControlClient> proxyCloudControlClient) {
         final String parameterName = getParameterResponse.parameter().name();
         final String parameterValue = getParameterResponse.parameter().value();
         final String typeName = parameterValue.split(",")[0];
 
-        // When reading typeName and resourceIdentifier from a Parameter Store parameter
-        // value delimited by a comma, first split the string when an unescaped comma is
-        // found to get resourceIdentifier, and then unescape resourceIdentifier. An
-        // example use case is the resource identifier for
-        // `AWS::IAM::Role`, whereas a comma is allowed in the role name.
+        // When reading typeName and resourceIdentifier from a
+        // Parameter Store parameter value delimited by a comma, first
+        // split the string when an unescaped comma is found to get
+        // resourceIdentifier, and then unescape
+        // resourceIdentifier. An example use case is the resource
+        // identifier for `AWS::IAM::Role`, whereas a comma is allowed
+        // in the role name. The same applies to the resource role
+        // ARN.
         final String resourceIdentifier = LookupHelper
                 .unescapeCommaDelimiters(LookupHelper.splitStringWithUnescapedCommaDelimiters(parameterValue)[1]);
+        final String resourceLookupRoleArn = LookupHelper
+                .unescapeCommaDelimiters(LookupHelper.splitStringWithUnescapedCommaDelimiters(parameterValue)[2]);
 
         // Call ListTagsForResource to get the tags for the parameter.
         final SsmClient ssmClient = proxySsmClient.client();
@@ -151,8 +167,17 @@ public final class Translator {
         // Convert tags into a map of strings.
         final Map<String, String> tags = TagHelper.convertToMap(listTagsForResourceResponse.tagList());
 
+        // Call GetResource to get the resource properties.
+        final CloudControlClient cloudControlClient = proxyCloudControlClient.client();
+
+        final GetResourceResponse getResourceResponse = proxyCloudControlClient.injectCredentialsAndInvokeV2(
+                translateToGetResourceRequest(typeName, resourceLookupRoleArn, resourceIdentifier),
+                cloudControlClient::getResource);
+        final String resourceProperties = getResourceResponse.resourceDescription().properties();
+
         return ResourceModel.builder().resourceLookupId(parameterName).typeName(typeName)
-                .resourceIdentifier(resourceIdentifier).tags(tags).build();
+                .resourceIdentifier(resourceIdentifier).tags(tags).resourceProperties(resourceProperties)
+                .resourceLookupRoleArn(resourceLookupRoleArn).build();
     }
 
     /**

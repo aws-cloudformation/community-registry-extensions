@@ -44,7 +44,8 @@ public class ReadHandler extends BaseHandlerStd {
 
         final ResourceModel requestModel = request.getDesiredResourceState();
 
-        // Using a Progress Chain to perform operations shown next; see:
+        // Using a Progress Chain to perform operations shown next;
+        // see:
         // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
         // for more information.
 
@@ -76,8 +77,10 @@ public class ReadHandler extends BaseHandlerStd {
                 // populate the model; note that here, when calling
                 // translateFromGetParameterResponse() will also call
                 // the ListTagsForResource API to get the tags for the
-                // parameter, so to populate tag values as well.
+                // parameter, so to populate tag values as well. The
+                // ResourceProperties field value is here retrieved
+                // with a separate call to Cloud Control API.
                 .done(getParameterResponse -> ProgressEvent.defaultSuccessHandler(
-                        Translator.translateFromGetParameterResponse(getParameterResponse, proxySsmClient)));
+                        Translator.getModel(getParameterResponse, proxySsmClient, proxyCloudControlClient)));
     }
 }

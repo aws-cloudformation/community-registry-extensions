@@ -86,9 +86,63 @@ public class CreateHandlerStabilizeTest extends AbstractTestBase {
     }
 
     @Test
-    public void isStabilizedTrue() {
+    public void isStabilizedNullParameter() {
+        final GetParameterResponse getParameterResponse = GetParameterResponse.builder().build();
+        when(ssmClient.getParameter(any(GetParameterRequest.class))).thenReturn(getParameterResponse);
+
+        final Map<String, String> resourceTags = new HashMap<String, String>();
+
+        final String jmesPathQuery = "Tags[?Key=='Owner'&&Value=='contract-test-only-test-team']";
+
+        final ResourceModel model = ResourceModel.builder().resourceLookupId("test").typeName("test")
+                .jmesPathQuery(jmesPathQuery).resourceLookupRoleArn("test").tags(resourceTags).build();
+
+        final boolean response = handler.isStabilized(model, proxySsmClient, LOGGER);
+
+        assertFalse(response);
+    }
+
+    @Test
+    public void isStabilizedNullParameterName() {
         final GetParameterResponse getParameterResponse = GetParameterResponse.builder()
-                .parameter(Parameter.builder().type(ParameterType.STRING_LIST).name("test").value("test,test").build())
+                .parameter(Parameter.builder().build()).build();
+        when(ssmClient.getParameter(any(GetParameterRequest.class))).thenReturn(getParameterResponse);
+
+        final Map<String, String> resourceTags = new HashMap<String, String>();
+
+        final String jmesPathQuery = "Tags[?Key=='Owner'&&Value=='contract-test-only-test-team']";
+
+        final ResourceModel model = ResourceModel.builder().resourceLookupId("test").typeName("test")
+                .jmesPathQuery(jmesPathQuery).resourceLookupRoleArn("test").tags(resourceTags).build();
+
+        final boolean response = handler.isStabilized(model, proxySsmClient, LOGGER);
+
+        assertFalse(response);
+    }
+
+    @Test
+    public void isNotStabilized() {
+        final GetParameterResponse getParameterResponse = GetParameterResponse.builder().parameter(
+                Parameter.builder().type(ParameterType.STRING_LIST).name("test1").value("test,test,test").build())
+                .build();
+        when(ssmClient.getParameter(any(GetParameterRequest.class))).thenReturn(getParameterResponse);
+
+        final Map<String, String> resourceTags = new HashMap<String, String>();
+
+        final String jmesPathQuery = "Tags[?Key=='Owner'&&Value=='contract-test-only-test-team']";
+
+        final ResourceModel model = ResourceModel.builder().resourceLookupId("test").typeName("test")
+                .jmesPathQuery(jmesPathQuery).resourceLookupRoleArn("test").tags(resourceTags).build();
+
+        final boolean response = handler.isStabilized(model, proxySsmClient, LOGGER);
+
+        assertFalse(response);
+    }
+
+    @Test
+    public void isStabilized() {
+        final GetParameterResponse getParameterResponse = GetParameterResponse.builder().parameter(
+                Parameter.builder().type(ParameterType.STRING_LIST).name("test").value("test,test,test").build())
                 .build();
         when(ssmClient.getParameter(any(GetParameterRequest.class))).thenReturn(getParameterResponse);
 

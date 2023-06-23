@@ -62,12 +62,14 @@ public class UpdateHandler extends BaseHandlerStd {
         final Map<String, String> previousCombinedTags = TagHelper.combineTags(previousRequestTags,
                 previousResourceTags);
 
-        // Determine which tags to add, or to remove, based on combined tags above.
+        // Determine which tags to add, or to remove, based on
+        // combined tags above.
         final Map<String, String> combinedTagsToAdd = TagHelper.generateTagsToAdd(previousCombinedTags, combinedTags);
         final Map<String, String> combinedTagsToRemove = TagHelper.generateTagsToRemove(previousCombinedTags,
                 combinedTags);
 
-        // Using a Progress Chain to perform operations shown next; see:
+        // Using a Progress Chain to perform operations shown next;
+        // see:
         // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
         // for more information.
         return ProgressEvent.progress(requestModel, callbackContext)
@@ -80,7 +82,8 @@ public class UpdateHandler extends BaseHandlerStd {
                         // Construct the GetParameterRequest.
                         .translateToServiceRequest(Translator::translateToGetParameterRequest)
 
-                        // Make the API call with the GetParameterRequest.
+                        // Make the API call with the
+                        // GetParameterRequest.
                         .makeServiceCall((awsRequest, client) -> {
                             final SsmClient ssmClient = client.client();
                             GetParameterResponse getParameterResponse = null;

@@ -32,7 +32,7 @@ public class LookupHelperTest {
     }
 
     @Test
-    public void escapeCommaDelimitersNoCommasInInputMatchesExpectedOutput() {
+    public void escapeNoCommaDelimiters() {
         final String input = "test";
         final String output = LookupHelper.escapeCommaDelimiters(input);
 
@@ -40,23 +40,23 @@ public class LookupHelperTest {
     }
 
     @Test
-    public void escapeCommaDelimitersWithOneCommaInInputMatchesExpectedOutput() {
-        final String input = "test,test";
+    public void escapeTwoCommaDelimiters() {
+        final String input = "test,test,test";
         final String output = LookupHelper.escapeCommaDelimiters(input);
 
-        assertThat(output).isEqualTo("test\\,test");
+        assertThat(output).isEqualTo("test\\,test\\,test");
     }
 
     @Test
-    public void escapeCommaDelimitersWithMoreThanOneCommaInInputMatchesExpectedOutput() {
-        final String input = "test,test,";
+    public void escapeTwoCommaDelimitersAndTrailingComma() {
+        final String input = "test,test,test,";
         final String output = LookupHelper.escapeCommaDelimiters(input);
 
-        assertThat(output).isEqualTo("test\\,test\\,");
+        assertThat(output).isEqualTo("test\\,test\\,test\\,");
     }
 
     @Test
-    public void unescapeCommaDelimitersNoCommasInInputMatchesExpectedOutput() {
+    public void unescapeNoCommaDelimiters() {
         final String input = "test";
         final String output = LookupHelper.unescapeCommaDelimiters(input);
 
@@ -64,23 +64,23 @@ public class LookupHelperTest {
     }
 
     @Test
-    public void unescapeCommaDelimitersWithOneCommaInInputMatchesExpectedOutput() {
-        final String input = "test\\,test";
+    public void unescapeTwoCommaDelimiters() {
+        final String input = "test\\,test\\,test";
         final String output = LookupHelper.unescapeCommaDelimiters(input);
 
-        assertThat(output).isEqualTo("test,test");
+        assertThat(output).isEqualTo("test,test,test");
     }
 
     @Test
-    public void unescapeCommaDelimitersWithMoreThanOneCommaInInputMatchesExpectedOutput() {
-        final String input = "test\\,test\\,";
+    public void unescapeTwoCommaDelimitersAndTrailingComma() {
+        final String input = "test\\,test\\,test\\,";
         final String output = LookupHelper.unescapeCommaDelimiters(input);
 
-        assertThat(output).isEqualTo("test,test,");
+        assertThat(output).isEqualTo("test,test,test,");
     }
 
     @Test
-    public void splitStringWithUnescapedCommaDelimitersNoCommasInInputMatchesExpectedOutput() {
+    public void splitWithNoCommaDelimiters() {
         final String input = "test";
         final String[] output = LookupHelper.splitStringWithUnescapedCommaDelimiters(input);
 
@@ -88,40 +88,43 @@ public class LookupHelperTest {
     }
 
     @Test
-    public void splitStringWithUnescapedCommaDelimitersOneUnescapedCommaInInputMatchesExpectedOutput() {
-        final String input = "test1,test2";
+    public void splitWithUnescapedCommaDelimiters() {
+        final String input = "test1,test2,test3";
         final String[] output = LookupHelper.splitStringWithUnescapedCommaDelimiters(input);
 
         assertThat(output[0]).isEqualTo("test1");
         assertThat(output[1]).isEqualTo("test2");
+        assertThat(output[2]).isEqualTo("test3");
     }
 
     @Test
-    public void splitStringWithUnescapedCommaDelimitersOneEscapedCommaInInputMatchesExpectedOutput() {
-        final String input = "test1,test2\\,test3";
+    public void splitWithUnescapedAndEscapedCommaDelimiters() {
+        final String input = "test1,test2\\,test3,test4\\,test5";
         final String[] output = LookupHelper.splitStringWithUnescapedCommaDelimiters(input);
 
         assertThat(output[0]).isEqualTo("test1");
         assertThat(output[1]).isEqualTo("test2\\,test3");
+        assertThat(output[2]).isEqualTo("test4\\,test5");
     }
 
     @Test
-    public void splitStringWithUnescapedCommaDelimitersMoreThanOneUnescapedCommaInInputMatchesExpectedOutput() {
-        final String input = "test1\\,test2,test3,test4";
+    public void splitWithUnescapedAndAdjacentEscapedCommaDelimiters() {
+        final String input = "test1,test2\\,\\,test3,test4\\,\\,test5";
         final String[] output = LookupHelper.splitStringWithUnescapedCommaDelimiters(input);
 
-        assertThat(output[0]).isEqualTo("test1\\,test2");
-        assertThat(output[1]).isEqualTo("test3");
-        assertThat(output[2]).isEqualTo("test4");
+        assertThat(output[0]).isEqualTo("test1");
+        assertThat(output[1]).isEqualTo("test2\\,\\,test3");
+        assertThat(output[2]).isEqualTo("test4\\,\\,test5");
     }
 
     @Test
-    public void splitStringWithUnescapedCommaDelimitersMoreThanOneEscapedCommaInInputMatchesExpectedOutput() {
-        final String input = "test1\\,test2,test3\\,test4";
+    public void splitWithUnescapedAndNonAdjacentEscapedCommaDelimiters() {
+        final String input = "test1,test\\,2\\,test3,test\\,4\\,test5";
         final String[] output = LookupHelper.splitStringWithUnescapedCommaDelimiters(input);
 
-        assertThat(output[0]).isEqualTo("test1\\,test2");
-        assertThat(output[1]).isEqualTo("test3\\,test4");
+        assertThat(output[0]).isEqualTo("test1");
+        assertThat(output[1]).isEqualTo("test\\,2\\,test3");
+        assertThat(output[2]).isEqualTo("test\\,4\\,test5");
     }
 
     @Test

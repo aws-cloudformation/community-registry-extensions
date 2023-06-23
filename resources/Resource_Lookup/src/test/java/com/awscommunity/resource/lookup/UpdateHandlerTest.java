@@ -23,6 +23,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.cloudcontrol.CloudControlClient;
+import software.amazon.awssdk.services.cloudcontrol.model.GetResourceRequest;
+import software.amazon.awssdk.services.cloudcontrol.model.GetResourceResponse;
+import software.amazon.awssdk.services.cloudcontrol.model.ResourceDescription;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.AddTagsToResourceRequest;
 import software.amazon.awssdk.services.ssm.model.AddTagsToResourceResponse;
@@ -82,8 +85,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequestSuccess() {
-        final GetParameterResponse getParameterResponse = GetParameterResponse.builder()
-                .parameter(Parameter.builder().type(ParameterType.STRING_LIST).name("test").value("test,test").build())
+        final GetParameterResponse getParameterResponse = GetParameterResponse.builder().parameter(
+                Parameter.builder().type(ParameterType.STRING_LIST).name("test").value("test,test,test").build())
                 .build();
         when(ssmClient.getParameter(any(GetParameterRequest.class))).thenReturn(getParameterResponse);
 
@@ -95,8 +98,15 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final Map<String, String> tags = new HashMap<String, String>();
 
+        final String resourceProperties = Mocks.getResourcePropertiesMock();
+
+        final GetResourceResponse getResourceResponse = GetResourceResponse.builder()
+                .resourceDescription(ResourceDescription.builder().properties(resourceProperties).build()).build();
+        when(cloudControlClient.getResource(any(GetResourceRequest.class))).thenReturn(getResourceResponse);
+
         final ResourceModel model = ResourceModel.builder().resourceLookupId("test").resourceIdentifier("test")
-                .typeName("test").tags(tags).build();
+                .typeName("test").tags(tags).resourceProperties(resourceProperties).resourceLookupRoleArn("test")
+                .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model).desiredResourceTags(tags).previousResourceState(model)
@@ -155,8 +165,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void removeAndAddTagsSuccess() {
-        final GetParameterResponse getParameterResponse = GetParameterResponse.builder()
-                .parameter(Parameter.builder().type(ParameterType.STRING_LIST).name("test").value("test,test").build())
+        final GetParameterResponse getParameterResponse = GetParameterResponse.builder().parameter(
+                Parameter.builder().type(ParameterType.STRING_LIST).name("test").value("test,test,test").build())
                 .build();
         when(ssmClient.getParameter(any(GetParameterRequest.class))).thenReturn(getParameterResponse);
 
@@ -189,8 +199,15 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final Map<String, String> previousResourceTags = new HashMap<String, String>();
         previousResourceTags.put("TestA", "testA");
 
+        final String resourceProperties = Mocks.getResourcePropertiesMock();
+
+        final GetResourceResponse getResourceResponse = GetResourceResponse.builder()
+                .resourceDescription(ResourceDescription.builder().properties(resourceProperties).build()).build();
+        when(cloudControlClient.getResource(any(GetResourceRequest.class))).thenReturn(getResourceResponse);
+
         final ResourceModel model = ResourceModel.builder().resourceLookupId("test").resourceIdentifier("test")
-                .typeName("test").tags(resourceTags).build();
+                .typeName("test").tags(resourceTags).resourceProperties(resourceProperties)
+                .resourceLookupRoleArn("test").build();
 
         final ResourceModel previousModel = ResourceModel.builder().resourceLookupId("test").resourceIdentifier("test")
                 .typeName("test").tags(previousResourceTags).build();

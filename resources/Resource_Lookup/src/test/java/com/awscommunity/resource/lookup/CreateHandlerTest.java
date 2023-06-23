@@ -97,8 +97,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         final PutParameterResponse putParameterResponse = PutParameterResponse.builder().build();
         when(ssmClient.putParameter(any(PutParameterRequest.class))).thenReturn(putParameterResponse);
 
-        final GetParameterResponse getParameterResponse = GetParameterResponse.builder()
-                .parameter(Parameter.builder().type(ParameterType.STRING_LIST).name("test").value("test,test").build())
+        final GetParameterResponse getParameterResponse = GetParameterResponse.builder().parameter(
+                Parameter.builder().type(ParameterType.STRING_LIST).name("test").value("test,test,test").build())
                 .build();
         when(ssmClient.getParameter(any(GetParameterRequest.class))).thenReturn(getParameterResponse);
 
@@ -113,7 +113,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         final String jmesPathQuery = "Tags[?Key=='Owner'&&Value=='contract-test-only-test-team']";
 
         final ResourceModel model = ResourceModel.builder().resourceLookupId("test").typeName("test")
-                .jmesPathQuery(jmesPathQuery).resourceLookupRoleArn("test").tags(resourceTags).build();
+                .jmesPathQuery(jmesPathQuery).resourceLookupRoleArn("test").tags(resourceTags)
+                .resourceProperties(resourceProperties).build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model).build();

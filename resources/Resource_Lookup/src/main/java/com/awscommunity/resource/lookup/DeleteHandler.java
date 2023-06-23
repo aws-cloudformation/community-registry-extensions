@@ -44,7 +44,8 @@ public class DeleteHandler extends BaseHandlerStd {
 
         final ResourceModel requestModel = request.getDesiredResourceState();
 
-        // Using a Progress Chain to perform operations shown next; see:
+        // Using a Progress Chain to perform operations shown next;
+        // see:
         // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
         // for more information.
         return ProgressEvent.progress(requestModel, callbackContext)
@@ -59,7 +60,8 @@ public class DeleteHandler extends BaseHandlerStd {
                         // Construct the DeleteParameterRequest.
                         .translateToServiceRequest(Translator::translateToDeleteParameterRequest)
 
-                        // Make the API call with the DeleteParameterRequest.
+                        // Make the API call with the
+                        // DeleteParameterRequest.
                         .makeServiceCall((deleteParameterRequest, client) -> {
                             final SsmClient ssmClient = client.client();
                             DeleteParameterResponse deleteParameterResponse = null;
@@ -79,7 +81,8 @@ public class DeleteHandler extends BaseHandlerStd {
 
                         .progress())
 
-                // Return the successful progress event without the resource model set.
+                // Return the successful progress event without the
+                // resource model set.
                 .then(progress -> ProgressEvent.defaultSuccessHandler(null));
     }
 }

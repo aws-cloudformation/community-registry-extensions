@@ -132,16 +132,19 @@ public class CreateHandler extends BaseHandlerStd {
         final JmesPath<JsonNode> jmespath = LookupHelper.getJacksonRuntimeForJmesPath();
         final Expression<JsonNode> expression = jmespath.compile(jmesPathQuery);
 
-        // The maxResults field for AWS Cloud Control API's ListResourcesRequest:
+        // The maxResults field for AWS Cloud Control API's
+        // ListResourcesRequest:
         // https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/cloudcontrol/model/ListResourcesRequest.html#maxResults()
-        // is marked as `Reserved`; hence, not using it here. The implementation shown
-        // next uses a custom pagination across handler invocations, that first fetches
-        // data from the `ListResources` API, and fills up IdentifiersBuffer defined in
-        // the callback context POJO. If a NextToken is found, it is also stored in the
-        // POJO for later consumption, after the custom pagination depletes the buffer.
+        // is marked as `Reserved`; hence, not using it here. The
+        // implementation shown next uses a custom pagination across
+        // handler invocations, that first fetches data from the
+        // `ListResources` API, and fills up IdentifiersBuffer defined
+        // in the callback context POJO. If a NextToken is found, it
+        // is also stored in the POJO for later consumption, after the
+        // custom pagination depletes the buffer.
 
-        // If IdentifiersBuffer is null or empty: call ListResources, and fill the
-        // buffer with resource identifiers.
+        // If IdentifiersBuffer is null or empty: call ListResources,
+        // and fill the buffer with resource identifiers.
         if (LookupHelper.isIdentifiersBufferNullOrEmpty(currentContext.getIdentifiersBuffer())) {
             logger.log("Identifiers buffer null or empty; fetching data via the ListResources API call.");
             listResourcesResponse = proxySsmClient.injectCredentialsAndInvokeV2(
@@ -201,8 +204,8 @@ public class CreateHandler extends BaseHandlerStd {
             identifierIteratorCounter++;
         }
 
-        // If IdentifiersBuffer is not empty: call the handler again, and consume from
-        // the buffer.
+        // If IdentifiersBuffer is not empty: call the handler again,
+        // and consume from the buffer.
         if (LookupHelper.isIdentifiersBufferNotEmpty(currentContext.getIdentifiersBuffer())) {
             logger.log("The identifiers buffer is not empty; calling back the handler, and consuming from the buffer.");
             currentContext.setIdentifiersBuffer(identifiers);
@@ -211,9 +214,9 @@ public class CreateHandler extends BaseHandlerStd {
                     .callbackDelaySeconds(Constants.CALLBACK_DELAY_SECONDS).build();
         }
 
-        // If NextToken is not empty, and IdentifiersBuffer is null or empty: call the
-        // handler
-        // again, and make a new API call with NextToken set.
+        // If NextToken is not empty, and IdentifiersBuffer is null or
+        // empty: call the handler again, and make a new API call with
+        // NextToken set.
         if (LookupHelper.isNextTokenNotEmptyAndIdentifiersBufferNullOrEmpty(currentContext.getListResourcesNextToken(),
                 currentContext.getIdentifiersBuffer())) {
             logger.log(
@@ -232,9 +235,13 @@ public class CreateHandler extends BaseHandlerStd {
 
         currentContext.setIdentifiersBuffer(null);
         requestModel.setJmesPathQuery(null);
-        requestModel.setResourceLookupRoleArn(null);
-        // If only one search result has been found, complete the provisioning and store
-        // the result.
+
+        // Pass the lookup role ARN to the next step, for it to be
+        // stored in Parameter Store.
+        requestModel.setResourceLookupRoleArn(resourceLookupRoleArn);
+
+        // If only one search result has been found, complete the
+        // provisioning and store the result.
         return provisionLookupStorageAndSaveLookupResult(proxy, request, currentContext, proxySsmClient,
                 proxyCloudControlClient, logger);
     }
@@ -270,12 +277,14 @@ public class CreateHandler extends BaseHandlerStd {
         // Combine tags.
         final Map<String, String> combinedTags = TagHelper.combineTags(requestTags, resourceTags);
 
-        // Using a Progress Chain to perform operations shown next; see:
+        // Using a Progress Chain to perform operations shown next;
+        // see:
         // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
         // for more information.
         return ProgressEvent.progress(requestModel, callbackContext)
 
-                // Create/stabilize progress chain; required for resource creation.
+                // Create/stabilize progress chain; required for
+                // resource creation.
                 .then(progress ->
                 // Initialize the proxy context.
                 proxy.initiate("AwsCommunity-Resource-Lookup::Create::PutParameter", proxySsmClient,
@@ -285,7 +294,8 @@ public class CreateHandler extends BaseHandlerStd {
                         .translateToServiceRequest(
                                 (model) -> Translator.translateToPutParameterRequest(model, combinedTags))
 
-                        // Make the API call with the PutParameterRequest.
+                        // Make the API call with the
+                        // PutParameterRequest.
                         .makeServiceCall((putParameterRequest, client) -> {
                             final SsmClient ssmClient = client.client();
                             PutParameterResponse putParameterResponse = null;
@@ -325,24 +335,36 @@ public class CreateHandler extends BaseHandlerStd {
      */
     protected boolean isStabilized(final ResourceModel model, final ProxyClient<SsmClient> proxySsmClient,
             final Logger logger) {
-        boolean isStabilized = false;
 
         final SsmClient ssmClient = proxySsmClient.client();
+
+        final String expectedPrimaryIdentifier = model.getPrimaryIdentifier().getString("/properties/ResourceLookupId");
+
         GetParameterResponse getParameterResponse = null;
         try {
             getParameterResponse = proxySsmClient.injectCredentialsAndInvokeV2(
                     Translator.translateToGetParameterRequest(model), ssmClient::getParameter);
         } catch (final Exception e) {
-            return isStabilized;
+            return false;
         }
+
         if (getParameterResponse == null) {
-            return isStabilized;
+            return false;
         }
 
-        isStabilized = true;
+        if (getParameterResponse.parameter() == null) {
+            return false;
+        }
 
-        logger.log(
-                String.format("%s [%s] has been stabilized.", ResourceModel.TYPE_NAME, model.getPrimaryIdentifier()));
-        return isStabilized;
+        if (getParameterResponse.parameter().name() == null) {
+            return false;
+        }
+
+        if (getParameterResponse.parameter().name().equals(expectedPrimaryIdentifier)) {
+            logger.log(String.format("%s [%s] has stabilized.", ResourceModel.TYPE_NAME, expectedPrimaryIdentifier));
+            return true;
+        }
+
+        return false;
     }
 }
