@@ -1,6 +1,6 @@
 # AwsCommunity::Resource::Lookup
 
-This resource uses AWS Cloud Control API to perform a lookup of a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account and current region, based on a query you specify.  If only one match is found, this resource returns the primary identifier of the resource (in the `AWS::EC2::VPC` example, the ID of the VPC), that you can then reference in your template with the `Fn::GetAtt` intrinsic function.  Specify resource type search targets that are supported by Cloud Control API.
+This resource uses AWS Cloud Control API to perform a lookup of a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account and current region, based on a query you specify.  If only one match is found, this resource returns the primary ID of the resource (in the `AWS::EC2::VPC` example, the VPC ID) and the resource properties, that you can then reference in your template with the `Fn::GetAtt` intrinsic function.  Specify resource type search targets that are supported by Cloud Control API.
 
 ## Syntax
 
@@ -128,4 +128,8 @@ The resource identifier.  For example, the ID of a VPC if you looked up an `AWS:
 #### ResourceLookupId
 
 When this resource type finds only one match as the result of a lookup operation, it then creates an AWS Systems Manager Parameter Store parameter resource in your account and current region to persist the lookup result for subsequent use (for example, when its `Read` handler is invoked).  `ResourceLookupId` holds the name of the Parameter Store parameter; for example: `/CloudFormation/AwsCommunity/Resource/Lookup/resource-lookup-id-11112222-3333-aaaa-bbbb-ccccddddeeee`.
+
+#### ResourceProperties
+
+The resource properties.  For example, the properties of a VPC if you looked up an `AWS::EC2::VPC` resource type for which only one match was found.
 

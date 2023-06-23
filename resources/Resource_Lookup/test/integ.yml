@@ -106,3 +106,7 @@ Outputs:
   ResourceLookupId:
     Description: The ID of the resource lookup operation.
     Value: !Ref 'ResourceLookup'
+
+  ResourceProperties:
+    Description: The properties of the resource you looked up.
+    Value: !GetAtt ResourceLookup.ResourceProperties

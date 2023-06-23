@@ -4,6 +4,7 @@
     - [Context](#Context)
 - [Resource type reference](#Resource-type-reference)
 - [Usage](#Usage)
+    - [Upgrade path](#Upgrade-path)
     - [Constructing queries](#Constructing-queries)
         - [Using the AWS resource and property types reference](#Using-the-AWS-resource-and-property-types-reference)
         - [Using the AWS CLI and AWS Cloud Control API](#Using-the-AWS-CLI-and-AWS-Cloud-Control-API)
@@ -20,7 +21,7 @@
     - [Schema](#Schema)
 
 ## Overview
-The `AwsCommunity::Resource::Lookup` AWS CloudFormation [resource type](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-types.html) uses `ListResources` and `GetResource` [actions](https://docs.aws.amazon.com/cloudcontrolapi/latest/APIReference/API_Operations.html) of [AWS Cloud Control API](https://aws.amazon.com/cloudcontrolapi/) to perform a search for a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account -and current region if you are using a regional AWS service- based on a query you specify.  If only one match is found, `AwsCommunity::Resource::Lookup` returns the primary identifier of the resource (in the `AWS::EC2::VPC` example, the ID of the VPC), that you can then consume by referencing it in your template with the `Fn::GetAtt`[intrinsic function](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html).
+The `AwsCommunity::Resource::Lookup` AWS CloudFormation [resource type](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-types.html) uses `ListResources` and `GetResource` [actions](https://docs.aws.amazon.com/cloudcontrolapi/latest/APIReference/API_Operations.html) of [AWS Cloud Control API](https://aws.amazon.com/cloudcontrolapi/) to perform a search for a resource of a given type (such as, `AWS::EC2::VPC`) in your AWS account -and current region if you are using a regional AWS service- based on a query you specify.  If only one match is found, `AwsCommunity::Resource::Lookup` returns the primary identifier of the resource (in the `AWS::EC2::VPC` example, the ID of the VPC) and the resource properties in JSON format, that you can then consume by referencing them in your template with the `Fn::GetAtt`[intrinsic function](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html).
 
 Note: as this resource type uses Cloud Control API, you can specify resource type search targets -like `AWS::EC2::VPC`- that are supported by Cloud Control API; for more information, see [Determining if a resource type supports Cloud Control API](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-types.html#resource-types-determine-support).
 
@@ -97,7 +98,31 @@ Resources:
           IpProtocol: tcp
           ToPort: 80
       VpcId: !GetAtt ResourceLookup.ResourceIdentifier
+
+Outputs:
+  ResourceIdentifier:
+    Description: The resource identifier result of the lookup operation.
+    Value: !GetAtt ResourceLookup.ResourceIdentifier
+
+  ResourceLookupId:
+    Description: The ID of the resource lookup operation.
+    Value: !Ref 'ResourceLookup'
+
+  ResourceProperties:
+    Description: The properties of the resource you looked up.
+    Value: !GetAtt ResourceLookup.ResourceProperties
 ```
+
+In the `Outputs` section for the example above, note the `ResourceIdentifier` and `ResourceProperties` outputs that use the `Fn::GetAtt` intrinsic function to reference, respectively, the `ResourceIdentifier` and `ResourceProperties` properties of the `AwsCommunity::Resource::Lookup` resource type: the former property returns, in the example above, the ID of the VPC you looked up (e.g., `vpc-111222333`), and the latter the resource properties of the VPC (e.g., `{"VpcId":"vpc-111222333","InstanceTenancy":"default",[...]`) in JSON format.
+
+Note: the `AwsCommunity::Resource::Lookup` resource type also uses AWS Cloud Control API to get the properties of a resource (in this case, of the resource that has been found as part of your lookup operation).  For more information, see [Reading a resource's current state](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-read.html).
+
+### Upgrade path
+A new version of the `AwsCommunity::Resource::Lookup` resource type introduced the ability of consuming the properties of a resource type that is the target of the search (in the above examples, a VPC) with the `Fn::GetAtt` intrinsic function.  If you have an existing CloudFormation stack that uses a previous version of the `AwsCommunity::Resource::Lookup` resource type, for you to use a reference to the resource properties such as with `!GetAtt ResourceLookup.ResourceProperties`, first you'll need to:
+
+- make sure you use the latest version of the `AwsCommunity::Resource::Lookup` resource type;
+- update your existing stack: when you do so, pass a new parameter value to `LookupSerialNumber`: for example, pass `2` instead of `1`.  This will induce a change into the desired resource state, and a new lookup operation will start when the stack update operation begins.  Once the resource has been looked up again, due to how this resource type is designed a new Parameter Store resource will be created, and it will replace the existing one: the new parameter will contain additional information to support the retrieval of the resource properties (the ARN of the lookup role you already passed in as an input to the resource);
+- next, on subsequent uses, you should be able to reference the resource properties of the target resource type with (for example): `!GetAtt ResourceLookup.ResourceProperties`.
 
 ### Constructing queries
 This resource type uses [JMESPath](https://jmespath.org/) to search through `ResourceDescription` [properties](https://docs.aws.amazon.com/cloudcontrolapi/latest/APIReference/API_ResourceDescription.html) returned by the [GetResource](https://docs.aws.amazon.com/cloudcontrolapi/latest/APIReference/API_GetResource.html) API of [AWS Cloud Control API](https://aws.amazon.com/cloudcontrolapi/).  You specify your query in the `JmesPathQuery` property of the `AwsCommunity::Resource::Lookup` resource type.  To build a query that you'll pass in as an input to this resource type, you'd want to:
@@ -269,7 +294,7 @@ mvn clean verify
 cfn submit --set-default --region us-east-1
 ```
 
-Create a stack to consume the resource type; replace the IAM role placeholder text below with the ARN of the role you created earlier (such -example- `arn:aws:iam::111122223333:role/example-resource-lookup-role-ResourceLookupRole-[OMITTED]`):
+Create a stack to consume the resource type; replace the IAM role placeholder text below with the ARN of the role you created earlier (such as, for example: `arn:aws:iam::111122223333:role/example-resource-lookup-role-ResourceLookupRole-[OMITTED]`):
 
 ```
 aws cloudformation create-stack \
