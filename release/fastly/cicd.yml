@@ -196,6 +196,34 @@ Resources:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
         - !Ref FastlyParameterPolicy
 
+  FastlyServicesVersionBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
+
+  FastlyServicesActiveVersionBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+        - !Ref FastlyParameterPolicy
+
   FastlyServicesDomainBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -409,6 +437,57 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
 
+  FastlyServicesVersionBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-services-version"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Fastly-Services-Version"
+          - Name: FASTLY_SERVICE_ID
+            Type: PARAMETER_STORE
+            Value: "cep-fastly-service-id"
+      ServiceRole: !GetAtt FastlyServicesVersionBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  FastlyServicesActiveVersionBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-services-activeversion"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Fastly-Services-ActiveVersion"
+          - Name: FASTLY_AV_SERVICE_ID
+            Type: PARAMETER_STORE
+            Value: "cep-fastly-ac-service-id"
+          - Name: FASTLY_AC_VERSION_ID
+            Type: PARAMETER_STORE
+            Value: "cep-fastly-ac-version-id"
+      ServiceRole: !GetAtt FastlyServicesActiveVersionBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
 
   FastlyTlsCertificateBuildProjectRole:
     Type: AWS::IAM::Role
@@ -590,6 +669,8 @@ Resources:
                   - !GetAtt FastlyDictionaryDictionaryItemBuildProject.Arn
                   - !GetAtt FastlyLoggingS3BuildProject.Arn
                   - !GetAtt FastlyLoggingSplunkBuildProject.Arn
+                  - !GetAtt FastlyServicesVersionBuildProject.Arn
+                  - !GetAtt FastlyServicesActiveVersionBuildProject.Arn
                   - !GetAtt FastlyTlsCertificateBuildProject.Arn
                   - !GetAtt FastlyTlsDomainBuildProject.Arn
                   - !GetAtt FastlyTlsPrivateKeysBuildProject.Arn
@@ -654,6 +735,8 @@ Resources:
                 - !GetAtt FastlyDictionaryDictionaryItemBuildProjectRole.Arn
                 - !GetAtt FastlyLoggingS3BuildProjectRole.Arn
                 - !GetAtt FastlyLoggingSplunkBuildProjectRole.Arn
+                - !GetAtt FastlyServicesVersionBuildProjectRole.Arn
+                - !GetAtt FastlyServicesActiveVersionBuildProjectRole.Arn
                 - !GetAtt FastlyTlsCertificateBuildProjectRole.Arn
                 - !GetAtt FastlyTlsPrivateKeysBuildProjectRole.Arn
                 - !GetAtt FastlyTlsDomainBuildProjectRole.Arn
@@ -858,6 +941,44 @@ Resources:
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
                       "value": "Fastly-Logging-Splunk"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: FastlyServicesVersion
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref FastlyServicesVersionBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Fastly-Services-Version"
+                    }
+                  ]
+              RunOrder: 1
+            - Name: FastlyServicesActiveVersion
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref FastlyServicesActiveVersionBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Fastly-Services-ActiveVersion"
                     }
                   ]
               RunOrder: 1
