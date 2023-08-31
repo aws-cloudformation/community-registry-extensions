@@ -8,14 +8,14 @@ authors = ["Kevin DeJong <kddejong@amazon.com>"]
 python = "^3.7.2"
 cloudformation-cli-python-lib = "^2.1.12"
 cfn-guard-rs = "^0.2.1"
-pyyaml = "~5.4.1"
+pyyaml = "~6.0.1"
 Jinja2 = "^3.0.0"
 jsonpath-rw = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
-mypy = "^0.971"
-pylint = "^2.15.0"
+pytest = "^7.4"
+mypy = "^1.4.0"
+pylint = "^2.17.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
