@@ -1,6 +1,6 @@
 [package]
 name = "cfn_guard_rs"
-version = "0.2.3"
+version = "0.3.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -8,9 +8,6 @@ edition = "2021"
 name = "cfn_guard_rs"
 crate-type = ["cdylib"]
 
-[package.metadata.maturin]
-python-source = "python"
-
 [dependencies]
-pyo3 = { version = "0.17.3", features = ["extension-module"] }
-cfn-guard = "2.1.2"
+pyo3 = { version = "0.19.2", features = ["extension-module"] }
+cfn-guard = "3.0.0"

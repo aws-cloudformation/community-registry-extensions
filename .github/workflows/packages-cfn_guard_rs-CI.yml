@@ -12,14 +12,16 @@ on:
       - "packages/cfn_guard_rs/**"
       - "packages/cfn_guard_rs_hook/**"
 jobs:
-  linux:
+  unitlint:
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         target: [aarch64, x86_64]
+        python: [ 3.8, 3.9, "3.10", "3.11" ]
         directory:
           - ./packages/cfn_guard_rs
           - ./packages/cfn_guard_rs_hook
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         working-directory: ${{ matrix.directory }}
@@ -28,53 +30,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
-          python-version: "3.7"
-      - name: Install Tox and any other packages
-        run: pip3 install tox
-      - name: Run Tox
-        run: |
-          python3 --version
-          tox -e py
-
-  windows:
-    strategy:
-      matrix:
-        directory:
-          - ./packages/cfn_guard_rs
-          - ./packages/cfn_guard_rs_hook
-    runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: ${{ matrix.directory }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.7"
-      - name: Install Tox and any other packages
-        run: pip3 install tox
-      - name: Run Tox
-        run: |
-          python3 --version
-          tox -e py
-
-  macos:
-    strategy:
-      matrix:
-        directory:
-          - ./packages/cfn_guard_rs
-          - ./packages/cfn_guard_rs_hook
-    runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: ${{ matrix.directory }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.7"
+          python-version: ${{ matrix.python }}
       - name: Install Tox and any other packages
         run: pip3 install tox
       - name: Run Tox

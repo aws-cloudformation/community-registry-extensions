@@ -9,7 +9,15 @@
 from .api import run_checks
 
 from .interface import (
-    DataOutput,
-    Comparison,
-    NameInfo,
+    FileReport,
+    RuleReport,
+    Messages,
+    ClauseReport,
+    UnaryReport,
+    BinaryReport,
+    UnaryComparison,
+    UnaryCheck,
+    GuardClauseReport,
+    BinaryCheck,
+    BinaryComparison,
 )
