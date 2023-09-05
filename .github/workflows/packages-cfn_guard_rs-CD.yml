@@ -43,7 +43,7 @@ jobs:
       - uses: messense/maturin-action@v1
         with:
           command: build
-          args: --release -m packages/cfn_guard_rs/Cargo.toml -o packages/cfn_guard_rs/dist --universal2 --find-interpreter
+          args: --release -m packages/cfn_guard_rs/Cargo.toml -o packages/cfn_guard_rs/dist --target universal2-apple-darwin --find-interpreter
       - uses: actions/upload-artifact@v2
         with:
           name: wheels
