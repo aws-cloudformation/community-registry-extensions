@@ -173,7 +173,7 @@ dependencies = [
 
 [[package]]
 name = "cfn_guard_rs"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "cfn-guard",
  "pyo3",
