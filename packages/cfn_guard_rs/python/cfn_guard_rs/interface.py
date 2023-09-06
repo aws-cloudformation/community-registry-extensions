@@ -4,10 +4,22 @@
 """
 from __future__ import annotations
 
+import abc
 from dataclasses import dataclass, field
 from typing import Any, List, Dict, Sequence, Tuple
 
 # pylint: disable=missing-class-docstring,missing-function-docstring,invalid-name
+class ValueComparisons(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def value_from(self) -> Any:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def value_to(self) -> Any:
+        pass
+
 
 @dataclass(eq=True, frozen=True)
 class Messages:
@@ -22,6 +34,13 @@ class Messages:
             custom_message=obj.get("custom_message"),
             error_message=obj.get("error_message"),
         )
+
+    def __repr__(self) -> str:
+        if self.custom_message:
+            return self.custom_message
+        if self.error_message:
+            return self.error_message
+        return ""
 
 
 @dataclass(eq=True, frozen=True)
@@ -47,7 +66,7 @@ class RuleReport:
 
 
 @dataclass(eq=True, frozen=True)
-class GuardBlockReport:
+class GuardBlockReport(ValueComparisons):
     """Guard Block Report"""
 
     context: str = field()
@@ -65,6 +84,14 @@ class GuardBlockReport:
             unresolved=obj.get("resolved"),
         )
 
+    @property
+    def value_from(self) -> Any:
+        return None
+
+    @property
+    def value_to(self) -> Any:
+        return None
+
 
 @dataclass(eq=True, frozen=True)
 class DisjunctionsReport:
@@ -78,6 +105,7 @@ class DisjunctionsReport:
             return obj
 
         return cls(checks=ClauseReport.from_object(obj.get("checks")))
+
 
 @dataclass(eq=True, frozen=True)
 class UnaryComparison:
@@ -127,7 +155,7 @@ class ValueUnResolved:
 
 
 @dataclass(eq=True, frozen=True)
-class UnaryCheck:
+class UnaryCheck(ValueComparisons):
     """Unary Check"""
 
     Resolved: UnaryComparison | None = field(default=None)
@@ -144,6 +172,18 @@ class UnaryCheck:
             UnResolved=UnResolved.from_object(obj.get("UnResolved")),
             UnresolvedContext=obj.get("UnresolvedContext"),
         )
+
+    @property
+    def value_from(self) -> Any:
+        if self.Resolved is not None:
+            return self.Resolved.value
+        if self.UnResolved is not None:
+            return self.UnResolved.traversed_to
+        return None
+
+    @property
+    def value_to(self) -> Any:
+        return None
 
 
 @dataclass(eq=True, frozen=True)
@@ -198,7 +238,7 @@ class InComparison:
 
 
 @dataclass(eq=True, frozen=True)
-class BinaryCheck:
+class BinaryCheck(ValueComparisons):
     Resolved: BinaryComparison | None = field(default=None)
     UnResolved: UnResolved | None = field(default=None)
     InResolved: Any = field(default=None)
@@ -210,6 +250,22 @@ class BinaryCheck:
             UnResolved=UnResolved.from_object(obj.get("UnResolved")),
             InResolved=obj.get("InResolved"),
         )
+
+    @property
+    def value_from(self) -> Any:
+        if self.Resolved is not None:
+            return self.Resolved.from_
+        if self.InResolved is not None:
+            return self.InResolved.from_
+        if self.UnResolved is not None:
+            return self.UnResolved.traversed_to
+        return None
+
+    @property
+    def value_to(self) -> Any:
+        if self.Resolved is not None:
+            return self.Resolved.to_
+        return None
 
 
 @dataclass(eq=True, frozen=True)
@@ -230,7 +286,7 @@ class BinaryReport:
 
 
 @dataclass(eq=True, frozen=True)
-class GuardClauseReport:
+class GuardClauseReport(ValueComparisons):
     """Guard Clause Report"""
 
     Unary: UnaryReport | None = field(default=None)
@@ -246,9 +302,41 @@ class GuardClauseReport:
             Binary=BinaryReport.from_object(obj.get("Binary")),
         )
 
+    @property
+    def context(self) -> str | None:
+        if self.Unary is not None:
+            return self.Unary.context
+        if self.Binary is not None:
+            return self.Binary.context
+        return None
+
+    @property
+    def messages(self) -> Messages | None:
+        if self.Unary is not None:
+            return self.Unary.messages
+        if self.Binary is not None:
+            return self.Binary.messages
+        return None
+
+    @property
+    def value_from(self):
+        if self.Unary is not None:
+            return self.Unary.check.value_from
+        if self.Binary is not None:
+            return self.Binary.check.value_from
+        return None
+
+    @property
+    def value_to(self):
+        if self.Unary is not None:
+            return self.Unary.check.value_to
+        if self.Binary is not None:
+            return self.Binary.check.value_to
+        return None
+
 
 @dataclass(eq=True, frozen=True)
-class ClauseReport:
+class ClauseReport(ValueComparisons):
     """Clause Report"""
 
     Rule: RuleReport | None = field(default=None)
@@ -272,6 +360,22 @@ class ClauseReport:
             results.append(ClauseReport.from_object(item))
 
         return results
+
+    @property
+    def value_from(self) -> Any:
+        if self.GuardBlock is not None:
+            return self.GuardBlock.value_from
+        if self.Clause is not None:
+            return self.Clause.value_from
+        return None
+
+    @property
+    def value_to(self) -> Any:
+        if self.GuardBlock is not None:
+            return self.GuardBlock.value_to
+        if self.Clause is not None:
+            return self.Clause.value_to
+        return None
 
 
 # pylint: disable=too-many-instance-attributes
