@@ -86,10 +86,15 @@ class TypeConfigurationObjectLockEnabled:
             ProgressEvent(
                 status=OperationStatus.FAILED,
                 errorCode=HandlerErrorCode.NonCompliant,
-                message="Rule [S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED] failed on "
-                "property [/Resources/Bucket/Properties/"
-                "PublicAccessBlockConfiguration/BlockPublicAcls"
-                "] failed comparison operator [Eq] and not exists of [False].",
+                message=(
+                    "Rule [S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED] failed on "
+                    "property [/Resources/Bucket/Properties/"
+                    "PublicAccessBlockConfiguration/BlockPublicAcls"
+                    "] and got error [Check was not compliant as property value "
+                    "[Path=/Resources/Bucket/Properties/PublicAccessBlockConfiguration"
+                    '/BlockPublicAcls[L:0,C:0] Value="false"] not equal to value '
+                    '[Path=[L:0,C:0] Value="true"].].'
+                ),
                 result=None,
                 callbackContext=None,
                 callbackDelaySeconds=0,
@@ -111,11 +116,13 @@ class TypeConfigurationObjectLockEnabled:
             ProgressEvent(
                 status=OperationStatus.FAILED,
                 errorCode=HandlerErrorCode.NonCompliant,
-                message="Rule [S3_BUCKET_DEFAULT_LOCK_ENABLED] failed on "
-                "property [/Resources/Bucket/Properties/ObjectLockEnabled"
-                "] and got error [\n    Violation: S3 Bucket ObjectLockEnabled "
-                "must be set to true.\n    Fix: Set the S3 property "
-                "ObjectLockEnabled parameter to true.\n  ].",
+                message=(
+                    "Rule [S3_BUCKET_DEFAULT_LOCK_ENABLED] failed on "
+                    "property [/Resources/Bucket/Properties/ObjectLockEnabled"
+                    "] and got error [;    Violation: S3 Bucket ObjectLockEnabled "
+                    "must be set to true.;    Fix: Set the S3 property "
+                    "ObjectLockEnabled parameter to true.;  ]."
+                ),
                 result=None,
                 callbackContext=None,
                 callbackDelaySeconds=0,
@@ -165,13 +172,14 @@ class TypeConfigurationObjectLockEnabled:
                 status=OperationStatus.FAILED,
                 errorCode=HandlerErrorCode.InvalidRequest,
                 message=(
-                    "Parser Error when parsing Parsing Error Error parsing file  "
-                    "at line 4 at column 1, when handling , fragment rule "
-                    "S3_BUCKET_DEFAULT_LOCK_ENABLED when %s3_buckets_default_lock_enabled !empty "
-                    "{\n  %s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled exists\n"
-                    '  %s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled == ""\n  '
-                    "<<\n    Violation: S3 Bucket ObjectLockEnabled must be set to true.\n    "
-                    "Fix: Set the S3 property ObjectLockEnabled parameter to true.\n  >>\n}\n"
+                    "Parser Error when parsing `Parsing Error Error parsing file "
+                    " at line 4 at column 1, when handling , fragment rule "
+                    "S3_BUCKET_DEFAULT_LOCK_ENABLED when %s3_buckets_default_lock_enabled "
+                    "!empty {\n  %s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled "
+                    "exists\n  %s3_buckets_default_lock_enabled.Properties.ObjectLockEnabled "
+                    '== ""\n  <<\n    Violation: S3 Bucket ObjectLockEnabled must be set '
+                    "to true.\n    Fix: Set the S3 property ObjectLockEnabled parameter to "
+                    "true.\n  >>\n}`"
                 ),
                 result=None,
                 callbackContext=None,
