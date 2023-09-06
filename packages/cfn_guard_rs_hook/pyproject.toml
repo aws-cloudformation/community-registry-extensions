@@ -7,7 +7,7 @@ authors = ["Kevin DeJong <kddejong@amazon.com>"]
 [tool.poetry.dependencies]
 python = "^3.7.2"
 cloudformation-cli-python-lib = "^2.1.12"
-cfn-guard-rs = "^0.2.1"
+cfn-guard-rs = "~0.2.3"
 pyyaml = "~6.0.1"
 Jinja2 = "^3.0.0"
 jsonpath-rw = "^1.0.0"

@@ -23,7 +23,7 @@ from cfn_guard_rs import (
 
 
 @pytest.mark.parametrize(
-    "template,rules,expected",
+    "template,rules,expected,values_from,values_to",
     [
         (
             "python/tests/fixtures/templates/s3_bucket_name_valid.yaml",
@@ -38,6 +38,8 @@ from cfn_guard_rs import (
                 not_applicable=[],
                 compliant=["default"],
             ),
+            [],
+            [],
         ),
         (
             "python/tests/fixtures/templates/s3_bucket_name_invalid.yaml",
@@ -89,6 +91,13 @@ from cfn_guard_rs import (
                 not_applicable=[],
                 compliant=[],
             ),
+            [
+                {
+                    "path": "/Resources/Bucket/Properties/BucketName",
+                    "value": 1,
+                }
+            ],
+            [None],
         ),
         (
             "python/tests/fixtures/templates/s3_bucket_public_access_valid.yaml",
@@ -103,6 +112,8 @@ from cfn_guard_rs import (
                 not_applicable=[],
                 compliant=["S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED"],
             ),
+            [],
+            [],
         ),
         (
             "python/tests/fixtures/templates/s3_bucket_public_access_invalid.yaml",
@@ -163,10 +174,20 @@ from cfn_guard_rs import (
                 not_applicable=[],
                 compliant=[],
             ),
+            [
+                {
+                    "path": (
+                        "/Resources/Bucket/Properties/"
+                        "PublicAccessBlockConfiguration/BlockPublicAcls"
+                    ),
+                    "value": "false",
+                }
+            ],
+            [{"path": "", "value": "true"}],
         ),
     ],
 )
-def test_run_checks(template, rules, expected):
+def test_run_checks(template, rules, expected, values_from, values_to):
     """Test transactions against run_checks"""
     with open(template, encoding="utf8") as file:
         template_str = yaml.safe_load(file)
@@ -174,9 +195,12 @@ def test_run_checks(template, rules, expected):
         rules = file.read()
 
     result = run_checks(template_str, rules)
-    print(result)
-    print(expected)
     assert result == expected
+    for i, value_from in enumerate(values_from):
+        assert result.not_compliant[0].Rule.checks[i].value_from == value_from
+
+    for i, value_to in enumerate(values_to):
+        assert result.not_compliant[i].Rule.checks[i].value_to == value_to
 
 
 @pytest.mark.parametrize(
