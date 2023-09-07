@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.8]
-        poetry-version: [1.1.13]
+        poetry-version: [1.6.1]
         os: [ubuntu-latest]
         directory: [./packages/cfn_guard_rs_hook]
     runs-on: ${{ matrix.os }}
