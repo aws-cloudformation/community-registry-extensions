@@ -49,7 +49,7 @@ crt = ["awscrt (==0.16.26)"]
 
 [[package]]
 name = "cfn-guard-rs"
-version = "0.2.3"
+version = "0.3.2"
 description = ""
 category = "main"
 optional = false
@@ -434,7 +434,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "flake8 (<5)", "pytest-co
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.2"
-content-hash = "2deab1312f159c5d3500f1e904d4aadec4e7d6c4c8e0858d2dceaf9d386f88a5"
+content-hash = "0912544832b01b5337a4566e84a4914c32e1cc43b6ac8ed0fa5a147539c55f28"
 
 [metadata.files]
 astroid = []
