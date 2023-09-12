@@ -262,6 +262,19 @@ Resources:
     Properties:
       AssumeRolePolicyDocument:
         Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  SSMDocumentEBSVolumeModuleBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
           - Action:
             - ssm:ListDocuments
             - ssm:ListDocumentVersions
@@ -270,36 +283,16 @@ Resources:
             - ssm:GetDocument
             Effect: Allow
             Resource: "*"
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
         Version: '2012-10-17'
-      ManagedPolicyArns:
-        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+      PolicyName: ssm-document-ebs-build-project-policy
+      Roles:
+        - !Ref SSMDocumentEBSVolumeModuleBuildProjectRole
     
   IotAnalyticsPipelineModuleBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
         Statement:
-          - Action:
-            - iotanalytics:*
-            - iot:CreateTopicRule
-            - iot:DeleteTopicRule
-            - iot:ReplaceTopicRule
-            - iot:ListTopicRules
-            - iot:GetTopicRule
-            - iot:EnableTopicRule
-            - iot:DisableTopicRule
-            - iot:CreateTopicRuleDestination
-            - iot:DeleteTopicRuleDestination
-            - iot:UpdateTopicRuleDestination
-            - iot:GetTopicRuleDestination
-            - iot:ConfirmTopicRuleDestination
-            - iot:ListTopicRuleDestinations
-            Effect: Allow
-            Resource: "*"
           - Action: sts:AssumeRole
             Effect: Allow
             Principal:
@@ -429,6 +422,33 @@ Resources:
       PolicyName: delete-bucket-contents-build-project-policy
       Roles:
         - !Ref S3DeleteBucketContentsBuildProjectRole
+
+  IotAnalyticsPipelineModuleBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iotanalytics:*
+              - iot:CreateTopicRule
+              - iot:DeleteTopicRule
+              - iot:ReplaceTopicRule
+              - iot:ListTopicRules
+              - iot:GetTopicRule
+              - iot:EnableTopicRule
+              - iot:DisableTopicRule
+              - iot:CreateTopicRuleDestination
+              - iot:DeleteTopicRuleDestination
+              - iot:UpdateTopicRuleDestination
+              - iot:GetTopicRuleDestination
+              - iot:ConfirmTopicRuleDestination
+              - iot:ListTopicRuleDestinations
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: iot-analytics-pipeline-build-project-policy
+      Roles:
+        - !Ref IotAnalyticsPipelineModuleBuildProjectRole
 
   ResourceLookupBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -1281,27 +1301,27 @@ Resources:
         BuildSpec: !Sub "modules/${Env}-buildspec.yml"
       TimeoutInMinutes: 480
 
-IotAnalyticsPipelineModuleBuildProject:
-  Type: AWS::CodeBuild::Project
-  Properties:
-    Name: !Sub "${PrefixLower}-${Env}-iot-analytics-pipeline-module"
-    Artifacts:
-      Type: CODEPIPELINE
-    Environment:
-      ComputeType: BUILD_GENERAL1_LARGE
-      Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-      ImagePullCredentialsType: SERVICE_ROLE
-      PrivilegedMode: true
-      Type: LINUX_CONTAINER
-      EnvironmentVariables:
-      - Name: MODULE_PATH
-        Type: PLAINTEXT
-        Value: "placeholder-for-path-to-module"
-    ServiceRole: !GetAtt IotAnalyticsPipelineModuleBuildProjectRole.Arn
-    Source:
-      Type: CODEPIPELINE
-      BuildSpec: !Sub "modules/${Env}-buildspec.yml"
-    TimeoutInMinutes: 480
+  IotAnalyticsPipelineModuleBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-iot-analytics-pipeline-module"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: MODULE_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-module"
+      ServiceRole: !GetAtt IotAnalyticsPipelineModuleBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "modules/${Env}-buildspec.yml"
+      TimeoutInMinutes: 480
 
   AlternateContactBuildProjectRole:
     Type: AWS::IAM::Role
@@ -1629,25 +1649,6 @@ IotAnalyticsPipelineModuleBuildProject:
                     ]
                 RunOrder: 2
               - !Ref AWS::NoValue
-                #            - Name: CloudFrontWebAclAssociation
-                #              InputArtifacts:
-                #                - Name: extensions-source
-                #              ActionTypeId:
-                #                Category: Build
-                #                Owner: AWS
-                #                Provider: CodeBuild
-                #                Version: 1
-                #              Configuration:
-                #                ProjectName: !Ref CloudFrontWebAclAssociationBuildProject
-                #                EnvironmentVariables: |-
-                #                  [
-                #                    {
-                #                      "name": "RESOURCE_PATH",
-                #                      "type": "PLAINTEXT",
-                #                      "value": "resources/CloudFront_WebACLAssociation"
-                #                    }
-                #                  ]
-                #              RunOrder: 2
             - Name: S3DeleteBucketContents
               InputArtifacts:
                 - Name: extensions-source
@@ -1696,11 +1697,6 @@ IotAnalyticsPipelineModuleBuildProject:
                 Version: 1
               Configuration:
                 ProjectName: !Ref DynamoDBItemBuildProject
-                # BatchEnabled:
-                #   !If
-                #     - IsProd
-                #     - true
-                #     - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -1720,11 +1716,6 @@ IotAnalyticsPipelineModuleBuildProject:
                 Version: 1
               Configuration:
                 ProjectName: !Ref TimeStaticBuildProject
-                # BatchEnabled:
-                #   !If
-                #     - IsProd
-                #     - true
-                #     - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -1744,11 +1735,6 @@ IotAnalyticsPipelineModuleBuildProject:
                 Version: 1
               Configuration:
                 ProjectName: !Ref TimeSleepBuildProject
-                # BatchEnabled:
-                #   !If
-                #     - IsProd
-                #     - true
-                #     - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -1768,11 +1754,6 @@ IotAnalyticsPipelineModuleBuildProject:
                 Version: 1
               Configuration:
                 ProjectName: !Ref TimeOffsetBuildProject
-                # BatchEnabled:
-                #   !If
-                #     - IsProd
-                #     - true
-                #     - false
                 EnvironmentVariables: |-
                   [
                     {
@@ -1991,26 +1972,6 @@ IotAnalyticsPipelineModuleBuildProject:
                   ObjectKey: source.zip
                   KMSEncryptionKeyARN: !GetAtt PipelineKey.Arn
           - !Ref AWS::NoValue
-                #            - Name: CloudFrontLoggingEnabled
-                #              InputArtifacts:
-                #                - Name: extensions-source
-                #              ActionTypeId:
-                #                Category: Build
-                #                Owner: AWS
-                #                Provider: CodeBuild
-                #                Version: 1
-                #              Configuration:
-                #                ProjectName: !Ref CloudFrontLoggingEnabledBuildProject
-                #                BatchEnabled: true
-                #                EnvironmentVariables: |-
-                #                  [
-                #                    {
-                #                      "name": "HOOK_PATH",
-                #                      "type": "PLAINTEXT",
-                #                      "value": "hooks/CloudFront_LoggingEnabled"
-                #                    }
-                #                  ]
-                #              RunOrder: 2
 
   PublishBuildBucketRole:
     Type: AWS::IAM::Role
@@ -2148,8 +2109,6 @@ IotAnalyticsPipelineModuleBuildProject:
               state: "$.detail.state"
               at: "$.time"
               account: "$.account"
-
-# Prod account resources
 
   PublishBuildBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -2304,8 +2263,6 @@ IotAnalyticsPipelineModuleBuildProject:
                 Effect: Allow
                 Resource:
                   - !Sub "arn:aws:kms:${AWS::Region}:${BetaAccountId}:key/*"
-
-# Delay Function to solve race conditions where the resource is not actually ready
 
   DelayFunctionRole:
     Type: AWS::IAM::Role
