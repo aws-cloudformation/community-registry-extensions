@@ -26,7 +26,7 @@ phases:
       - cfn validate
       - cfn generate
       - ../../release/deregister-all.sh us-east-1 RESOURCE
-      - mvn clean verify javadoc:javadoc
+      - mvn clean verify javadoc:javadoc -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - cfn submit --set-default
       - INTEG_STACK_NAME="integ-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
       - rain deploy test/integ.yml $INTEG_STACK_NAME -y

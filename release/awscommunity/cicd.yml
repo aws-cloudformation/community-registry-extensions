@@ -1952,7 +1952,7 @@ IotAnalyticsPipelineModuleBuildProject:
                       "value": "hooks/KMS_EncryptionSettings"
                     }
                   ]
-              RunOrder: 4
+              RunOrder: 5
             - Name: ApplicationAutoscalingScheduledAction
               InputArtifacts:
                 - Name: extensions-source
