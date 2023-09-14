@@ -257,49 +257,6 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
   
-  SSMDocumentEBSVolumeModuleBuildProjectRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-        Version: '2012-10-17'
-      ManagedPolicyArns:
-        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
-
-  SSMDocumentEBSVolumeModuleBuildProjectPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-            - ssm:ListDocuments
-            - ssm:ListDocumentVersions
-            - ssm:DescribeDocument
-            - ssm:DeleteDocument
-            - ssm:GetDocument
-            Effect: Allow
-            Resource: "*"
-        Version: '2012-10-17'
-      PolicyName: ssm-document-ebs-build-project-policy
-      Roles:
-        - !Ref SSMDocumentEBSVolumeModuleBuildProjectRole
-    
-  IotAnalyticsPipelineModuleBuildProjectRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action: sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service: codebuild.amazonaws.com
-        Version: '2012-10-17'
-      ManagedPolicyArns:
-        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
   CloudFrontS3WebsiteModuleBuildProjectRole:
     Type: AWS::IAM::Role
@@ -422,33 +379,6 @@ Resources:
       PolicyName: delete-bucket-contents-build-project-policy
       Roles:
         - !Ref S3DeleteBucketContentsBuildProjectRole
-
-  IotAnalyticsPipelineModuleBuildProjectPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - iotanalytics:*
-              - iot:CreateTopicRule
-              - iot:DeleteTopicRule
-              - iot:ReplaceTopicRule
-              - iot:ListTopicRules
-              - iot:GetTopicRule
-              - iot:EnableTopicRule
-              - iot:DisableTopicRule
-              - iot:CreateTopicRuleDestination
-              - iot:DeleteTopicRuleDestination
-              - iot:UpdateTopicRuleDestination
-              - iot:GetTopicRuleDestination
-              - iot:ConfirmTopicRuleDestination
-              - iot:ListTopicRuleDestinations
-            Effect: Allow
-            Resource: "*"
-        Version: '2012-10-17'
-      PolicyName: iot-analytics-pipeline-build-project-policy
-      Roles:
-        - !Ref IotAnalyticsPipelineModuleBuildProjectRole
 
   ResourceLookupBuildProjectPolicy:
     Type: AWS::IAM::Policy
@@ -1278,50 +1208,6 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "modules/${Env}-buildspec.yml"
       TimeoutInMinutes: 480
-  
-  SSMDocumentEBSVolumeModuleBuildProject:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: !Sub "${PrefixLower}-${Env}-ssm-document-ebsvolume-module"
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        ComputeType: BUILD_GENERAL1_LARGE
-        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: SERVICE_ROLE
-        PrivilegedMode: true
-        Type: LINUX_CONTAINER
-        EnvironmentVariables:
-        - Name: MODULE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-module"
-      ServiceRole: !GetAtt SSMDocumentEBSVolumeModuleBuildProjectRole.Arn
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: !Sub "modules/${Env}-buildspec.yml"
-      TimeoutInMinutes: 480
-
-  IotAnalyticsPipelineModuleBuildProject:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: !Sub "${PrefixLower}-${Env}-iot-analytics-pipeline-module"
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        ComputeType: BUILD_GENERAL1_LARGE
-        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: SERVICE_ROLE
-        PrivilegedMode: true
-        Type: LINUX_CONTAINER
-        EnvironmentVariables:
-        - Name: MODULE_PATH
-          Type: PLAINTEXT
-          Value: "placeholder-for-path-to-module"
-      ServiceRole: !GetAtt IotAnalyticsPipelineModuleBuildProjectRole.Arn
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: !Sub "modules/${Env}-buildspec.yml"
-      TimeoutInMinutes: 480
 
   AlternateContactBuildProjectRole:
     Type: AWS::IAM::Role
@@ -1505,8 +1391,6 @@ Resources:
               - !GetAtt CloudFrontWebAclAssociationBuildProject.Arn
               - !GetAtt S3BucketModuleBuildProject.Arn
               - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
-              - !GetAtt SSMDocumentEBSVolumeModuleBuildProject.Arn
-              - !GetAtt IotAnalyticsPipelineModuleBuildProject.Arn
               - !GetAtt AlternateContactBuildProject.Arn
               - !GetAtt KMSEncryptionSettingsBuildProject.Arn
               - !GetAtt ApplicationAutoscalingScheduledActionBuildProject.Arn
@@ -1578,8 +1462,6 @@ Resources:
                 - !GetAtt CloudFrontWebAclAssociationBuildProjectRole.Arn
                 - !GetAtt S3BucketModuleBuildProjectRole.Arn
                 - !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
-                - !GetAtt SSMDocumentEBSVolumeModuleBuildProjectRole.Arn
-                - !GetAtt IotAnalyticsPipelineModuleBuildProjectRole.Arn
                 - !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
                 - !GetAtt ApplicationAutoscalingScheduledActionBuildProjectRole.Arn
             Resource: "*"
@@ -1817,44 +1699,6 @@ Resources:
                       "name": "MODULE_PATH",
                       "type": "PLAINTEXT",
                       "value": "modules/CloudFront_S3Website"
-                    }
-                  ]
-              RunOrder: 2
-            - Name: SSMDocumentEBSVolumeModule
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref SSMDocumentEBSVolumeModuleBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "MODULE_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "modules/SSM_Document_ResizeVolume"
-                    }
-                  ]
-              RunOrder: 2
-            - Name: IotAnalyticsPipelineModule
-              InputArtifacts:
-                - Name: extensions-source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: 1
-              Configuration:
-                ProjectName: !Ref IotAnalyticsPipelineModuleBuildProject
-                EnvironmentVariables: |-
-                  [
-                    {
-                      "name": "MODULE_PATH",
-                      "type": "PLAINTEXT",
-                      "value": "modules/IOT_ANALYTICS_PIPELINE"
                     }
                   ]
               RunOrder: 2
