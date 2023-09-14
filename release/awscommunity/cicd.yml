@@ -256,7 +256,6 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
-  
 
   CloudFrontS3WebsiteModuleBuildProjectRole:
     Type: AWS::IAM::Role
