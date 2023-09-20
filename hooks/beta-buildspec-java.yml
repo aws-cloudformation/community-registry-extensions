@@ -24,7 +24,7 @@ phases:
       - echo Entered the build phase...
       - cfn validate
       - cfn generate
-      - mvn clean verify javadoc:javadoc -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - mvn clean verify -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
       - cfn submit --set-default
       - HOOK_TYPE_ARN=$(aws cloudformation list-types --visibility PRIVATE --type HOOK --filters TypeNamePrefix=$TYPE_NAME --output json | jq -r '.TypeSummaries[0].TypeArn')
       - aws cloudformation set-type-configuration --configuration file://test/configuration.json --type-arn $HOOK_TYPE_ARN
