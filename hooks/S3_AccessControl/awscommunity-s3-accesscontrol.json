@@ -1,0 +1,27 @@
+{
+    "typeName": "AwsCommunity::S3::AccessControl",
+    "description": "This hook for AWS CloudFormation validates that the legacy AccessControl property for an AWS::S3::Bucket resource is either set to Private, or is not present.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/hooks/S3_AccessControl",
+    "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/blob/main/hooks/S3_AccessControl/README.md",
+    "typeConfiguration": {
+        "properties": {
+        },
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::S3::Bucket"
+            ],
+            "permissions": []
+        }
+    },
+    "additionalProperties": false
+}
