@@ -114,6 +114,19 @@ Resources:
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
 
+  S3AccessControlBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
   HookEC2SecurityGroupRestrictedSSHBuildProjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -826,7 +839,7 @@ Resources:
               - iam:UpdateRoleDescription
             Resource: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/TrailS3Cleanup-integ-*-awscommunity-kms-encryptionsettings'
           - Effect: Allow
-            Action: 
+            Action:
               - iam:CreateServiceLinkedRole
               - iam:DeleteServiceLinkedRole
               - iam:GetServiceLinkedRoleDeletionStatus
@@ -835,6 +848,20 @@ Resources:
       PolicyName: kms-encryptionsettings-build-project-policy
       Roles:
         - !Ref KMSEncryptionSettingsBuildProjectRole
+
+  S3AccessControlBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:*
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: s3-accesscontrol-build-project-policy
+      Roles:
+        - !Ref S3AccessControlBuildProjectRole
 
   ApplicationAutoscalingScheduledActionBuildProjectRolePolicy:
     Type: AWS::IAM::Policy
@@ -1292,6 +1319,28 @@ Resources:
         BuildSpec: !Sub "hooks/${Env}-buildspec-java.yml"
       TimeoutInMinutes: 480
 
+  S3AccessControlBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-s3-accesscontrol"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+        - Name: HOOK_PATH
+          Type: PLAINTEXT
+          Value: "placeholder-for-path-to-hook"
+      ServiceRole: !GetAtt S3AccessControlBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "hooks/${Env}-buildspec-java.yml"
+      TimeoutInMinutes: 480
+
   ApplicationAutoscalingScheduledActionBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -1392,6 +1441,7 @@ Resources:
               - !GetAtt CloudFrontS3WebsiteModuleBuildProject.Arn
               - !GetAtt AlternateContactBuildProject.Arn
               - !GetAtt KMSEncryptionSettingsBuildProject.Arn
+              - !GetAtt S3AccessControlBuildProject.Arn
               - !GetAtt ApplicationAutoscalingScheduledActionBuildProject.Arn
           - Action:
               - kms:*
@@ -1462,6 +1512,7 @@ Resources:
                 - !GetAtt S3BucketModuleBuildProjectRole.Arn
                 - !GetAtt CloudFrontS3WebsiteModuleBuildProjectRole.Arn
                 - !GetAtt KMSEncryptionSettingsBuildProjectRole.Arn
+                - !GetAtt S3AccessControlBuildProjectRole.Arn
                 - !GetAtt ApplicationAutoscalingScheduledActionBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
@@ -1777,6 +1828,25 @@ Resources:
                     }
                   ]
               RunOrder: 5
+            - Name: S3AccessControl
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref S3AccessControlBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "HOOK_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "hooks/S3_AccessControl"
+                    }
+                  ]
+              RunOrder: 4
             - Name: ApplicationAutoscalingScheduledAction
               InputArtifacts:
                 - Name: extensions-source
