@@ -15,7 +15,7 @@ This hook for [AWS CloudFormation](https://aws.amazon.com/cloudformation/) valid
 
 
 ## Usage
-This hook is written in [Kotlin](https://kotlinlang.org/).  To build it on your machine, install [Apache Maven](https://maven.apache.org/install.html), and a JDK (8, or 11).  For more information, see [Prerequisites for developing hooks](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/hooks-walkthrough-java.html#prerequisites-developing-hooks-java).
+This hook is written in [Kotlin](https://kotlinlang.org/). To build it on your machine, install [Apache Maven](https://maven.apache.org/install.html), and a JDK (8, or 11). For more information, see [Prerequisites for developing hooks](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/hooks-walkthrough-java.html#prerequisites-developing-hooks-java).
 
 Next, you'll need to install the [CloudFormation CLI](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html), that you'll use to run contract tests for this hook, and to [submit](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-cli-submit.html) this hook to the CloudFormation registry, as a private extension, in the AWS account and Region(s) of your choice.
 
@@ -25,7 +25,7 @@ The following example shows how to build and submit the hook to the registry, in
 cfn generate && mvn clean verify && cfn submit --set-default --region us-east-1
 ```
 
-After you submit the hook to the registry, you'll need to configure it.  One of the way of doing this is to first create a `type_config.json` file as shown next (for more information on `Properties` defined for this hook, see [Configuration options](#Configuration-options)):
+After you submit the hook to the registry, you'll need to configure it. One of the ways of doing this is to first create a `type_config.json` file as shown next (for more information on `Properties` defined for this hook, see [Configuration options](#Configuration-options)):
 
 ```shell
 cat <<EOF > type_config.json
@@ -42,7 +42,7 @@ cat <<EOF > type_config.json
 EOF
 ```
 
-and then submit the hook configuration using the [AWS Command Line Interface (AWS CLI)](https://aws.amazon.com/cli/).  First, get the [Amazon Resource Name](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) (ARN) for this hook, as follows (examples are for the `us-east-1` region):
+and then submit the hook configuration using the [AWS Command Line Interface (AWS CLI)](https://aws.amazon.com/cli/). First, get the [Amazon Resource Name](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) (ARN) for this hook, as follows (examples are for the `us-east-1` region):
 
 ```shell
 aws cloudformation list-types \
@@ -123,7 +123,7 @@ mvn clean verify
 
 
 ### Contract tests
-Contract tests help you validate hooks you develop work as expected, and are required to pass when you submit a CloudFormation extension such as a hook to the public registry.  It is recommended to strive to pass contract tests also when you write a private extension, to help discover potential issues.
+Contract tests help you validate hooks you develop work as expected, and are required to pass when you submit a CloudFormation extension such as a hook to the public registry. It is recommended to strive to pass contract tests also when you write a private extension, to help discover potential issues.
 
 To run contract tests, open a new terminal window and run, from the root directory of this project:
 
@@ -140,8 +140,8 @@ cfn generate && mvn clean verify && cfn test -v --enforce-timeout 90
 ```
 
 ## Hook development notes
-The RPDK will automatically generate the correct hook input model from the schema whenever the project is built via Maven. You can also do this manually with the following command: `cfn generate`.
+When you build this hook's project via Maven, the correct hook input model from the schema will be automatically generated. You can also do this manually with the following command: `cfn generate`.
 
 > Please don't modify files under `target/generated-sources/rpdk`, as they will be automatically overwritten.
 
-The generated code uses [Lombok](https://projectlombok.org/) to annotate Java classes, including classes in the `target/generated-sources/rpdk` path mentioned above.  This hook -that is written in Kotlin- needs to consume such Lombok-annotated Java classes: one way to do this is to use [Delombok](https://projectlombok.org/features/delombok) to delombok relevant source files.  The `pom.xml` file, for this `AwsCommunity::S3::AccessControl` hook, uses the `delombok` goal for the [lombok.maven plugin](https://github.com/awhitford/lombok.maven) to delombok, during the `process-sources` phase, the `target/generated-sources/rpdk` generated classes into the `target/generated-sources/delombok` target directory that, in turn, is then added as a source with the `add-source` goal for the `build-helper-maven-plugin`.
+The generated code uses [Lombok](https://projectlombok.org/) to annotate Java classes, including classes in the `target/generated-sources/rpdk` path mentioned above. This hook -that is written in Kotlin- needs to consume such Lombok-annotated Java classes: one way to do this is to use [Delombok](https://projectlombok.org/features/delombok) to delombok relevant source files. The `pom.xml` file, for this `AwsCommunity::S3::AccessControl` hook, uses the `delombok` goal for the [lombok.maven plugin](https://github.com/awhitford/lombok.maven) to delombok, during the `process-sources` phase, the `target/generated-sources/rpdk` generated classes into the `target/generated-sources/delombok` target directory that, in turn, is then added as a source with the `add-source` goal for the `build-helper-maven-plugin`.
