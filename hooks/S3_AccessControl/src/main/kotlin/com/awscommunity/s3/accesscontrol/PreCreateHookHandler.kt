@@ -25,7 +25,7 @@ open class PreCreateHookHandler : BaseHookHandlerStd() {
         request: HookHandlerRequest,
         callbackContext: CallbackContext?,
         logger: Logger,
-        typeConfiguration: TypeConfigurationModel
+        typeConfiguration: TypeConfigurationModel?
     ): ProgressEvent<HookTargetModel, CallbackContext?> {
         return handlePreCreatePreUpdateRequests(proxy, request, callbackContext, logger, typeConfiguration)
     }

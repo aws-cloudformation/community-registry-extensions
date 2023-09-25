@@ -29,7 +29,7 @@ abstract class BaseHookHandlerStd : BaseHookHandler<CallbackContext?, TypeConfig
         request: HookHandlerRequest,
         callbackContext: CallbackContext?,
         logger: Logger,
-        typeConfiguration: TypeConfigurationModel
+        typeConfiguration: TypeConfigurationModel?
     ): ProgressEvent<HookTargetModel, CallbackContext?> {
         val targetModel = request.hookContext.getTargetModel(AwsS3BucketTargetModel::class.java)
         val resourceProperties = targetModel.resourceProperties
