@@ -1,0 +1,19 @@
+type test {
+  version: String!
+  type: TestType
+  name: String
+}
+
+type Query {
+  getTests: [test]!
+  getTest(version: String): test
+}
+
+type Mutation {
+  addTest(version: String!): test
+}
+
+enum TestType {
+   SIMPLE,
+   COMPLEX
+}
