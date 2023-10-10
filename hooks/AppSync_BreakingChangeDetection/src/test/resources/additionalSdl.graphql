@@ -1,0 +1,1 @@
+directive @newDirective on FIELD_DEFINITION

@@ -1,0 +1,12 @@
+{
+  "AWS::AppSync::GraphQLSchema": {
+    "resourceProperties": {
+      "ApiId": "123",
+      "Definition": "schema {\nquery: Query\nmutation: Mutation\n        }\n\n        type Query {\n          singlePost(id: ID!): Post2\n        }\n\n        type Mutation {\n          putPost(id: ID!, title: String!): Post2\n        }\n\n        type Post2 {\n          id: ID!\n          title: String!\n        }"
+    },
+    "previousResourceProperties": {
+      "ApiId": "123",
+      "Definition": "schema {\nquery: Query\nmutation: Mutation\n        }\n\n        type Query {\n          singlePost(id: ID!): Post\n        }\n\n        type Mutation {\n          putPost(id: ID!, title: String!): Post\n        }\n\n        type Post {\n          id: ID!\n          title: String!\n        }"
+    }
+  }
+}
