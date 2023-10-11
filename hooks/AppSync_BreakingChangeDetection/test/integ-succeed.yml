@@ -1,0 +1,30 @@
+Resources:
+  BasicGraphqlApi:
+    Type: "AWS::AppSync::GraphQLApi"
+    Properties:
+      Name: "TestAPI with IAM auth"
+      AuthenticationType: "AWS_IAM"
+
+    BasicApiSchema:
+      Type: "AWS::AppSync::GraphQLSchema"
+      Properties:
+        ApiId: !GetAtt BasicGraphqlApi.ApiId
+        Definition: |
+          schema {
+            query: Query
+            mutation: Mutation
+          }
+
+          type Query {
+            singlePost(id: ID!): Post
+            allThePosts: [Post]
+          }
+
+          type Mutation {
+            putPost(id: ID!, title: String!): Post
+          }
+
+          type Post {
+            id: ID!
+            title: String!
+          }
