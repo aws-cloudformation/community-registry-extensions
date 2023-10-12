@@ -28,15 +28,14 @@ phases:
       - cfn submit --set-default
       - HOOK_TYPE_ARN=$(aws cloudformation list-types --visibility PRIVATE --type HOOK --filters TypeNamePrefix=$TYPE_NAME --output json | jq -r '.TypeSummaries[0].TypeArn')
       - aws cloudformation set-type-configuration --configuration file://test/configuration.json --type-arn $HOOK_TYPE_ARN
-      - INTEG_SUCCEED_STACK_NAME="integ-succeed-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
-      - INTEG_FAIL_STACK_NAME="integ-fail-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
-      - rain deploy test/integ-succeed.yml $INTEG_SUCCEED_STACK_NAME -y
-      - rain deploy test/integ-fail.yml $INTEG_FAIL_STACK_NAME -y || [ $? -eq 1 ]
+      - INTEG_STACK_NAME="integ-$(echo $TYPE_CLEAN_NAME | sed s/_/-/g)"
+      - rain deploy test/integ-setup.yml $INTEG_STACK_NAME -y
+      - rain deploy test/integ-succeed.yml $INTEG_STACK_NAME -y
+      - rain deploy test/integ-fail.yml $INTEG_STACK_NAME -y || [ $? -eq 1 ]
     finally:
       - cat rpdk.log
       - aws cloudformation set-type-configuration --configuration file://test/configuration-undo.json --type-arn $HOOK_TYPE_ARN
-      - rain rm $INTEG_SUCCEED_STACK_NAME -y
-      - rain rm $INTEG_FAIL_STACK_NAME -y
+      - rain rm $INTEG_STACK_NAME -y
 artifacts:
   files:
     - $BUILD_FILE_NAME

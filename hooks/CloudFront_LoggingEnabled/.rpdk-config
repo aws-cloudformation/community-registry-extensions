@@ -1,8 +1,8 @@
 {
     "artifact_type": "HOOK",
     "typeName": "AwsCommunity::CloudFront::LoggingEnabled",
-    "language": "python37",
-    "runtime": "python3.7",
+    "language": "python38",
+    "runtime": "python3.8",
     "entrypoint": "awscommunity_cloudfront_loggingenabled.handlers.hook",
     "testEntrypoint": "awscommunity_cloudfront_loggingenabled.handlers.test_entrypoint",
     "settings": {

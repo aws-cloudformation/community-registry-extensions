@@ -52,7 +52,7 @@ public class PreUpdateHookHandler extends BaseHookHandler<CallbackContext, TypeC
         final AwsAppsyncGraphqlschema resourceProperties = targetModel.getResourceProperties();
 
         boolean considerDangerousChanges = false;
-        if (typeConfiguration != null) {
+        if (typeConfiguration != null && typeConfiguration.getConsiderDangerousChangesBreaking() != null) {
             considerDangerousChanges = typeConfiguration.getConsiderDangerousChangesBreaking();
         }
 
