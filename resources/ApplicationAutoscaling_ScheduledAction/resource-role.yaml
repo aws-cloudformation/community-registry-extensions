@@ -13,8 +13,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service:
-                Fn::Sub: resources.cloudformation.${AWS::URLSuffix}
+              Service: resources.cloudformation.amazonaws.com
             Action: sts:AssumeRole
             Condition:
               StringEquals:
