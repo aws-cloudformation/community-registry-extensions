@@ -1,8 +1,8 @@
 {
     "artifact_type": "RESOURCE",
     "typeName": "AwsCommunity::CloudFront::WebACLAssociation",
-    "language": "python37",
-    "runtime": "python3.7",
+    "language": "python38",
+    "runtime": "python3.8",
     "entrypoint": "awscommunity_cloudfront_webaclassociation.handlers.resource",
     "testEntrypoint": "awscommunity_cloudfront_webaclassociation.handlers.test_entrypoint",
     "settings": {
