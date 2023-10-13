@@ -870,6 +870,6 @@ Resources:
       Handler: delay.handler
       Timeout: 120
       Role: !GetAtt DelayFunctionRole.Arn
-      Runtime: python3.7
+      Runtime: python3.9
       Code: delay.py
       MemorySize: 1024

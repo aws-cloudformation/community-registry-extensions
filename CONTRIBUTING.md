@@ -160,10 +160,10 @@ import ResourceModel` or they won't work when deployed.
 In order to run SAM to test your resource, you have to first run `cfn submit
 --dry-run` in order to create the `build/` folder that SAM relies on.
 
-Create a Python environment and use Python v3.7 for resource type and hook development.
+Create a Python environment and use Python v3.9 for resource type and hook development.
 
 ```sh
-python3.7 -m venv .env
+python3.9 -m venv .env
 source .env/bin/activate
 ```
 
