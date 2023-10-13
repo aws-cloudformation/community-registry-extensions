@@ -4,7 +4,6 @@ phases:
   install:
     runtime-versions:
       python: 3.9
-      java: corretto11
     commands:
       - echo Entered the install phase...
       - echo About to build $RESOURCE_PATH
