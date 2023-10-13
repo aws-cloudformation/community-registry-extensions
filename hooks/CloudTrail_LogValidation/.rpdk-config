@@ -1,8 +1,8 @@
 {
     "artifact_type": "HOOK",
     "typeName": "AwsCommunity::CloudTrail::LogValidationEnabled",
-    "language": "python38",
-    "runtime": "python3.8",
+    "language": "python39",
+    "runtime": "python3.9",
     "entrypoint": "awscommunity_cloudtrail_logvalidationenabled.handlers.hook",
     "testEntrypoint": "awscommunity_cloudtrail_logvalidationenabled.handlers.test_entrypoint",
     "settings": {

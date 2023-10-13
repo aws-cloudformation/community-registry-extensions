@@ -12,13 +12,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: awscommunity_s3_publicaccesscontrolsrestricted.handlers.hook
-      Runtime: python3.8
+      Runtime: python3.9
       CodeUri: build/
 
   TestEntrypoint:
     Type: AWS::Serverless::Function
     Properties:
       Handler: awscommunity_s3_publicaccesscontrolsrestricted.handlers.test_entrypoint
-      Runtime: python3.8
+      Runtime: python3.9
       CodeUri: build/
 

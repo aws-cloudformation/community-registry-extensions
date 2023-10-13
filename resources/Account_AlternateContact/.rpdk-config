@@ -1,8 +1,8 @@
 {
     "artifact_type": "RESOURCE",
     "typeName": "AwsCommunity::Account::AlternateContact",
-    "language": "python38",
-    "runtime": "python3.8",
+    "language": "python39",
+    "runtime": "python3.9",
     "entrypoint": "awscommunity_account_alternatecontact.handlers.resource",
     "testEntrypoint": "awscommunity_account_alternatecontact.handlers.test_entrypoint",
     "settings": {

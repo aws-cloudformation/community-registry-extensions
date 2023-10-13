@@ -2,7 +2,7 @@
     "artifact_type": "RESOURCE",
     "typeName": "AwsCommunity::Resource::Lookup",
     "language": "java",
-    "runtime": "java8",
+    "runtime": "java17",
     "entrypoint": "com.awscommunity.resource.lookup.HandlerWrapper::handleRequest",
     "testEntrypoint": "com.awscommunity.resource.lookup.HandlerWrapper::testEntrypoint",
     "settings": {

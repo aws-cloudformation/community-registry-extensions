@@ -2,7 +2,7 @@
     "artifact_type": "HOOK",
     "typeName": "AwsCommunity::S3::AccessControl",
     "language": "java",
-    "runtime": "java8",
+    "runtime": "java17",
     "entrypoint": "com.awscommunity.s3.accesscontrol.HookHandlerWrapper::handleRequest",
     "testEntrypoint": "com.awscommunity.s3.accesscontrol.HookHandlerWrapper::testEntrypoint",
     "settings": {
