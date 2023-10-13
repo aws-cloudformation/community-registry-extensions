@@ -171,7 +171,8 @@ Resources:
           }
           
           enum TestType {
-             SIMPLE,
+             SIMPLE
              COMPLEX
+             COMPOUND
           }
 ```
