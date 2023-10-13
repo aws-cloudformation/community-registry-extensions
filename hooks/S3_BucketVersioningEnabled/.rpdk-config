@@ -1,8 +1,8 @@
 {
     "artifact_type": "HOOK",
     "typeName": "AwsCommunity::S3::BucketVersioningEnabled",
-    "language": "python38",
-    "runtime": "python3.8",
+    "language": "python39",
+    "runtime": "python3.9",
     "entrypoint": "awscommunity_s3_bucketversioningenabled.handlers.hook",
     "testEntrypoint": "awscommunity_s3_bucketversioningenabled.handlers.test_entrypoint",
     "settings": {

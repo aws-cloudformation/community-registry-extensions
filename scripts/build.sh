@@ -15,13 +15,13 @@ do
     echo "Building $dir"
 
     # Get the name of the source folder
-    ENTRY=$(python3.7 scripts/entry.py $dir/.rpdk-config)
+    ENTRY=$(python3.9 scripts/entry.py $dir/.rpdk-config)
 
     # Move into the resource directory
     pushd $dir
 
     # Create a short-lived python environment
-    python3.7 -m venv .tmpenv
+    python3.9 -m venv .tmpenv
     . .tmpenv/bin/activate
 
     # Install dependencies

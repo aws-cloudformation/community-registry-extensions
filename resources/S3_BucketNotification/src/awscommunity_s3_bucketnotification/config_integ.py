@@ -131,7 +131,7 @@ def main(profile_name): #pylint: disable=too-many-branches
             zipped_code = f.read()
 
         r = lam.create_function(FunctionName=function_name,
-                Runtime="python3.7", 
+                Runtime="python3.9", 
                 Role=function_role_arn,
                 Handler="test_lambda.handle", 
                 Code=dict(ZipFile=zipped_code))
