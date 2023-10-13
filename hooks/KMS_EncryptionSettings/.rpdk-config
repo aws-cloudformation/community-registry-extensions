@@ -2,7 +2,7 @@
     "artifact_type": "HOOK",
     "typeName": "AwsCommunity::KMS::EncryptionSettings",
     "language": "java",
-    "runtime": "java17",
+    "runtime": "java11",
     "entrypoint": "com.awscommunity.kms.encryptionsettings.HookHandlerWrapper::handleRequest",
     "testEntrypoint": "com.awscommunity.kms.encryptionsettings.HookHandlerWrapper::testEntrypoint",
     "settings": {
