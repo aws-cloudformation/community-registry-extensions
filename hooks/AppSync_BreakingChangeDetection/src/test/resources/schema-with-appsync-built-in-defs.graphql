@@ -1,0 +1,32 @@
+directive @someDirective on FIELD_DEFINITION
+
+type Test @aws_lambda @aws_api_key @aws_oidc @aws_iam @aws_cognito_user_pools {
+  id: ID! @canonical
+  date: AWSDate @renamed(to: "w")
+  time: AWSTime @hidden
+  dateTime: AWSDateTime
+  json: AWSJSON
+  phone: AWSPhone
+  url: AWSURL,
+  ip: AWSIPAddress
+}
+
+type Query {
+  getTests: [Test]!  @aws_cognito_user_pools(cognito_groups: ["Readers"])
+}
+
+type Mutation {
+  addTest(version: String!): Test
+  @aws_publish(subscriptions: "onTestAdded")
+  @aws_auth(cognito_groups: ["Admin"])
+}
+
+type Subscription {
+    onTestAdded: Test
+     @aws_subscribe(mutations: ["addTest"])
+}
+
+enum TestType {
+   SIMPLE,
+   COMPLEX
+}

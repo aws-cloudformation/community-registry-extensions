@@ -1,0 +1,28 @@
+{
+    "typeName": "AwsCommunity::AppSync::BreakingChangeDetection",
+    "description": "PreUpdate hook to perform breaking change detection on an AWS AppSync schema change.",
+    "sourceUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/hooks/AppSync_BreakingChangeDetection",
+    "documentationUrl": "https://github.com/aws-cloudformation/community-registry-extensions/tree/main/hooks/AppSync_BreakingChangeDetection/README.md",
+    "typeConfiguration": {
+        "properties": {
+            "ConsiderDangerousChangesBreaking": {
+                "description": "Whether to consider changes that are in the DANGEROUS category as BREAKING. Changes in the DANGEROUS category wont break existing requests but could affect the runtime behavior of clients. Adding an enum value is an example of a dangerous change.",
+                "type": "boolean",
+                "default": false
+            }
+        },
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preUpdate": {
+            "targetNames": [
+                "AWS::AppSync::GraphQLSchema"
+            ],
+            "permissions": [
+                "s3:GetObject"
+            ]
+        }
+    },
+    "additionalProperties": false
+}

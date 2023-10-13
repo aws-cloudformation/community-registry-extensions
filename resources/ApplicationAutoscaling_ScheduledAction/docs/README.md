@@ -1,6 +1,6 @@
 # AwsCommunity::ApplicationAutoscaling::ScheduledAction
 
-Resource to create a Application Autoscaling Scheduled Action. Can be used with any resource that uses AWS Application Autoscaling Dimensions.
+Application Autoscaling Scheduled Action.
 
 ## Syntax
 
@@ -53,8 +53,6 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### ResourceId
 
-Must be a valid resource as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId
-
 _Required_: Yes
 
 _Type_: String
@@ -81,8 +79,6 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### Schedule
 
-Must be a valid schedule as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId
-
 _Required_: Yes
 
 _Type_: String
@@ -92,8 +88,6 @@ _Pattern_: <code>[\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF\r\n\t]*</c
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### ScheduledActionName
-
-Must be a valid action name as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId
 
 _Required_: Yes
 
@@ -120,8 +114,6 @@ _Type_: String
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### Timezone
-
-Must be a valid timestamp as defined in https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PutScheduledAction.html#autoscaling-PutScheduledAction-request-ResourceId
 
 _Required_: No
 

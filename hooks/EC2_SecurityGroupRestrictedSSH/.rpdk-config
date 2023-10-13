@@ -1,8 +1,8 @@
 {
     "artifact_type": "HOOK",
     "typeName": "AwsCommunity::EC2::SecurityGroupRestrictedSSH",
-    "language": "python37",
-    "runtime": "python3.7",
+    "language": "python39",
+    "runtime": "python3.9",
     "entrypoint": "awscommunity_ec2_securitygrouprestrictedssh.handlers.hook",
     "testEntrypoint": "awscommunity_ec2_securitygrouprestrictedssh.handlers.test_entrypoint",
     "settings": {
