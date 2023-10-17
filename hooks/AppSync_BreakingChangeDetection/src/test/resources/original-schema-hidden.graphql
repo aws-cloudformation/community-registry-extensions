@@ -1,5 +1,5 @@
 type test {
-  version: String!
+  version: String! @hidden
   type: TestType
 }
 
