@@ -1,15 +1,16 @@
 package com.awscommunity.appsync.breakingchangedetection.schema;
 
 import com.awscommunity.appsync.breakingchangedetection.model.aws.appsync.graphqlschema.AwsAppsyncGraphqlschema;
-
 import graphql.schema.GraphQLSchema;
-import graphql.schema.diff.DiffSet;
-import graphql.schema.idl.*;
 import graphql.schema.diff.SchemaDiff;
+import graphql.schema.diff.SchemaDiffSet;
+import graphql.schema.idl.RuntimeWiring;
+import graphql.schema.idl.SchemaGenerator;
+import graphql.schema.idl.SchemaParser;
+import graphql.schema.idl.TypeDefinitionRegistry;
+import java.util.Objects;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
-
-import java.util.Objects;
 
 import static com.awscommunity.appsync.breakingchangedetection.schema.AppSyncDirectives.APPSYNC_DIRECTIVE_DEFINITIONS;
 import static com.awscommunity.appsync.breakingchangedetection.schema.AppSyncScalars.APPSYNC_SCALAR_DEFINITIONS;
@@ -34,7 +35,7 @@ public class AppSyncSchemaDiffUtil {
         final SchemaDiff schemaDiff = new SchemaDiff(SchemaDiff.Options.defaultOptions().enforceDirectives());
         final GraphQLSchema currentSchema = getGraphQLSchema(previousResourceProperties, proxy);
         final GraphQLSchema newSchema = getGraphQLSchema(resourceProperties, proxy);
-        final DiffSet diffset = DiffSet.diffSet(currentSchema, newSchema);
+        final SchemaDiffSet diffset = SchemaDiffSet.diffSetFromSdl(currentSchema, newSchema);
 
         final AppSyncSchemaDiffReporter reporter = new AppSyncSchemaDiffReporter(logger, resourceProperties.getApiId());
         schemaDiff.diffSchema(diffset, reporter);

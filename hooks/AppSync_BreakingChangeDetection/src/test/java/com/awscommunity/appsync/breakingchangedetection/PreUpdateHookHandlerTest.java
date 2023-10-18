@@ -138,6 +138,17 @@ public class PreUpdateHookHandlerTest {
         assertResponse(response, OperationStatus.SUCCESS, expectedMessage, null);
     }
 
+    @Test
+    public void handleRequest_HiddenDirectiveRemoved() throws IOException {
+        final ProgressEvent<HookTargetModel, CallbackContext> response = executeSchemaDiffHook(
+                "original-schema-hidden.graphql",
+                "original-schema.graphql");
+
+        final String expectedMessage = "Breaking changes have been detected for this AWS::AppSync::GraphQLSchema:\n"
+                + "API Id: 1 [BREAKING] [MISSING] - The new API does not have a directive named 'hidden' on type 'test'\n";
+        assertResponse(response, OperationStatus.FAILED, expectedMessage, HandlerErrorCode.NonCompliant);
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void handleRequest_GetDefinitionFromS3Succeeds() throws IOException {
