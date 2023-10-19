@@ -29,7 +29,10 @@ class Messages:
     error_message: str | None = field(default=None)
 
     @classmethod
-    def from_object(cls, obj) -> "Messages":
+    def from_object(cls, obj) -> "Messages" | None:
+        if obj is None:
+            return None
+
         return cls(
             custom_message=obj.get("custom_message"),
             error_message=obj.get("error_message"),
@@ -74,7 +77,7 @@ class GuardBlockReport(ValueComparisons):
     unresolved: Any = field()
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "GuardBlockReport" | None:
         if obj is None:
             return obj
 
@@ -100,7 +103,7 @@ class DisjunctionsReport:
     checks: ClauseReport = field()
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "DisjunctionsReport" | None:
         if obj is None:
             return obj
 
@@ -115,7 +118,10 @@ class UnaryComparison:
     comparison: Tuple[str, bool] = field()
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "UnaryComparison" | None:
+        if obj is None:
+            return None
+
         return cls(
             value=obj.get("value"),
             comparison=tuple(obj.get("comparison")),
@@ -131,7 +137,7 @@ class UnResolved:
     reason: Any = field()
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "UnResolved" | None:
         if obj is None:
             return None
         return cls(
@@ -147,7 +153,10 @@ class ValueUnResolved:
     comparison: Any = field()
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "ValueUnResolved" | None:
+        if obj is None:
+            return None
+
         return cls(
             value=obj.get("value"),
             comparison=obj.get("comparison"),
@@ -163,7 +172,7 @@ class UnaryCheck(ValueComparisons):
     UnresolvedContext: Any | None = field(default=None)
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "UnaryCheck" | None:
         if obj is None:
             return obj
 
@@ -195,7 +204,7 @@ class UnaryReport:
     check: UnaryCheck = field()
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "UnaryReport" | None:
         if obj is None:
             return None
 
@@ -213,7 +222,7 @@ class BinaryComparison:
     comparison: Any = field()
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "BinaryComparison" | None:
         if obj is None:
             return None
         return cls(
@@ -230,6 +239,9 @@ class InComparison:
 
     @classmethod
     def from_object(cls, obj) -> "InComparison" | None:
+        if obj is None:
+            return None
+
         return cls(
             from_=obj.get("from"),
             to_=obj.get("to"),
@@ -244,7 +256,10 @@ class BinaryCheck(ValueComparisons):
     InResolved: Any = field(default=None)
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "BinaryCheck" | None:
+        if obj is None:
+            return None
+
         return cls(
             Resolved=BinaryComparison.from_object(obj.get("Resolved")),
             UnResolved=UnResolved.from_object(obj.get("UnResolved")),
@@ -275,7 +290,7 @@ class BinaryReport:
     check: BinaryCheck = field()
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "BinaryReport" | None:
         if obj is None:
             return obj
         return cls(
@@ -293,7 +308,7 @@ class GuardClauseReport(ValueComparisons):
     Binary: BinaryReport | None = field(default=None)
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "GuardClauseReport" | None:
         if obj is None:
             return obj
 
@@ -345,7 +360,10 @@ class ClauseReport(ValueComparisons):
     Clause: GuardClauseReport | None = field(default=None)
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj) -> "ClauseReport" | None:
+        if obj is None:
+            return None
+
         return cls(
             Rule=RuleReport.from_object(obj.get("Rule")),
             Disjunctions=DisjunctionsReport.from_object(obj.get("Disjunctions")),
