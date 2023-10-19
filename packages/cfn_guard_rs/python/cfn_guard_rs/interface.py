@@ -52,7 +52,7 @@ class RuleReport:
 
     name: str = field()
     metadata: Dict[str, Any] = field()
-    messages: Messages = field()
+    messages: Messages | None = field()
     checks: Sequence[ClauseReport] = field()
 
     @classmethod
@@ -73,7 +73,7 @@ class GuardBlockReport(ValueComparisons):
     """Guard Block Report"""
 
     context: str = field()
-    messages: Messages = field()
+    messages: Messages | None = field()
     unresolved: Any = field()
 
     @classmethod
@@ -100,7 +100,7 @@ class GuardBlockReport(ValueComparisons):
 class DisjunctionsReport:
     """Disjunctions"""
 
-    checks: ClauseReport = field()
+    checks: ClauseReport | None = field()
 
     @classmethod
     def from_object(cls, obj) -> "DisjunctionsReport" | None:
@@ -115,7 +115,7 @@ class UnaryComparison:
     """Unary Comparison"""
 
     value: Any = field()
-    comparison: Tuple[str, bool] = field()
+    comparison: Tuple[Any, ...] | None = field()
 
     @classmethod
     def from_object(cls, obj) -> "UnaryComparison" | None:
@@ -200,8 +200,8 @@ class UnaryReport:
     """Unary Report"""
 
     context: str = field()
-    messages: Messages = field()
-    check: UnaryCheck = field()
+    messages: Messages | None = field()
+    check: UnaryCheck | None = field()
 
     @classmethod
     def from_object(cls, obj) -> "UnaryReport" | None:
@@ -286,8 +286,8 @@ class BinaryCheck(ValueComparisons):
 @dataclass(eq=True, frozen=True)
 class BinaryReport:
     context: str = field()
-    messages: Messages = field()
-    check: BinaryCheck = field()
+    messages: Messages | None = field()
+    check: BinaryCheck | None = field()
 
     @classmethod
     def from_object(cls, obj) -> "BinaryReport" | None:
