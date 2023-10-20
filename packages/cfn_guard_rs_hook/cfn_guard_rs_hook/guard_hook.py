@@ -284,20 +284,28 @@ class GuardHook(Hook):
                 progress.errorCode = HandlerErrorCode.NonCompliant
                 progress.message = ""
                 for not_compliant in guard_result.not_compliant:
+                    LOG.debug("Not Compliant: %s", not_compliant)
                     rule = not_compliant.Rule
                     if rule is None:
                         progress.message += "Found not compliant without rule. "
                         continue
                     for err in rule.checks:
-                        path = err.value_from.get("path")
+                        LOG.debug("Rule check: %s", err)
                         clause = err.Clause
                         if clause is None:
                             progress.message += "Found not compliant without a clause. "
                             continue
-                        progress.message += (
-                            f"Rule [{rule.name}] failed on "
-                            f"property [{path}] and got error [{clause.messages}]. "
-                        )
+                        if err.value_from:
+                            progress.message += (
+                                f"Rule [{rule.name}] failed on "
+                                f"property [{err.value_from.get('path')}] "
+                                f"and got error [{clause.messages}]. "
+                            )
+                        else:
+                            progress.message += (
+                                f"Rule [{rule.name}] failed "
+                                f"with error [{clause.messages}]. "
+                            )
         progress.message = progress.message.strip()
         LOG.debug("Progress Event: %s", progress)
         return progress
