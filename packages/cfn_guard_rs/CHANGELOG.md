@@ -1,3 +1,5 @@
+## v0.3.3
+- Fix an issue with empty values in the output from Guard
 
 ## v0.2.1
 #### Fixes
