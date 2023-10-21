@@ -119,9 +119,9 @@ class TypeConfigurationObjectLockEnabled:
                 message=(
                     "Rule [S3_BUCKET_DEFAULT_LOCK_ENABLED] failed on "
                     "property [/Resources/Bucket/Properties/ObjectLockEnabled"
-                    "] and got error [;    Violation: S3 Bucket ObjectLockEnabled "
-                    "must be set to true.;    Fix: Set the S3 property "
-                    "ObjectLockEnabled parameter to true.;  ]."
+                    "] and got error [\n    Violation: S3 Bucket ObjectLockEnabled "
+                    "must be set to true.\n    Fix: Set the S3 property "
+                    "ObjectLockEnabled parameter to true.\n  ]."
                 ),
                 result=None,
                 callbackContext=None,
