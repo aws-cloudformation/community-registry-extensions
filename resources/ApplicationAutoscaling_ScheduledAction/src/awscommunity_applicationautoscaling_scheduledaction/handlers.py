@@ -54,9 +54,9 @@ def define_scalable_target_action(model) -> dict:
         "Schedule": model.Schedule,
     }
     target_action: dict = {}
-    if model.ScalableTargetAction.MinCapacity:
+    if model.ScalableTargetAction.MinCapacity is not None:
         target_action["MinCapacity"] = int(model.ScalableTargetAction.MinCapacity)
-    if model.ScalableTargetAction.MaxCapacity:
+    if model.ScalableTargetAction.MaxCapacity is not None:
         target_action["MaxCapacity"] = int(model.ScalableTargetAction.MaxCapacity)
     if model.EndTime and isinstance(model.EndTime, str):
         try:
