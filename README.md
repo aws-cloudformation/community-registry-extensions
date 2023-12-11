@@ -23,9 +23,6 @@ cfn-lint, Guard and more:
 
 ## How to use these extensions
 
-(Note that we are not yet actually publishing the extensions, pending approval 
-of our release process)
-
 Log in to your AWS account and go to the CloudFormation console. Under Registry
 in the menu, select Public extensions. Search under Third Party publishers for
 the `AwsCommunity::` namespace. These extensions can be used from any template
@@ -104,7 +101,7 @@ https://github.com/aws-cloudformation/rain
 
 ### 3p resources
 
-We are working on a set of third party resources that will piggy-back on our release process and be published from our publisher account.
+These third party resources are also published from our publisher account using the release process in this repo.
 
 https://github.com/aws-ia/cloudformation-okta-resource-providers
 
