@@ -1,0 +1,98 @@
+{
+  "AWS::ApiGateway::Stage": {
+    "resourceProperties": {
+      "RestApiId": "1234abcd",
+      "TracingEnabled": true
+    }
+  },
+  "AWS::AutoScaling::AutoScalingGroup": {
+    "resourceProperties": {
+      "HealthCheckType": "ELB",
+      "MaxSize": "1",
+      "MinSize": "1"
+    }
+  },
+  "AWS::EC2::EIP": {
+    "resourceProperties": {
+      "InstanceId": "i-1234abcd"
+    }
+  },
+  "AWS::EC2::Instance": {
+    "resourceProperties": {
+      "ImageId": "ami-1234abcd",
+      "InstanceType": "t2.micro"
+    }
+  },
+  "AWS::EC2::Subnet": {
+    "resourceProperties": {
+      "MapPublicIpOnLaunch": false,
+      "VpcId": "vpc-1234abcd"
+    }
+  },
+  "AWS::Elasticsearch::Domain": {
+    "resourceProperties": {
+      "LogPublishingOptions": {
+        "ES_APPLICATION_LOGS": {
+          "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:123456789012:log-group:/aws/opensearchservice/domains/es-application-logs",
+          "Enabled": true
+        },
+        "INDEX_SLOW_LOGS": {
+          "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:123456789012:log-group:/aws/opensearchservice/domains/es-index-slow-logs",
+          "Enabled": true
+        },
+        "SEARCH_SLOW_LOGS": {
+          "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:123456789012:log-group:/aws/opensearchservice/domains/es-slow-logs",
+          "Enabled": true
+        }
+      },
+      "NodeToNodeEncryptionOptions": {
+        "Enabled": true
+      }
+    }
+  },
+  "AWS::Lambda::Function": {
+    "resourceProperties": {
+      "Code": {
+        "ZipFile": "This is some code"
+      },
+      "Role": "arn:aws:iam::123456789012:role/lambda-role",
+      "Runtime": "python3.8"
+    }
+  },
+  "AWS::RDS::DBInstance": {
+    "resourceProperties": {
+      "AutoMinorVersionUpgrade": true,
+      "DBInstanceClass": "db.m5.large",
+      "Engine": "mysql",
+      "MonitoringInterval": 60,
+      "MonitoringRoleArn": "arn:aws:iam::123456789012:role/rds-monitoring-role",
+      "MultiAZ": true,
+      "PubliclyAccessible": false,
+      "StorageEncrypted": true
+    }
+  },
+  "AWS::Redshift::Cluster": {
+    "resourceProperties": {
+      "AllowVersionUpgrade": true,
+      "ClusterType": "multi-node",
+      "DBName": "testonly",
+      "MasterUserPassword": "testonly",
+      "MasterUsername": "testonly",
+      "NodeType": "ds2.xlarge",
+      "PubliclyAccessible": false
+    }
+  },
+  "AWS::S3::Bucket": {
+    "resourceProperties": {
+      "LoggingConfiguration": {
+        "DestinationBucketName": "DOC-EXAMPLE-BUCKET",
+        "LogFilePrefix": "testing-logs"
+      }
+    }
+  },
+  "AWS::SNS::Topic": {
+    "resourceProperties": {
+      "KmsMasterKeyId": "arn:aws:kms:us-east-1:111122223333:key/00000000-1111-2222-aaaa-bbbbccccdddd"
+    }
+  }
+}

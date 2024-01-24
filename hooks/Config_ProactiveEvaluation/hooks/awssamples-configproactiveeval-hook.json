@@ -1,0 +1,64 @@
+{
+    "typeName": "AWSSamples::ConfigProactiveEval::Hook",
+    "description": "Sample hook to call AWS Config proactive evaluations",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-samples/",
+    "documentationUrl": "https://github.com/aws-cloudformation/aws-cloudformation-samples/",
+    "typeConfiguration": {
+        "properties": {
+            "OutcomeForComplianceTypeInsufficientData": {
+                "description": "Determines whether the hook should pass or fail if Config returns 'Insufficient Data' on resource evaluation.",
+                "default": "PASS",
+                "type": "string",
+                "enum": [
+                    "PASS",
+                    "FAIL"
+                ]
+            }
+        },
+        "additionalProperties": false
+    },
+    "required": [],
+    "handlers": {
+        "preCreate": {
+            "targetNames": [
+                "AWS::ApiGateway::Stage",
+                "AWS::AutoScaling::AutoScalingGroup",
+                "AWS::EC2::EIP",
+                "AWS::EC2::Instance",
+                "AWS::EC2::Subnet",
+                "AWS::Elasticsearch::Domain",
+                "AWS::Lambda::Function",
+                "AWS::RDS::DBInstance",
+                "AWS::Redshift::Cluster",
+                "AWS::S3::Bucket",
+                "AWS::SNS::Topic"
+            ],
+            "permissions": [
+                "config:GetResourceEvaluationSummary",
+                "config:StartResourceEvaluation",
+                "cloudformation:DescribeType"
+            ]
+        },
+        "preUpdate": {
+            "targetNames": [
+                "AWS::ApiGateway::Stage",
+                "AWS::AutoScaling::AutoScalingGroup",
+                "AWS::EC2::EIP",
+                "AWS::EC2::Instance",
+                "AWS::EC2::Subnet",
+                "AWS::Elasticsearch::Domain",
+                "AWS::Lambda::Function",
+                "AWS::RDS::DBInstance",
+                "AWS::Redshift::Cluster",
+                "AWS::S3::Bucket",
+                "AWS::SNS::Topic"
+            ],
+            "permissions": [
+                "config:GetResourceEvaluationSummary",
+                "config:StartResourceEvaluation",
+                "cloudformation:DescribeType"
+            ]
+        }
+    },
+    "additionalProperties": false
+}

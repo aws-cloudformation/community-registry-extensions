@@ -1,0 +1,301 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CloudFormation template that enables all AWS Config rules that support Proactive Evaluations https://docs.aws.amazon.com/config/latest/developerguide/managed-rules-by-evaluation-mode.html",
+  "Resources": {
+    "ConfigRuleApiGwXrayEnabled": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "API_GW_XRAY_ENABLED"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleAutoscalingGroupElbHealthcheckRequired": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },    
+    "ConfigRuleEc2InstanceMultipleEniCheck": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "EC2_INSTANCE_MULTIPLE_ENI_CHECK"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },    
+    "ConfigRuleEipAttached": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "EIP_ATTACHED"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleElasticsearchNodeToNodeEncryptionCheck": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleLambdaFunctionSettingsCheck": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "LAMBDA_FUNCTION_SETTINGS_CHECK"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ],
+        "InputParameters": {
+          "runtime": "java8, java11, java17, java21"
+        }
+      }
+    },
+    "ConfigRuleRdsAutomaticMinorVersionUpgradeEnabled": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "RDS_AUTOMATIC_MINOR_VERSION_UPGRADE_ENABLED"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleRdsEnhancedMonitoringEnabled": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "RDS_ENHANCED_MONITORING_ENABLED"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleRdsInstancePublicAccessCheck": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "RDS_INSTANCE_PUBLIC_ACCESS_CHECK"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleRdsMultiAzSupport": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "RDS_MULTI_AZ_SUPPORT"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleRdsStorageEncrypted": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "RDS_STORAGE_ENCRYPTED"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleRedshiftClusterMaintenancesettingsCheck": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "REDSHIFT_CLUSTER_MAINTENANCESETTINGS_CHECK"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ],
+        "InputParameters": {
+          "allowVersionUpgrade": "TRUE"
+        }
+      }
+    },
+    "ConfigRuleRedshiftClusterPublicAccessCheck": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleS3BucketLoggingEnabled": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "S3_BUCKET_LOGGING_ENABLED"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleSnsEncryptedKms": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "SNS_ENCRYPTED_KMS"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleSubnetAutoAssignPublicIpDisabled": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "SUBNET_AUTO_ASSIGN_PUBLIC_IP_DISABLED"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    },
+    "ConfigRuleLambdaInsideVpc": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "LAMBDA_INSIDE_VPC"
+        },
+        "EvaluationModes": [
+          {
+            "Mode": "DETECTIVE"
+          },
+          {
+            "Mode": "PROACTIVE"
+          }
+        ]
+      }
+    }
+  }
+}
