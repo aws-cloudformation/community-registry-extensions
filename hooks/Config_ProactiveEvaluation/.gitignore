@@ -17,8 +17,8 @@ out/
 .vscode
 
 # auto-generated files
-/hooks/target/
-/hooks/docs/*
+/hook/target/
+/hook/docs/*
 *.zip
 
 # contract testing
