@@ -23,7 +23,7 @@ Resources:
                   Ref: AWS::AccountId
               StringLike:
                 aws:SourceArn:
-                  Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/hook/AWSSamples-ConfigProactiveEval-Hook/*
+                  Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:type/hook/AwsCommunity-Config-ProactiveEval/*
       Path: "/"
       Policies:
         - PolicyName: HookTypePolicy

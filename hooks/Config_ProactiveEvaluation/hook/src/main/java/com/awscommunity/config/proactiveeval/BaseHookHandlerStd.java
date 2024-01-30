@@ -1,6 +1,7 @@
-package com.awssamples.configproactiveeval.hook;
+package com.awscommunity.config.proactiveeval;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import software.amazon.awssdk.services.config.model.InvalidParameterValueException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;

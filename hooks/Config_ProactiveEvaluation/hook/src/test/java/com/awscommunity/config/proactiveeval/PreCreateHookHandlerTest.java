@@ -1,4 +1,4 @@
-package com.awssamples.configproactiveeval.hook;
+package com.awscommunity.config.proactiveeval;
 
 import static org.mockito.Mockito.spy;
 

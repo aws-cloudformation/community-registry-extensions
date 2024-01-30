@@ -1,4 +1,4 @@
-package com.awssamples.configproactiveeval.hook;
+package com.awscommunity.config.proactiveeval;
 
 import software.amazon.awssdk.services.config.model.EvaluationMode;
 import software.amazon.awssdk.services.config.model.GetResourceEvaluationSummaryRequest;

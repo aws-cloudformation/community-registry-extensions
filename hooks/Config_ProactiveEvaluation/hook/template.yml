@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: AWS SAM template for the AWSSamples::ConfigProactiveEval::Hook resource type
+Description: AWS SAM template for the AwsCommunity::Config::ProactiveEval resource type
 
 Globals:
   Function:
@@ -11,13 +11,13 @@ Resources:
   TypeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: com.awssamples.configproactiveeval.hook.HookHandlerWrapper::handleRequest
+      Handler: com.awscommunity.config.proactiveeval.HookHandlerWrapper::handleRequest
       Runtime: java11
-      CodeUri: ./target/awssamples-configproactiveeval-hook-handler-1.0-SNAPSHOT.jar
+      CodeUri: ./target/awscommunity-config-proactiveeval-handler-1.0-SNAPSHOT.jar
 
   TestEntrypoint:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: com.awssamples.configproactiveeval.hook.HookHandlerWrapper::testEntrypoint
+      Handler: com.awscommunity.config.proactiveeval.HookHandlerWrapper::testEntrypoint
       Runtime: java11
-      CodeUri: ./target/awssamples-configproactiveeval-hook-handler-1.0-SNAPSHOT.jar
+      CodeUri: ./target/awscommunity-config-proactiveeval-handler-1.0-SNAPSHOT.jar

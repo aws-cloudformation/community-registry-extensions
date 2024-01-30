@@ -1,6 +1,6 @@
 {
-    "typeName": "AWSSamples::ConfigProactiveEval::Hook",
-    "description": "Sample hook to call AWS Config proactive evaluations",
+    "typeName": "AwsCommunity::Config::ProactiveEval",
+    "description": "This hook calls AWS Config proactive evaluations to assess compliance of the resource",
     "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-samples/",
     "documentationUrl": "https://github.com/aws-cloudformation/aws-cloudformation-samples/",
     "typeConfiguration": {

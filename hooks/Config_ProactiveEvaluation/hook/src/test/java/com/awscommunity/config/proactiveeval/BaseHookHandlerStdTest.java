@@ -1,4 +1,4 @@
-package com.awssamples.configproactiveeval.hook;
+package com.awscommunity.config.proactiveeval;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

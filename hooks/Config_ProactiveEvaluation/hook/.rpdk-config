@@ -1,10 +1,10 @@
 {
     "artifact_type": "HOOK",
-    "typeName": "AWSSamples::ConfigProactiveEval::Hook",
+    "typeName": "AwsCommunity::Config::ProactiveEval",
     "language": "java",
     "runtime": "java11",
-    "entrypoint": "com.awssamples.configproactiveeval.hook.HookHandlerWrapper::handleRequest",
-    "testEntrypoint": "com.awssamples.configproactiveeval.hook.HookHandlerWrapper::testEntrypoint",
+    "entrypoint": "com.awscommunity.config.proactiveeval.HookHandlerWrapper::handleRequest",
+    "testEntrypoint": "com.awscommunity.config.proactiveeval.HookHandlerWrapper::testEntrypoint",
     "settings": {
         "version": false,
         "subparser_name": null,
@@ -18,12 +18,12 @@
         "profile": null,
         "namespace": [
             "com",
-            "awssamples",
-            "configproactiveeval",
-            "hook"
+            "awscommunity",
+            "config",
+            "proactiveeval"
         ],
         "codegen_template_path": "guided_aws",
         "protocolVersion": "2.0.0"
     },
-    "executableEntrypoint": "com.awssamples.configproactiveeval.hook.HookHandlerWrapperExecutable"
+    "executableEntrypoint": "com.awscommunity.config.proactiveeval.HookHandlerWrapperExecutable"
 }

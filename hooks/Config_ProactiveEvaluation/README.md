@@ -1,4 +1,4 @@
-# AWSSamples::ConfigProactiveEval::Hook
+# AwsCommunity::Config::ProactiveEval
 
 - [Overview](#overview)
 
