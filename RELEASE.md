@@ -1,10 +1,5 @@
 # Community Registry Extension Release Process
 
-_Note that this is a work in progress and we welcome your feedback!_
-
-_The final step in the release process, publishing, will not activated until
-we complete an appsec review internally_
-
 This document covers the release process for registry extensions in the
 `AwsCommunity::` namespace, published by the AWS Community Engagement Program
 (CEP) team.
