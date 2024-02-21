@@ -1,0 +1,174 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS CloudFormation template to enable AWS Config in an account. An Amazon S3 bucket is used as the delivery channel. Recording is only enabled for resources that currently support proactive evaluations.",
+  "Parameters": {
+    "ConfigBucketName": {
+      "Description": "The name of the Amazon S3 that will be used to store Configuration snapshots",
+      "Type": "String"
+    },
+    "DeliveryFrequency": {
+      "Description": "The frequency to deliver AWS Config snapshots to S3",
+      "Type": "String",
+      "AllowedValues": [
+        "One_Hour",
+        "Three_Hours",
+        "Six_Hours",
+        "Twelve_Hours",
+        "TwentyFour_Hours"
+      ],
+      "Default": "Six_Hours"
+    }
+  },
+  "Resources": {
+    "ConfigS3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "ConfigBucketName"
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "Id": "TransitionAndExpire",
+              "Status": "Enabled",
+              "Transitions": [
+                {
+                  "TransitionInDays": 30,
+                  "StorageClass": "STANDARD_IA"
+                },
+                {
+                  "TransitionInDays": 90,
+                  "StorageClass": "GLACIER"
+                }
+              ],
+              "ExpirationInDays": 365
+            }
+          ]
+        }
+      }
+    },
+    "ConfigRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Sub": "config-role-${AWS::AccountId}-${AWS::Region}"
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Action": [
+                "sts:AssumeRole"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "config.amazonaws.com"
+                ]
+              }
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWS_ConfigRole"
+        ]
+      }
+    },
+    "ConfigRolePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "config-policy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:PutObject",
+                "s3:PutObjectAcl"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "${ConfigS3Bucket.Arn}/AWSLogs/${AWS::AccountId}/*"
+                }
+              ],
+              "Condition": {
+                "StringLike": {
+                  "s3:x-amz-acl": "bucket-owner-full-control"
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetBucketAcl"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ConfigS3Bucket",
+                    "Arn"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "ConfigRole"
+          }
+        ]
+      }
+    },
+    "ConfigRecorder": {
+      "Type": "AWS::Config::ConfigurationRecorder",
+      "Properties": {
+        "Name": "ConfigRecorder",
+        "RecordingGroup": {
+          "RecordingStrategy": {
+            "UseOnly": "INCLUSION_BY_RESOURCE_TYPES"
+          },
+          "ResourceTypes": [
+            "AWS::ApiGateway::Stage",
+            "AWS::AutoScaling::AutoScalingGroup",
+            "AWS::EC2::EIP",
+            "AWS::EC2::Instance",
+            "AWS::EC2::Subnet",
+            "AWS::Elasticsearch::Domain",
+            "AWS::Lambda::Function",
+            "AWS::RDS::DBInstance",
+            "AWS::Redshift::Cluster",
+            "AWS::S3::Bucket",
+            "AWS::SNS::Topic"
+          ]
+        },
+        "RoleARN": {
+          "Fn::GetAtt": [
+            "ConfigRole",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "ConfigDeliveryChannel": {
+      "Type": "AWS::Config::DeliveryChannel",
+      "Properties": {
+        "S3BucketName": {
+          "Ref": "ConfigBucketName"
+        },
+        "ConfigSnapshotDeliveryProperties": {
+          "DeliveryFrequency": {
+            "Ref": "DeliveryFrequency"
+          }
+        }
+      }
+    }
+  }
+}

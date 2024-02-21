@@ -1,0 +1,57 @@
+{
+    "AWS::ApiGateway::Stage": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::AutoScaling::AutoScalingGroup": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::EC2::EIP": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::EC2::Instance": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::EC2::Subnet": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::Elasticsearch::Domain": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::Lambda::Function": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::RDS::DBInstance": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::Redshift::Cluster": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::S3::Bucket": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    },
+    "AWS::SNS::Topic": {
+        "resourceProperties": {
+          "badResource": "badResource"
+        }
+    }
+}

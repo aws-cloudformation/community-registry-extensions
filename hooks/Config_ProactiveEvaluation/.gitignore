@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+._*
+
+# Maven outputs
+.classpath
+
+# IntelliJ
+*.iml
+.idea
+out.java
+out/
+.settings
+.project
+
+# VS Code
+.vscode
+
+# auto-generated files
+/hook/target/
+/hook/docs/*
+*.zip
+
+# contract testing
+*.hypothesis
+*.pytest_cache/
+
+
+# our logs
+rpdk.log*
+
+# contains credentials
+sam-tests/
