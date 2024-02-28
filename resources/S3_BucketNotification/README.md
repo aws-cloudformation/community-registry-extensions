@@ -1,4 +1,4 @@
-# AwsLabs::S3::BucketNotification
+# AwsCommunity::S3::BucketNotification
 
 This CloudFormation registry extension resource type allows you to specify S3
 bucket notifications one at a time, in a way that does not result in a circular
