@@ -110,26 +110,27 @@ Resources:
       Roles:
         - !Ref DynatraceEnvironmentMetricBuildProjectRole
 
-  DynatraceEnvironmentMetricBuildProject:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-environmentmetric"
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        ComputeType: BUILD_GENERAL1_LARGE
-        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
-        ImagePullCredentialsType: SERVICE_ROLE
-        PrivilegedMode: true
-        Type: LINUX_CONTAINER
-        EnvironmentVariables:
-          - Name: RESOURCE_PATH
-            Type: PLAINTEXT
-            Value: "Dynatrace-Environment-Metric"
-      ServiceRole: !GetAtt DynatraceEnvironmentMetricBuildProjectRole.Arn
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: !Sub "${Env}-buildspec.yml"
+  # Temporarily remove the code build for Dynatrace::Environment::Metric until the API call is fixed since Dynatrace disabled the use of this API
+  # DynatraceEnvironmentMetricBuildProject:
+  #   Type: AWS::CodeBuild::Project
+  #   Properties:
+  #     Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-environmentmetric"
+  #     Artifacts:
+  #       Type: CODEPIPELINE
+  #     Environment:
+  #       ComputeType: BUILD_GENERAL1_LARGE
+  #       Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+  #       ImagePullCredentialsType: SERVICE_ROLE
+  #       PrivilegedMode: true
+  #       Type: LINUX_CONTAINER
+  #       EnvironmentVariables:
+  #         - Name: RESOURCE_PATH
+  #           Type: PLAINTEXT
+  #           Value: "Dynatrace-Environment-Metric"
+  #     ServiceRole: !GetAtt DynatraceEnvironmentMetricBuildProjectRole.Arn
+  #     Source:
+  #       Type: CODEPIPELINE
+  #       BuildSpec: !Sub "${Env}-buildspec.yml"
 
   DynatraceEnvironmentServiceLevelObjectiveBuildProjectRole:
     Type: AWS::IAM::Role
@@ -333,6 +334,107 @@ Resources:
         Type: CODEPIPELINE
         BuildSpec: !Sub "${Env}-buildspec.yml"
 
+  DynatraceAutomationWorkflowBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  DynatraceAutomationWorkflowBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      Roles:
+        - !Ref DynatraceAutomationWorkflowBuildProjectRole
+
+  DynatraceAutomationWorkflowBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-automationworkflow"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Dynatrace-Automation-Workflow"
+          - Name: DYNATRACE_USER_ID
+            Type: PARAMETER_STORE
+            Value: "cep-dynatrace-user-id"
+      ServiceRole: !GetAtt DynatraceAutomationWorkflowBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
+  DynatraceAutomationSiteReliabilityGuardianBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "cep-${Env}-common-build-project-policy"
+
+  DynatraceAutomationSiteReliabilityGuardianBuildProjectPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - secretsmanager:GetSecretValue
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${PrefixLower}-type-configuration*"
+        Version: '2012-10-17'
+      PolicyName: !Sub "${PrefixLower}-group-build-project-policy"
+      Roles:
+        - !Ref DynatraceAutomationSiteReliabilityGuardianBuildProjectRole
+
+  DynatraceAutomationSiteReliabilityGuardianBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${PrefixLower}-${Env}-${PrefixLower}-automationSiteReliabilityGuardian"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/cep-cicd:latest"
+        ImagePullCredentialsType: SERVICE_ROLE
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: RESOURCE_PATH
+            Type: PLAINTEXT
+            Value: "Dynatrace-Automation-SiteReliabilityGuardian"
+      ServiceRole: !GetAtt DynatraceAutomationSiteReliabilityGuardianBuildProjectRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub "${Env}-buildspec.yml"
+
   SourceBucket:
     Type: AWS::S3::Bucket
     Metadata:
@@ -389,7 +491,9 @@ Resources:
                   - !GetAtt DynatraceConfigurationDashboardBuildProject.Arn
                   - !GetAtt DynatraceEnvironmentSyntheticLocationBuildProject.Arn
                   - !GetAtt DynatraceEnvironmentServiceLevelObjectiveBuildProject.Arn
-                  - !GetAtt DynatraceEnvironmentMetricBuildProject.Arn
+                  - !GetAtt DynatraceAutomationWorkflowBuildProject.Arn
+                  - !GetAtt DynatraceAutomationSiteReliabilityGuardianBuildProject.Arn
+                  # - !GetAtt DynatraceEnvironmentMetricBuildProject.Arn
               - Action:
                   - kms:*
                 Effect: Allow
@@ -447,7 +551,9 @@ Resources:
                 - !GetAtt DynatraceConfigurationDashboardBuildProjectRole.Arn
                 - !GetAtt DynatraceEnvironmentSyntheticLocationBuildProjectRole.Arn
                 - !GetAtt DynatraceEnvironmentServiceLevelObjectiveBuildProjectRole.Arn
-                - !GetAtt DynatraceEnvironmentMetricBuildProjectRole.Arn
+                - !GetAtt DynatraceAutomationWorkflowBuildProjectRole.Arn
+                - !GetAtt DynatraceAutomationSiteReliabilityGuardianBuildProjectRole.Arn
+                # - !GetAtt DynatraceEnvironmentMetricBuildProjectRole.Arn
             Resource: "*"
       MultiRegion: true
 
@@ -576,7 +682,8 @@ Resources:
                     }
                   ]
               RunOrder: 1
-            - Name: DynatraceEnvironmentMetric
+
+            - Name: DynatraceAutomationWorkflow
               InputArtifacts:
                 - Name: extensions-source
               ActionTypeId:
@@ -585,16 +692,55 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               Configuration:
-                ProjectName: !Ref DynatraceEnvironmentMetricBuildProject
+                ProjectName: !Ref DynatraceAutomationWorkflowBuildProject
                 EnvironmentVariables: |-
                   [
                     {
                       "name": "RESOURCE_PATH",
                       "type": "PLAINTEXT",
-                      "value": "Dynatrace-Environment-Metric"
+                      "value": "Dynatrace-Automation-Workflow"
                     }
                   ]
               RunOrder: 1
+
+            - Name: DynatraceAutomationSiteReliabilityGuardian
+              InputArtifacts:
+                - Name: extensions-source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref DynatraceAutomationSiteReliabilityGuardianBuildProject
+                EnvironmentVariables: |-
+                  [
+                    {
+                      "name": "RESOURCE_PATH",
+                      "type": "PLAINTEXT",
+                      "value": "Dynatrace-Automation-SiteReliabilityGuardian"
+                    }
+                  ]
+              RunOrder: 1
+            # - Name: DynatraceEnvironmentMetric
+            #   InputArtifacts:
+            #     - Name: extensions-source
+            #   ActionTypeId:
+            #     Category: Build
+            #     Owner: AWS
+            #     Provider: CodeBuild
+            #     Version: 1
+            #   Configuration:
+            #     ProjectName: !Ref DynatraceEnvironmentMetricBuildProject
+            #     EnvironmentVariables: |-
+            #       [
+            #         {
+            #           "name": "RESOURCE_PATH",
+            #           "type": "PLAINTEXT",
+            #           "value": "Dynatrace-Environment-Metric"
+            #         }
+            #       ]
+            #   RunOrder: 1
         - !If
           - IsBeta
           - Name: CopyBuildToProd
