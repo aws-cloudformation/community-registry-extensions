@@ -9,9 +9,9 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
 RUN curl https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip -O -L \
     && unzip aws-sam-cli-linux-x86_64.zip -d sam-installation \
     && ./sam-installation/install
-RUN curl https://go.dev/dl/go1.20.1.linux-amd64.tar.gz -O -L \
+RUN curl https://go.dev/dl/go1.23.0.linux-amd64.tar.gz -O -L \
     && rm -rf /usr/local/go \
-    && tar -C /usr/local -xzf go1.20.1.linux-amd64.tar.gz
+    && tar -C /usr/local -xzf go1.23.0.linux-amd64.tar.gz
 ENV PATH=/usr/local/go/bin:$PATH
 RUN which go
 RUN go version
